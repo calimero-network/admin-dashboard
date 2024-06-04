@@ -12,4 +12,5 @@ runs:
       run: pnpm install
 
     - name: Build
+      shell: bash
       run: pnpm build
