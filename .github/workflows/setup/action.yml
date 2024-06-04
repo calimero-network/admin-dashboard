@@ -7,7 +7,7 @@ runs:
       run: npm install -g pnpm
       shell: bash
 
-    - name: Install dependencies 🔧
+    - name: Install dependencies
       shell: bash
       run: pnpm install
 
