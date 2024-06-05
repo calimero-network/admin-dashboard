@@ -1,3 +1,4 @@
+import { getAppEndpointKey } from "../../utils/storage";
 import { HttpClient } from "../httpClient";
 
 enum Network {
@@ -72,7 +73,7 @@ export class NodeDataSource {
   async getInstalledApplications(): Promise<Application[]> {
     try {
       const response = await this.client.get<Application[]>(
-        "/admin-api/applications"
+        `${getAppEndpointKey()}/admin-api/applications`
       );
       // @ts-ignore with adminAPI update TODO: fix admin api response
       return response?.apps ?? [];
@@ -84,7 +85,9 @@ export class NodeDataSource {
 
   async getContexts(): Promise<ContextsList<Context>> {
     try {
-      const response = await this.client.get<Context[]>("/admin-api/contexts");
+      const response = await this.client.get<Context[]>(
+        `${getAppEndpointKey()}/admin-api/contexts`
+      );
       if (response?.data) {
         // invited is empty for now as we don't have this endpoint available
         // will be left as "no invites" until this becomes available
@@ -104,7 +107,7 @@ export class NodeDataSource {
   async getContext(contextId: string): Promise<Context | null> {
     try {
       const response = await this.client.get<Context>(
-        `/admin-api/contexts/${contextId}`
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
       );
       if (response?.data) {
         return response.data;
@@ -120,7 +123,7 @@ export class NodeDataSource {
   async deleteContext(contextId: string): Promise<boolean> {
     try {
       const response = await this.client.delete<boolean>(
-        `/admin-api/contexts/${contextId}`
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
       );
       if (response?.data) {
         return response.data;
@@ -139,11 +142,14 @@ export class NodeDataSource {
     initArguments: string
   ): Promise<boolean> {
     try {
-      const response = await this.client.post<Context>("/admin-api/contexts", {
-        applicationId: applicationId,
-        ...(initFunction && { initFunction }),
-        ...(initArguments && { initArgs: JSON.stringify(initArguments) }),
-      });
+      const response = await this.client.post<Context>(
+        `${getAppEndpointKey()}/admin-api/contexts`,
+        {
+          applicationId: applicationId,
+          ...(initFunction && { initFunction }),
+          ...(initArguments && { initArgs: JSON.stringify(initArguments) }),
+        }
+      );
       if (response?.data) {
         return !!response.data;
       } else {
@@ -157,28 +163,30 @@ export class NodeDataSource {
 
   async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
     try {
-      const response = await this.client.get<RootkeyResponse>("/admin-api/did");
+      const response = await this.client.get<RootkeyResponse>(
+        `${getAppEndpointKey()}/admin-api/did`
+      );
       if (response?.data?.root_keys) {
         const rootKeys: (ETHRootKey | NearRootKey)[] =
-          response?.data?.root_keys?.map(
-            (obj: ApiRootKey) => {
-              if (obj.wallet.type === Network.NEAR) {
-                return {
-                  signingKey: obj.signing_key,
-                  type: Network.NEAR,
-                  chainId: obj.wallet.chainId ?? 1,
-                  createdAt: obj.created_at,
-                } as NearRootKey;
-              } else {
-                return {
-                  signingKey: obj.signing_key,
-                  type: Network.ETH,
-                  createdAt: obj.created_at,
-                  ...(obj.wallet.chainId !== undefined && { chainId: obj.wallet.chainId }),
-                } as ETHRootKey;
-              }
+          response?.data?.root_keys?.map((obj: ApiRootKey) => {
+            if (obj.wallet.type === Network.NEAR) {
+              return {
+                signingKey: obj.signing_key,
+                type: Network.NEAR,
+                chainId: obj.wallet.chainId ?? 1,
+                createdAt: obj.created_at,
+              } as NearRootKey;
+            } else {
+              return {
+                signingKey: obj.signing_key,
+                type: Network.ETH,
+                createdAt: obj.created_at,
+                ...(obj.wallet.chainId !== undefined && {
+                  chainId: obj.wallet.chainId,
+                }),
+              } as ETHRootKey;
             }
-          );
+          });
         return rootKeys;
       } else {
         return [];

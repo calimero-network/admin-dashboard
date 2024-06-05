@@ -5,7 +5,6 @@ import {
   Account,
   BrowserWallet,
   FinalExecutionOutcome,
-  NetworkId,
   setupWalletSelector,
 } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
@@ -19,6 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AddReleaseTable from "../components/publishApplication/addRelease/AddReleaseTable";
 import { DeployStatus, ReleaseInfo } from "./PublishApplication";
 import { isFinalExecution } from "../utils/wallet";
+import { getNearEnvironment } from "../utils/node";
 
 const BLOBBY_IPFS = "https://blobby-public.euw3.prod.gcp.calimero.network";
 
@@ -83,7 +83,7 @@ export default function AddRelease() {
 
   const addWalletAccount = async () => {
     const selector = await setupWalletSelector({
-      network: process.env["VITE_NEAR_ENVIRONMENT"] as NetworkId ?? "testnet",
+      network: getNearEnvironment(),
       modules: [setupMyNearWallet()],
     });
     const wallet: BrowserWallet = await selector.wallet("my-near-wallet");
@@ -161,9 +161,7 @@ export default function AddRelease() {
             },
           ],
         });
-      if (
-        isFinalExecution(res)
-      ) {
+      if (isFinalExecution(res)) {
         setDeployStatus({
           title: "Application published",
           message: `Release version ${
@@ -176,8 +174,10 @@ export default function AddRelease() {
       let errorMessage = "";
 
       if (error instanceof Error) {
-        errorMessage = JSON.parse(error.message).kind?.kind?.FunctionCallError
-        ?.ExecutionError ?? "An error occurred while publishing the release";
+        errorMessage =
+          JSON.parse(error.message).kind?.kind?.FunctionCallError
+            ?.ExecutionError ??
+          "An error occurred while publishing the release";
       }
 
       setDeployStatus({
