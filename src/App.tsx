@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Bootstrap from "./pages/Bootstrap";
 import Identity from "./pages/Identity";
 import Applications from "./pages/Applications";
@@ -13,7 +13,7 @@ import AddRelease from "./pages/AddRelease";
 import Metamask from "./pages/Metamask";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import Near from "./pages/Near";
+import Near from "./pages/near";
 
 export default function App() {
   return (

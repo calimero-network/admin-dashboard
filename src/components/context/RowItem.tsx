@@ -57,11 +57,15 @@ const RowItem = styled.div<RowItemComponentProps>`
   }
 `;
 
-
-export default function rowItem(item: ContextObject, id: number, count: number, onitemClicked?: (id: string) => void): JSX.Element {
+export default function rowItem(
+  item: ContextObject,
+  id: number,
+  count: number,
+  onitemClicked?: (id: string) => void
+): JSX.Element {
   return (
     <RowItem key={item.id} hasBorders={id === count}>
-      <a href={`/contexts/${item.id}`} className="row-item id">
+      <a href={`#/contexts/${item.id}`} className="row-item id">
         {item.id}
       </a>
       <div className="row-item name">{item.name}</div>
