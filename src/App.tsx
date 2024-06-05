@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, HashRouter } from "react-router-dom";
 import Bootstrap from "./pages/Bootstrap";
 import Identity from "./pages/Identity";
 import Applications from "./pages/Applications";
@@ -18,7 +18,7 @@ import Near from "./pages/near";
 export default function App() {
   return (
     <>
-      <BrowserRouter basename="/admin-dashboard">
+      <HashRouter basename="/admin-dashboard">
         <Routes>
           <Route path="/" element={<Bootstrap />} />
           <Route path="/near" element={<Near />} />
@@ -36,7 +36,7 @@ export default function App() {
           <Route path="/contexts/:id" element={<ContextDetails />} />
           <Route path="/export" element={<Export />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </>
   );
 }
