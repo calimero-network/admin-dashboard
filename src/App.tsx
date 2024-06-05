@@ -10,10 +10,10 @@ import Export from "./pages/Export";
 import ApplicationDetails from "./pages/ApplicationDetails";
 import PublishApplication from "./pages/PublishApplication";
 import AddRelease from "./pages/AddRelease";
-import Near from "./pages/Near";
 import Metamask from "./pages/Metamask";
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import Near from "./pages/near";
 
 export default function App() {
   return (
