@@ -18,7 +18,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 export default function App() {
   return (
     <>
-      <BrowserRouter basename="/admin">
+      <BrowserRouter basename="/admin-dashboard">
         <Routes>
           <Route path="/" element={<Bootstrap />} />
           <Route path="/near" element={<Near />} />

@@ -2,7 +2,7 @@ import { FinalExecutionStatus } from "near-api-js/lib/providers";
 import * as nearAPI from "near-api-js";
 
 export function getWalletCallbackUrl(): string {
-  return window.location.origin + "/admin/confirm-wallet";
+  return window.location.origin + "/admin-dashboard/confirm-wallet";
 }
 
 export function isFinalExecution(response: nearAPI.providers.FinalExecutionOutcome | void): boolean {
