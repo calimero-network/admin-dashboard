@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "rootDir": ".",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "build",
     "resolveJsonModule": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -29,8 +32,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "types": ["styled-components"]
+    "types": ["styled-components", "vite/client", "node"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "custom.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "build"]
 }

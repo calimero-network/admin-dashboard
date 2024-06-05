@@ -5,18 +5,16 @@ import NearRootKey from "@calimero-is-near/calimero-p2p-sdk/lib/wallets/NearLogi
 import ContentWrapper from "../components/login/ContentWrapper";
 
 import "@near-wallet-selector/modal-ui/styles.css";
-
-// @ts-expect-error
-const environment = import.meta.env.VITE_NEAR_ENVIRONMENT ?? "testnet";
+import { getNearEnvironment, getNodeUrl } from "../utils/node";
 
 export default function Near() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>
-      <WalletSelectorContextProvider network={environment}>
+      <WalletSelectorContextProvider network={getNearEnvironment()}>
         <NearRootKey
           appId={"admin-ui"}
-          rpcBaseUrl={window.location.origin}
+          rpcBaseUrl={getNodeUrl()}
           successRedirect={() => navigate("/identity")}
           navigateBack={() => navigate("/")}
           cardBackgroundColor={"#1c1c1c"}

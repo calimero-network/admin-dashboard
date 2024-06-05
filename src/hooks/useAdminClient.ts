@@ -1,12 +1,19 @@
 import axios from "axios";
+import { getAppEndpointKey } from "../utils/storage";
 
 export function useAdminClient() {
-  const installApplication = async (selectedPackage: string, selectedVersion: string) => {
+  const installApplication = async (
+    selectedPackage: string,
+    selectedVersion: string
+  ) => {
     try {
-      const response = await axios.post("/admin-api/install-application", {
-        application: selectedPackage,
-        version: selectedVersion,
-      });
+      const response = await axios.post(
+        `${getAppEndpointKey()}/admin-api/install-application`,
+        {
+          application: selectedPackage,
+          version: selectedVersion,
+        }
+      );
       return { data: response?.data };
     } catch (error) {
       // @ts-ignore: Property 'response' does not exist on type 'unknown'
@@ -25,8 +32,8 @@ export function useAdminClient() {
           error: {
             code: 500,
             message: "Try again later.",
-          }
-        }
+          },
+        };
       }
     }
   };

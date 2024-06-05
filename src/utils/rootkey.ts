@@ -1,7 +1,8 @@
-import { Location } from 'react-router-dom';
+import { Location } from "react-router-dom";
 import axios from "axios";
 import { getWalletCallbackUrl } from "./wallet";
 import { ETHRootKey, NearRootKey } from "../api/dataSource/NodeDataSource";
+import { getAppEndpointKey } from "./storage";
 
 export interface UrlParams {
   accountId: string;
@@ -24,9 +25,14 @@ export const getParams = (location: Location): UrlParams => {
   return { accountId, signature, publicKey, callbackUrl };
 };
 
-export const submitRootKeyRequest = async (params: UrlParams): Promise<submitRootKeyResponse> => {
+export const submitRootKeyRequest = async (
+  params: UrlParams
+): Promise<submitRootKeyResponse> => {
   try {
-    const response = await axios.post("/admin-api/root-key", params);
+    const response = await axios.post(
+      `${getAppEndpointKey()}/admin-api/root-key`,
+      params
+    );
     const message = response.data;
     return { data: message };
   } catch (error) {
@@ -42,7 +48,7 @@ enum Network {
   ETH = "ETH",
   BNB = "BNB",
   ARB = "ARB",
-  ZK = "ZK"
+  ZK = "ZK",
 }
 
 const getMetamaskType = (chainId: number): Network => {
@@ -54,11 +60,11 @@ const getMetamaskType = (chainId: number): Network => {
     case 42161:
       return Network.ARB;
     case 324:
-      return Network.ZK
+      return Network.ZK;
     default:
       return Network.ETH;
   }
-}
+};
 
 export interface RootKeyObject {
   type: Network;
@@ -66,10 +72,18 @@ export interface RootKeyObject {
   publicKey: string;
 }
 
-export function mapApiResponseToObjects(didList: (ETHRootKey | NearRootKey)[]): RootKeyObject[] {
+export function mapApiResponseToObjects(
+  didList: (ETHRootKey | NearRootKey)[]
+): RootKeyObject[] {
   return didList.map((item) => ({
-      type: item.type === Network.NEAR ? Network.NEAR : getMetamaskType(item.chainId ?? 1),
-      createdAt: item.createdAt,
-      publicKey: item.type === "NEAR" ? item.signingKey.split(":")[1]!.trim() : item.signingKey,
-    }));
+    type:
+      item.type === Network.NEAR
+        ? Network.NEAR
+        : getMetamaskType(item.chainId ?? 1),
+    createdAt: item.createdAt,
+    publicKey:
+      item.type === "NEAR"
+        ? item.signingKey.split(":")[1]!.trim()
+        : item.signingKey,
+  }));
 }

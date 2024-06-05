@@ -6,6 +6,7 @@ import styled from "styled-components";
 import ExportCard from "../components/exportIdentity/ExportCard";
 import translations from "../constants/en.global.json";
 import { ModalContentItem } from "../components/common/StatusModalItem";
+import { getAppEndpointKey } from "../utils/storage";
 
 const ExportWrapper = styled.div`
   display: flex;
@@ -30,7 +31,7 @@ export default function Export() {
 
   const exportIdentity = async () => {
     try {
-      const response = await axios.get("/admin-api/did");
+      const response = await axios.get(`${getAppEndpointKey()}/admin-api/did`);
       const identity = JSON.stringify(response?.data?.data?.root_keys, null, 2);
       setExportStatus({
         title: t.exportSuccessTitle,
