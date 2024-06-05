@@ -13,12 +13,12 @@ import AddRelease from "./pages/AddRelease";
 import Metamask from "./pages/Metamask";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import Near from "./pages/near";
+import Near from "./pages/Near";
 
 export default function App() {
   return (
     <>
-      <HashRouter basename="/admin-dashboard">
+      <BrowserRouter basename="/admin-dashboard">
         <Routes>
           <Route path="/" element={<Bootstrap />} />
           <Route path="/near" element={<Near />} />
@@ -36,7 +36,7 @@ export default function App() {
           <Route path="/contexts/:id" element={<ContextDetails />} />
           <Route path="/export" element={<Export />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </>
   );
 }
