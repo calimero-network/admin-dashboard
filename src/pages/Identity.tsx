@@ -28,9 +28,11 @@ export default function Identity() {
       <Navigation />
       <PageContentWrapper>
         <IdentityTable
-          onAddRootKey={() => navigate("/")}
+          onAddRootKey={() => navigate("/identity/root-key")}
           rootKeysList={rootKeys}
-          onCopyKeyClick={(publicKey: string) => navigator.clipboard.writeText(publicKey)}
+          onCopyKeyClick={(publicKey: string) =>
+            navigator.clipboard.writeText(publicKey)
+          }
         />
       </PageContentWrapper>
     </FlexLayout>

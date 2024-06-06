@@ -4,7 +4,7 @@ import MetamaskWrapper from "@calimero-is-near/calimero-p2p-sdk/lib/wallets/Meta
 import ContentWrapper from "../components/login/ContentWrapper";
 import { getNodeUrl } from "../utils/node";
 
-export default function Metamask() {
+export default function AddMetamaskRootKey() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>
@@ -13,7 +13,7 @@ export default function Metamask() {
         rpcBaseUrl={getNodeUrl()}
         successRedirect={() => navigate("/identity")}
         navigateBack={() => navigate("/")}
-        clientLogin={true}
+        clientLogin={false}
       />
     </ContentWrapper>
   );
