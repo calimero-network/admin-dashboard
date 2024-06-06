@@ -4,14 +4,14 @@ import MenuIconDropdown from "../common/MenuIconDropdown";
 import { ContextObject } from "../../pages/Contexts";
 
 interface RowItemComponentProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 const RowItem = styled.div<RowItemComponentProps>`
   display: flex;
   align-items: center;
   ${(props) =>
-    props.hasBorders
+    props.$hasBorders
       ? `
     border-top: 1px solid #23262D;
     border-bottom: 1px solid #23262D;
@@ -64,7 +64,7 @@ export default function rowItem(
   onitemClicked?: (id: string) => void
 ): JSX.Element {
   return (
-    <RowItem key={item.id} hasBorders={id === count}>
+    <RowItem key={item.id} $hasBorders={id === count}>
       <a href={`#/contexts/${item.id}`} className="row-item id">
         {item.id}
       </a>

@@ -12,11 +12,13 @@ import AddRelease from "./pages/AddRelease";
 import Metamask from "./pages/Metamask";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import Near from "./pages/near";
+
+import Near from "./pages/Near";
 import AddNearRootKey from "./pages/AddNearRootKey";
 import AddMetamaskRootKey from "./pages/AddMetamaskRootKey";
 import Authenticate from "./pages/Authenticate";
 import AddRootKey from "./pages/AddRootKey";
+
 
 export default function App() {
   return (

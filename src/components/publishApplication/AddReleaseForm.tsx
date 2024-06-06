@@ -114,7 +114,6 @@ export function AddReleaseForm({
           accept=".wasm"
           onChange={handleFileChange}
           ref={fileInputRef}
-          data-buttonText="Upload wasm"
         />
         {t.buttonUploadLabel}
       </div>

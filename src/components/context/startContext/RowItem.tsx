@@ -4,7 +4,7 @@ import { truncateHash } from "../../../utils/displayFunctions";
 import { Application } from "../../../pages/Applications";
 
 interface RowItemComponentProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 const RowItem = styled.div<RowItemComponentProps>`
@@ -25,7 +25,7 @@ const RowItem = styled.div<RowItemComponentProps>`
   padding-right: 1.5rem;
   padding-left: 1.5rem;
   ${(props) =>
-    props.hasBorders
+    props.$hasBorders
       ? `
     border-top: 1px solid #23262D;
     border-bottom: 1px solid #23262D;
@@ -56,7 +56,7 @@ const RowItem = styled.div<RowItemComponentProps>`
 
 export default function rowItem(item: Application, id: number, count: number, onRowItemClick?: (id: string) => void): JSX.Element {
   return (
-    <RowItem key={item.id} hasBorders={id === count}>
+    <RowItem key={item.id} $hasBorders={id === count}>
       <div className="row-item name" onClick={() => item.version && onRowItemClick && onRowItemClick(item.id)}>{item.name}</div>
       <div className="row-item read">{truncateHash(item.id)}</div>
       <div className="row-item read">{item.version ?? "N/A"}</div>
