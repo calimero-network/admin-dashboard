@@ -1,6 +1,5 @@
 import React from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import Bootstrap from "./pages/Bootstrap";
 import Identity from "./pages/Identity";
 import Applications from "./pages/Applications";
 import Contexts from "./pages/Contexts";
@@ -14,16 +13,26 @@ import Metamask from "./pages/Metamask";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import Near from "./pages/near";
+import AddNearRootKey from "./pages/AddNearRootKey";
+import AddMetamaskRootKey from "./pages/AddMetamaskRootKey";
+import Authenticate from "./pages/Authenticate";
+import AddRootKey from "./pages/AddRootKey";
 
 export default function App() {
   return (
     <>
       <BrowserRouter basename="/admin-dashboard">
         <Routes>
-          <Route path="/" element={<Bootstrap />} />
+          <Route path="/" element={<Authenticate />} />
           <Route path="/near" element={<Near />} />
           <Route path="/metamask" element={<Metamask />} />
           <Route path="/identity" element={<Identity />} />
+          <Route path="/identity/root-key" element={<AddRootKey />} />
+          <Route path="/identity/root-key/near" element={<AddNearRootKey />} />
+          <Route
+            path="/identity/root-key/metamask"
+            element={<AddMetamaskRootKey />}
+          />
           <Route path="/applications" element={<Applications />} />
           <Route path="/applications/:id" element={<ApplicationDetails />} />
           <Route path="/publish-application" element={<PublishApplication />} />
