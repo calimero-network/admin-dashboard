@@ -4,7 +4,7 @@ import { truncateHash } from "../../utils/displayFunctions";
 import { Application } from "../../pages/Applications";
 
 interface ApplicationRowItemProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 const RowItem = styled.div<ApplicationRowItemProps>`
@@ -25,7 +25,7 @@ const RowItem = styled.div<ApplicationRowItemProps>`
   padding-right: 1.5rem;
   padding-left: 1.5rem;
   border-top: 1px solid #23262d;
-  ${(props) => props.hasBorders && `border-bottom: 1px solid #23262D;`}
+  ${(props) => props.$hasBorders && `border-bottom: 1px solid #23262D;`}
 
   .row-item {
     padding: 0.75rem 0rem;
@@ -56,7 +56,7 @@ export default function applicationRowItem(
   onRowItemClick?: (id: string) => void
 ): JSX.Element {
   return (
-    <RowItem key={item.id} hasBorders={id === count}>
+    <RowItem key={item.id} $hasBorders={id === count}>
       <div
         className="row-item name"
         onClick={() => onRowItemClick && onRowItemClick(item.id)}

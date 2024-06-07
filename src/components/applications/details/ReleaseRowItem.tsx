@@ -4,7 +4,7 @@ import { truncateHash } from "../../../utils/displayFunctions";
 import { Release } from "../../../pages/Applications";
 
 export interface RowItemProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 export const RowItem = styled.div<RowItemProps>`
@@ -25,7 +25,7 @@ export const RowItem = styled.div<RowItemProps>`
   padding-right: 1.5rem;
   padding-left: 1.5rem;
   border-top: 1px solid #23262d;
-  ${(props) => props.hasBorders && `border-bottom: 1px solid #23262D;`}
+  ${(props) => props.$hasBorders && `border-bottom: 1px solid #23262D;`}
 
   .row-item {
     padding: 0.75rem 0rem;
@@ -53,7 +53,7 @@ export default function releaseRowItem(
   count: number
 ): JSX.Element {
   return (
-    <RowItem key={item.hash} hasBorders={id === count}>
+    <RowItem key={item.hash} $hasBorders={id === count}>
       <div className="row-item name">{item.version}</div>
       <div className="row-item read">
         <span className="long-text">{item.path.substring(0, 20)}...</span>
