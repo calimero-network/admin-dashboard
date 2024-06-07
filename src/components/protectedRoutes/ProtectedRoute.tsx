@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 
-const ProtectedRoute = () => {
+export default function ProtectedRoute(){
   const navigate = useNavigate();
   const isAuthorized =
     JSON.parse(localStorage.getItem("node-authorized")!) ?? false;
@@ -30,5 +30,3 @@ const ProtectedRoute = () => {
 
   return <Outlet />;
 };
-
-export default ProtectedRoute;
