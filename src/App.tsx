@@ -12,7 +12,6 @@ import ApplicationDetails from "./pages/ApplicationDetails";
 import PublishApplication from "./pages/PublishApplication";
 import AddRelease from "./pages/AddRelease";
 import Metamask from "./pages/Metamask";
-
 import AddNearRootKey from "./pages/AddNearRootKey";
 import AddMetamaskRootKey from "./pages/AddMetamaskRootKey";
 import Authenticate from "./pages/Authenticate";
@@ -22,6 +21,7 @@ import Near from "./pages/Near";
 import ProtectedRoute from "./components/protectedRoutes/ProtectedRoute";
 
 import "bootstrap/dist/css/bootstrap.min.css";
+
 
 export default function App() {
   return (

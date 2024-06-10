@@ -1,32 +1,35 @@
 import React, { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 
-export default function ProtectedRoute(){
+export default function ProtectedRoute() {
   const navigate = useNavigate();
-  const isAuthorized =
-    JSON.parse(localStorage.getItem("node-authorized")!) ?? false;
+  const clientKey = localStorage.getItem("client-key");
   const basePath = "/admin-dashboard";
   const pathname = location.pathname.startsWith(basePath)
     ? location.pathname.slice(basePath.length)
     : location.pathname;
 
   useEffect(() => {
-    if (isAuthorized) {
+    if (clientKey) {
       if (
-        pathname === "/" ||
-        pathname === "/near" ||
-        pathname === "/metamask"
+        pathname === "/auth" ||
+        pathname === "/auth/near" ||
+        pathname === "/auth/metamask"
       ) {
         navigate("/identity");
       }
     } else {
       if (
-        !(pathname === "/" || pathname === "/near" || pathname === "/metamask")
+        !(
+          pathname === "/auth" ||
+          pathname === "/auth/near" ||
+          pathname === "/auth/metamask"
+        )
       ) {
         navigate("/");
       }
     }
-  }, [isAuthorized]);
+  }, [clientKey]);
 
   return <Outlet />;
-};
+}

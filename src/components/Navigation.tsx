@@ -115,7 +115,7 @@ export function Navigation() {
 
   const logout = () => {
     localStorage.clear();
-    window.location.href = "/";
+    window.location.href = "/admin-dashboard/auth";
   }
   return (
     <NavigationWrapper>
