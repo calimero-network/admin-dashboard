@@ -8,8 +8,8 @@ export default function Authenticate() {
   return (
     <ContentWrapper>
       <LoginSelector
-        navigateMetamaskLogin={() => navigate("/metamask")}
-        navigateNearLogin={() => navigate("/near")}
+        navigateMetamaskLogin={() => navigate("/auth/metamask")}
+        navigateNearLogin={() => navigate("/auth/near")}
         cardBackgroundColor={undefined}
       />
     </ContentWrapper>
