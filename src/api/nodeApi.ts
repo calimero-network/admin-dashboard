@@ -1,6 +1,7 @@
 import {
   Application,
   Context,
+  ContextData,
   ContextsList,
   ETHRootKey,
   NearRootKey,
@@ -9,7 +10,7 @@ import {
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
   getContexts(): Promise<ContextsList<Context>>;
-  getContext(contextId: string): Promise<Context | null>;
+  getContext(contextId: string): Promise<ContextData | null>;
   deleteContext(contextId: string): Promise<Boolean>;
   startContexts(
     applicationId: string,

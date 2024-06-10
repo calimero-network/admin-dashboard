@@ -21,6 +21,12 @@ export interface Context {
   signingKey: SigningKey;
 }
 
+export interface ContextData {
+  context: Context,
+  clientKeys: ClientKey[],
+  users: string[],//TBD - which format is saved
+}
+
 export interface ContextsList<T> {
   joined: T[];
   invited: T[];
@@ -51,7 +57,7 @@ interface ApiRootKey {
   created_at: number;
 }
 
-interface ClientKey {
+export interface ClientKey {
   signing_key: string;
   type: Network;
   created_at: number;
@@ -104,9 +110,9 @@ export class NodeDataSource {
     }
   }
 
-  async getContext(contextId: string): Promise<Context | null> {
+  async getContext(contextId: string): Promise<ContextData | null> {
     try {
-      const response = await this.client.get<Context>(
+      const response = await this.client.get<ContextData>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
       );
       if (response?.data) {

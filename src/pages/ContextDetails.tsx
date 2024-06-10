@@ -9,6 +9,7 @@ import { DetailsOptions } from "../constants/ContextConstants";
 import { useNavigate } from "react-router-dom";
 import { useRPC } from "../hooks/useNear";
 import { TableOptions } from "../components/common/OptionsHeader";
+import { ClientKey, ContextData } from "../api/dataSource/NodeDataSource";
 
 const initialOptions = [
   {
@@ -28,29 +29,17 @@ const initialOptions = [
   },
 ];
 
-export interface User {
-  userId: string;
-  joined: string;
-}
-
-export interface ClientKey {
-  type: string;
-  date: string;
-  publicKey: string;
-}
-
 export interface ContextObject {
   id: string;
   applicationId: string;
   name: string;
   description: string;
   repository: string;
+  path: string;
   version: string;
-  created: string;
-  updated: string;
   owner: string;
   clientKeys: ClientKey[];
-  users: User[];
+  users: string[];
   contextId: string;
 }
 
@@ -65,15 +54,17 @@ export default function ContextDetails() {
     useState<TableOptions[]>(initialOptions);
   const { getPackage, getLatestRelease } = useRPC();
 
-  const generateContextObjects = async (context: any) => {
-    const packageData = await getPackage(context.applicationId);
-    const versionData = await getLatestRelease(context.applicationId);
+  const generateContextObjects = async (nodeContext: ContextData) => {
+    const packageData = await getPackage(nodeContext.context.applicationId);
+    const versionData = await getLatestRelease(nodeContext.context.applicationId);
     return {
       ...packageData,
-      ...context,
       ...versionData,
-      contextId: id
-    };
+      contextId: id,
+      clientKeys: nodeContext.clientKeys,
+      users: nodeContext.users,
+      applicationId: nodeContext.context.applicationId,
+    } as ContextObject;
   };
 
   useEffect(() => {
@@ -93,12 +84,12 @@ export default function ContextDetails() {
             {
               name: "Client Keys",
               id: DetailsOptions.CLIENT_KEYS,
-              count: 0,
+              count: nodeContext.clientKeys.length,
             },
             {
               name: "Users",
               id: DetailsOptions.USERS,
-              count: 0,
+              count: nodeContext.users.length,
             },
           ]);
         }
