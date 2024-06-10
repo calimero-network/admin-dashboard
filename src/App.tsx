@@ -1,5 +1,7 @@
 import React from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 import Identity from "./pages/Identity";
 import Applications from "./pages/Applications";
 import Contexts from "./pages/Contexts";
@@ -10,24 +12,22 @@ import ApplicationDetails from "./pages/ApplicationDetails";
 import PublishApplication from "./pages/PublishApplication";
 import AddRelease from "./pages/AddRelease";
 import Metamask from "./pages/Metamask";
-
-import "bootstrap/dist/css/bootstrap.min.css";
-
-import Near from "./pages/Near";
 import AddNearRootKey from "./pages/AddNearRootKey";
 import AddMetamaskRootKey from "./pages/AddMetamaskRootKey";
 import Authenticate from "./pages/Authenticate";
 import AddRootKey from "./pages/AddRootKey";
-
+import SetupPage from "./pages/setup";
+import Near from "./pages/Near";
 
 export default function App() {
   return (
     <>
       <BrowserRouter basename="/admin-dashboard">
         <Routes>
-          <Route path="/" element={<Authenticate />} />
-          <Route path="/near" element={<Near />} />
-          <Route path="/metamask" element={<Metamask />} />
+          <Route path="/" element={<SetupPage />} />
+          <Route path="/auth" element={<Authenticate />} />
+          <Route path="/auth/near" element={<Near />} />
+          <Route path="/auth/metamask" element={<Metamask />} />
           <Route path="/identity" element={<Identity />} />
           <Route path="/identity/root-key" element={<AddRootKey />} />
           <Route path="/identity/root-key/near" element={<AddNearRootKey />} />

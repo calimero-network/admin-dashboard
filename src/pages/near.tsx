@@ -15,7 +15,7 @@ export default function Near() {
       <WalletSelectorContextProvider network={getNearEnvironment()}>
         <NearLogin
           appId={"admin-ui"}
-          rpcBaseUrl={getNodeUrl()}
+          rpcBaseUrl={getNodeUrl() ?? ""}
           successRedirect={() => navigate("/identity")}
           navigateBack={() => navigate("/")}
           cardBackgroundColor={"#1c1c1c"}

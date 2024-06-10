@@ -1,5 +1,6 @@
 import { getAppEndpointKey } from "../../utils/storage";
 import { HttpClient } from "../httpClient";
+import { ApiResponse } from "../response";
 
 enum Network {
   NEAR = "NEAR",
@@ -61,6 +62,14 @@ interface RootkeyResponse {
   client_keys: ClientKey[];
   contexts: Context[];
   root_keys: ApiRootKey[];
+}
+
+export interface HealthRequest {
+  url: String;
+}
+
+export interface HealthStatus {
+  status: String;
 }
 
 export class NodeDataSource {
@@ -195,5 +204,11 @@ export class NodeDataSource {
       console.error("Error fetching DID list:", error);
       return [];
     }
+  }
+
+  async health(request: HealthRequest): ApiResponse<HealthStatus> {
+    return await this.client.get<HealthStatus>(
+      `${request.url}/admin-api/health`
+    );
   }
 }
