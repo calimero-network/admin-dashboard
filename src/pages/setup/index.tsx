@@ -1,5 +1,5 @@
 import React from "react";
-import SetupModal from "@calimero-is-near/calimero-p2p-sdk/lib/setup/SetupModal";
+import { SetupModal } from "@calimero-is-near/calimero-p2p-sdk";
 import { useNavigate } from "react-router-dom";
 import { getNodeUrl } from "../../utils/node";
 import { setAppEndpointKey } from "../../utils/storage";

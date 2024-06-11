@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { WalletSelectorContextProvider } from "@calimero-is-near/calimero-p2p-sdk/lib/wallets/NearLogin/WalletSelectorContext";
-import NearLogin from "@calimero-is-near/calimero-p2p-sdk/lib/wallets/NearLogin/NearLogin";
+import { WalletSelectorContextProvider } from "@calimero-is-near/calimero-p2p-sdk";
+import { NearLogin } from "@calimero-is-near/calimero-p2p-sdk";
 import ContentWrapper from "../components/login/ContentWrapper";
 
 import "@near-wallet-selector/modal-ui/styles.css";
@@ -15,7 +15,7 @@ export default function Near() {
       <WalletSelectorContextProvider network={getNearEnvironment()}>
         <NearLogin
           appId={"admin-ui"}
-          rpcBaseUrl={getNodeUrl() ?? ""}
+          rpcBaseUrl={getNodeUrl()}
           successRedirect={() => navigate("/identity")}
           navigateBack={() => navigate("/")}
           cardBackgroundColor={"#1c1c1c"}
