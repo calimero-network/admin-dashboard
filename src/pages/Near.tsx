@@ -17,7 +17,7 @@ export default function Near() {
           appId={"admin-ui"}
           rpcBaseUrl={getNodeUrl()}
           successRedirect={() => navigate("/identity")}
-          navigateBack={() => navigate("/")}
+          navigateBack={() => navigate("/auth")}
           cardBackgroundColor={"#1c1c1c"}
           nearTitleColor={"white"}
         />

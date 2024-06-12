@@ -12,7 +12,7 @@ export default function Metamask() {
         applicationId={"admin-ui"}
         rpcBaseUrl={getNodeUrl()}
         successRedirect={() => navigate("/identity")}
-        navigateBack={() => navigate("/")}
+        navigateBack={() => navigate("/auth")}
         clientLogin={true}
       />
     </ContentWrapper>
