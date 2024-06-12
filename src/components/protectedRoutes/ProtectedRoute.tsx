@@ -1,33 +1,21 @@
 import React, { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { getClientKey } from "../../utils/storage";
+import { getPathname } from "../../utils/protectedRoute";
 
 export default function ProtectedRoute() {
   const navigate = useNavigate();
-  const clientKey = localStorage.getItem("client-key");
-  const basePath = "/admin-dashboard";
-  const pathname = location.pathname.startsWith(basePath)
-    ? location.pathname.slice(basePath.length)
-    : location.pathname;
+  const clientKey = getClientKey();
+  const pathname = getPathname();
 
   useEffect(() => {
+    const isAuthPath = pathname.startsWith("/auth");
     if (clientKey) {
-      if (
-        pathname === "/auth" ||
-        pathname === "/auth/near" ||
-        pathname === "/auth/metamask"
-      ) {
+      if (isAuthPath) {
         navigate("/identity");
       }
     } else {
-      if (
-        !(
-          pathname === "/auth" ||
-          pathname === "/auth/near" ||
-          pathname === "/auth/metamask"
-        )
-      ) {
-        navigate("/");
-      }
+      navigate("/auth");
     }
   }, [clientKey]);
 

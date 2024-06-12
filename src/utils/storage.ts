@@ -1,4 +1,5 @@
 export const APP_URL = "app-url";
+const CLIENT_KEY = "client-key";
 
 export const getAppEndpointKey = (): string | null => {
   try {
@@ -19,4 +20,8 @@ export const getAppEndpointKey = (): string | null => {
 
 export const setAppEndpointKey = (url: string) => {
   localStorage.setItem(APP_URL, JSON.stringify(url));
-};
+}
+
+export const getClientKey = (): String => {
+  return localStorage.getItem(CLIENT_KEY) ?? "";
+}
