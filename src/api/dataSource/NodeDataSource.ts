@@ -66,6 +66,7 @@ export interface ClientKey {
   signing_key: string;
   wallet: NetworkType;
   created_at: number;
+  application_id: string;
 }
 
 interface RootkeyResponse {
