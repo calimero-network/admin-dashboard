@@ -8,7 +8,8 @@ import clientKeyRowItem from "./ClientKeyRowItem";
 import userRowItem from "./UserRowItem";
 import { DetailsOptions } from "../../../constants/ContextConstants";
 import DetailsCard from "./DetailsCard";
-import { ClientKey, ContextObject, User } from "../../../pages/ContextDetails";
+import { ContextObject } from "../../../pages/ContextDetails";
+import { ClientKey, User } from "../../../api/dataSource/NodeDataSource";
 
 const FlexWrapper = styled.div`
   flex: 1;

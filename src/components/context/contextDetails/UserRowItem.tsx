@@ -1,6 +1,6 @@
 import React from "react";
-import { User } from "../../../pages/ContextDetails";
 import styled from "styled-components";
+import { User } from "../../../api/dataSource/NodeDataSource";
 
 interface UserRowItemProps {
   $hasBorders: boolean;
@@ -40,7 +40,7 @@ export default function userRowItem(item: User, id: number, count: number) {
   return (
     <RowItem key={item.userId} $hasBorders={id === count}>
       <div className="row-item">{item.userId}</div>
-      <div className="row-item">{item.joined}</div>
+      <div className="row-item">{item.joined_at}</div>
     </RowItem>
   );
 }

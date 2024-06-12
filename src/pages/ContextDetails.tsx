@@ -3,13 +3,12 @@ import { Navigation } from "../components/Navigation";
 import { FlexLayout } from "../components/layout/FlexLayout";
 import PageContentWrapper from "../components/common/PageContentWrapper";
 import ContextTable from "../components/context/contextDetails/ContextTable";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../api/index";
 import { DetailsOptions } from "../constants/ContextConstants";
-import { useNavigate } from "react-router-dom";
 import { useRPC } from "../hooks/useNear";
 import { TableOptions } from "../components/common/OptionsHeader";
-import { ClientKey, ContextData } from "../api/dataSource/NodeDataSource";
+import { ClientKey, ContextData, User } from "../api/dataSource/NodeDataSource";
 
 const initialOptions = [
   {
@@ -39,7 +38,7 @@ export interface ContextObject {
   version: string;
   owner: string;
   clientKeys: ClientKey[];
-  users: string[];
+  users: User[];
   contextId: string;
 }
 
@@ -62,7 +61,7 @@ export default function ContextDetails() {
       ...versionData,
       contextId: id,
       clientKeys: nodeContext.clientKeys,
-      users: nodeContext.users,
+      users: [],
       applicationId: nodeContext.context.applicationId,
     } as ContextObject;
   };

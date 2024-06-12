@@ -6,6 +6,11 @@ enum Network {
   ETH = "ETH",
 }
 
+export interface User {
+  userId: string;
+  joined_at: number;
+}
+
 export interface Application {
   id: string;
   version: string;
@@ -59,7 +64,7 @@ interface ApiRootKey {
 
 export interface ClientKey {
   signing_key: string;
-  type: Network;
+  wallet: NetworkType;
   created_at: number;
 }
 
