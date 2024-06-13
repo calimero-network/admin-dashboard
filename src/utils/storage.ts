@@ -1,6 +1,10 @@
+import apiClient from "../api";
+import { HealthStatus } from "../api/dataSource/NodeDataSource";
+import { ApiResponse, ResponseData } from "../api/response";
+
 export const APP_URL = "app-url";
 const CLIENT_KEY = "client-key";
-const NODE_URL = "node_url";
+const NODE_URL = "node-url";
 
 export const getAppEndpointKey = (): string | null => {
   try {
@@ -27,12 +31,31 @@ export const getClientKey = (): String => {
   return localStorage.getItem(CLIENT_KEY) ?? "";
 };
 
-export const setNodeUrlFromQuery = () => {
+export const setNodeUrlFromQuery = async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const nodeUrl = urlParams.get(NODE_URL);
-  if (nodeUrl) {
+  if (nodeUrl && (await verifyNodeUrl(nodeUrl))) {
     setAppEndpointKey(nodeUrl);
     const newUrl = `${window.location.pathname}auth`;
     window.location.href = newUrl;
+  } else if (!nodeUrl){
+    return;
+  } else {
+    window.alert("Node URL is not valid or not reachable. Please try again.");
+  }
+};
+
+const verifyNodeUrl = async (url: string): Promise<boolean> => {
+  try {
+    new URL(url);
+    const response: ResponseData<HealthStatus> = await apiClient
+      .node()
+      .health({ url: url });
+    if (response.data?.status !== "alive") {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    return false;
   }
 };
