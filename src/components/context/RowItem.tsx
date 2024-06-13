@@ -65,7 +65,7 @@ export default function rowItem(
 ): JSX.Element {
   return (
     <RowItem key={item.id} $hasBorders={id === count}>
-      <a href={`#/contexts/${item.id}`} className="row-item id">
+      <a href={`contexts/${item.id}`} className="row-item id">
         {item.id}
       </a>
       <div className="row-item name">{item.name}</div>
