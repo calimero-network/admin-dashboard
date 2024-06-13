@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import { truncateHash } from "../../../utils/displayFunctions";
-import { Application } from "../../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import { truncateHash } from '../../../utils/displayFunctions';
+import { Application } from '../../../pages/Applications';
 
 interface RowItemComponentProps {
   $hasBorders: boolean;
@@ -16,7 +16,7 @@ const RowItem = styled.div<RowItemComponentProps>`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -44,8 +44,8 @@ const RowItem = styled.div<RowItemComponentProps>`
     text-align: left;
 
     &:hover {
-        color: #4cfafc;
-        cursor: pointer;
+      color: #4cfafc;
+      cursor: pointer;
     }
   }
 
@@ -54,12 +54,24 @@ const RowItem = styled.div<RowItemComponentProps>`
   }
 `;
 
-export default function rowItem(item: Application, id: number, count: number, onRowItemClick?: (id: string) => void): JSX.Element {
+export default function rowItem(
+  item: Application,
+  id: number,
+  count: number,
+  onRowItemClick?: (id: string) => void,
+): JSX.Element {
   return (
     <RowItem key={item.id} $hasBorders={id === count}>
-      <div className="row-item name" onClick={() => item.version && onRowItemClick && onRowItemClick(item.id)}>{item.name}</div>
+      <div
+        className="row-item name"
+        onClick={() =>
+          item.version && onRowItemClick && onRowItemClick(item.id)
+        }
+      >
+        {item.name}
+      </div>
       <div className="row-item read">{truncateHash(item.id)}</div>
-      <div className="row-item read">{item.version ?? "N/A"}</div>
+      <div className="row-item read">{item.version ?? 'N/A'}</div>
       <div className="row-item read">-</div>
     </RowItem>
   );

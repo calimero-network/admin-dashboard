@@ -1,8 +1,8 @@
-import React from "react";
-import styled from "styled-components";
-import LoaderSpinner from "../../common/LoaderSpinner";
-import translations from "../../../constants/en.global.json";
-import { ContextObject } from "../../../pages/ContextDetails";
+import React from 'react';
+import styled from 'styled-components';
+import LoaderSpinner from '../../common/LoaderSpinner';
+import translations from '../../../constants/en.global.json';
+import { ContextObject } from '../../../pages/ContextDetails';
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
@@ -89,7 +89,7 @@ export default function DetailsCard({ details }: DetailsCardProps) {
         <div className="highlight title">{t.titleStorage}</div>
         <div className="item">
           {t.labelStorageText}
-          <span className="highlight">{"-"}</span>
+          <span className="highlight">{'-'}</span>
         </div>
       </div>
     </DetailsCardWrapper>

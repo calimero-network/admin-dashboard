@@ -1,14 +1,14 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import { ContentCard } from "../common/ContentCard";
-import { Account } from "@near-wallet-selector/core";
-import { PackageInfo, ReleaseInfo } from "../../pages/PublishApplication";
-import { AddPackageForm } from "./AddPackageForm";
-import { AddReleaseForm } from "./AddReleaseForm";
-import { ConnectWalletAccountCard } from "./ConnectWalletAccountCard";
-import StatusModal, { ModalContent } from "../common/StatusModal";
-import Button from "../common/Button";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import { ContentCard } from '../common/ContentCard';
+import { Account } from '@near-wallet-selector/core';
+import { PackageInfo, ReleaseInfo } from '../../pages/PublishApplication';
+import { AddPackageForm } from './AddPackageForm';
+import { AddReleaseForm } from './AddReleaseForm';
+import { ConnectWalletAccountCard } from './ConnectWalletAccountCard';
+import StatusModal, { ModalContent } from '../common/StatusModal';
+import Button from '../common/Button';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -52,7 +52,7 @@ export default function PublishApplicationTable({
   setReleaseInfo,
   fileInputRef,
   publishApplication,
-  isLoading
+  isLoading,
 }: PublishApplicationTableProps) {
   const t = translations.applicationsPage.publishApplication;
 
@@ -104,4 +104,3 @@ export default function PublishApplicationTable({
     </ContentCard>
   );
 }
-  

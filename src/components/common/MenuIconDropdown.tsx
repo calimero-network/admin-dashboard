@@ -1,7 +1,7 @@
-import React from "react";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
-import Dropdown from "react-bootstrap/Dropdown";
-import styled from "styled-components";
+import React from 'react';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/solid';
+import Dropdown from 'react-bootstrap/Dropdown';
+import styled from 'styled-components';
 
 const DropdownWrapper = styled.div`
   .app-dropdown {
@@ -42,7 +42,7 @@ const DropdownWrapper = styled.div`
     .menu-dropdown {
       width: 100%;
       height: 100%;
-      background-color: #2D2D2D;
+      background-color: #2d2d2d;
       display: flex;
       flex-direction: column;
       justify-content: start;
@@ -52,13 +52,13 @@ const DropdownWrapper = styled.div`
 
       .menu-item {
         cursor: pointer;
-        color: #9C9DA3;
+        color: #9c9da3;
         font-size: 14px;
-        font-family: "Inter", sans-serif;
+        font-family: 'Inter', sans-serif;
         font-optical-sizing: auto;
         font-weight: 400;
         font-style: normal;
-        font-variation-settings: "slnt" 0;
+        font-variation-settings: 'slnt' 0;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         font-smooth: never;

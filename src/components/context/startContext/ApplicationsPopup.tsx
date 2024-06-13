@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import Modal from "react-bootstrap/Modal";
-import styled from "styled-components";
-import { Options } from "../../../constants/ApplicationsConstants";
-import ApplicationsTable from "./ApplicationsTable";
-import { useRPC } from "../../../hooks/useNear";
-import { Application, Package } from "../../../pages/Applications";
-import { TableOptions } from "../../../components/common/OptionsHeader";
-import { ContextApplication } from "../../../pages/StartContext";
+import React, { useState, useEffect } from 'react';
+import Modal from 'react-bootstrap/Modal';
+import styled from 'styled-components';
+import { Options } from '../../../constants/ApplicationsConstants';
+import ApplicationsTable from './ApplicationsTable';
+import { useRPC } from '../../../hooks/useNear';
+import { Application, Package } from '../../../pages/Applications';
+import { TableOptions } from '../../../components/common/OptionsHeader';
+import { ContextApplication } from '../../../pages/StartContext';
 
 const ModalWrapper = styled.div`
   background-color: #212325;
@@ -15,12 +15,12 @@ const ModalWrapper = styled.div`
 
 const initialOptions = [
   {
-    name: "Available",
+    name: 'Available',
     id: Options.AVAILABLE,
     count: 0,
   },
   {
-    name: "Owned",
+    name: 'Owned',
     id: Options.OWNED,
     count: 0,
   },
@@ -59,7 +59,7 @@ export default function ApplicationsPopup({
           packages.map(async (appPackage: Package) => {
             const releseData = await getLatestRelease(appPackage.id);
             return { ...appPackage, version: releseData?.version! };
-          })
+          }),
         );
         setApplicationsList((prevState) => ({
           ...prevState,
@@ -67,12 +67,12 @@ export default function ApplicationsPopup({
         }));
         setTableOptions([
           {
-            name: "Available",
+            name: 'Available',
             id: Options.AVAILABLE,
             count: tempApplications.length,
           },
           {
-            name: "Owned",
+            name: 'Owned',
             id: Options.OWNED,
             count: 0,
           },
@@ -88,7 +88,7 @@ export default function ApplicationsPopup({
     setApplication({
       appId: applicationId,
       name: application.name,
-      version: release?.version ?? "",
+      version: release?.version ?? '',
     });
     closeModal();
   };

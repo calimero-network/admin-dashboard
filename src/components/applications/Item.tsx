@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import { Tooltip } from "react-tooltip";
-import { Package } from "../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import { Tooltip } from 'react-tooltip';
+import { Package } from '../../pages/Applications';
 
 const Item = styled.div`
   background-color: rgb(0, 0, 0, 0.12);
@@ -57,6 +57,7 @@ export function PackageItem({ selectedItem }: PackageItemProps) {
         href={selectedItem.repository}
         target="_blank"
         className="app-item app-item-repo"
+        rel="noreferrer"
       >
         {selectedItem.repository}
       </a>

@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import { ButtonLight } from "../common/ButtonLight";
+import React from 'react';
+import styled from 'styled-components';
+import { ButtonLight } from '../common/ButtonLight';
 
 export const ContentLayout = styled.div`
   padding: 42px 26px 26px 26px;
@@ -36,7 +36,10 @@ export function ApplicationsContent(props: ApplicationsContentProps) {
       <div className="content-card">
         <div className="card-header">
           <div className="page-title">Applications</div>
-          <ButtonLight text="Upload Application" onClick={props.redirectAppUpload} />
+          <ButtonLight
+            text="Upload Application"
+            onClick={props.redirectAppUpload}
+          />
         </div>
         {props.children}
       </div>

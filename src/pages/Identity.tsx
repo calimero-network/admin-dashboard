@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import { useNavigate } from "react-router-dom";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import IdentityTable from "../components/identity/IdentityTable";
-import { RootKeyObject, mapApiResponseToObjects } from "../utils/rootkey";
-import apiClient from "../api";
+import React, { useEffect, useState } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import { useNavigate } from 'react-router-dom';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import IdentityTable from '../components/identity/IdentityTable';
+import { RootKeyObject, mapApiResponseToObjects } from '../utils/rootkey';
+import apiClient from '../api';
 
 export interface RootKey {
   signingKey: string;
@@ -28,7 +28,7 @@ export default function Identity() {
       <Navigation />
       <PageContentWrapper>
         <IdentityTable
-          onAddRootKey={() => navigate("/identity/root-key")}
+          onAddRootKey={() => navigate('/identity/root-key')}
           rootKeysList={rootKeys}
           onCopyKeyClick={(publicKey: string) =>
             navigator.clipboard.writeText(publicKey)

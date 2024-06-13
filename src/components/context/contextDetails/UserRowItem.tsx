@@ -1,6 +1,6 @@
-import React from "react";
-import { User } from "../../../pages/ContextDetails";
-import styled from "styled-components";
+import React from 'react';
+import { User } from '../../../pages/ContextDetails';
+import styled from 'styled-components';
 
 interface UserRowItemProps {
   $hasBorders: boolean;
@@ -34,7 +34,6 @@ const RowItem = styled.div<UserRowItemProps>`
     color: #fff;
   }
 `;
-
 
 export default function userRowItem(item: User, id: number, count: number) {
   return (

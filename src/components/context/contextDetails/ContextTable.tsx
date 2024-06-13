@@ -1,14 +1,14 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../../constants/en.global.json";
-import { ContentCard } from "../../common/ContentCard";
-import OptionsHeader, { TableOptions } from "../../common/OptionsHeader";
-import ListTable from "../../common/ListTable";
-import clientKeyRowItem from "./ClientKeyRowItem";
-import userRowItem from "./UserRowItem";
-import { DetailsOptions } from "../../../constants/ContextConstants";
-import DetailsCard from "./DetailsCard";
-import { ClientKey, ContextObject, User } from "../../../pages/ContextDetails";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../../constants/en.global.json';
+import { ContentCard } from '../../common/ContentCard';
+import OptionsHeader, { TableOptions } from '../../common/OptionsHeader';
+import ListTable from '../../common/ListTable';
+import clientKeyRowItem from './ClientKeyRowItem';
+import userRowItem from './UserRowItem';
+import { DetailsOptions } from '../../../constants/ContextConstants';
+import DetailsCard from './DetailsCard';
+import { ClientKey, ContextObject, User } from '../../../pages/ContextDetails';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -50,7 +50,7 @@ export default function ContextTable({
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
-            listHeaderItems={["TYPE", "ADDED", "PUBLIC KEY"]}
+            listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
             listItems={nodeContextDetails.clientKeys || []}
             rowItem={clientKeyRowItem}
             roundTopItem={true}
@@ -61,7 +61,7 @@ export default function ContextTable({
           <ListTable<User>
             numOfColumns={2}
             listItems={nodeContextDetails.users || []}
-            listHeaderItems={["USER ID", "JOINED"]}
+            listHeaderItems={['USER ID', 'JOINED']}
             rowItem={userRowItem}
             roundTopItem={true}
             noItemsText={t.noUsersText}

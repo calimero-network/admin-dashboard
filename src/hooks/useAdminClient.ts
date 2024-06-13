@@ -1,10 +1,10 @@
-import axios from "axios";
-import { getAppEndpointKey } from "../utils/storage";
+import axios from 'axios';
+import { getAppEndpointKey } from '../utils/storage';
 
 export function useAdminClient() {
   const installApplication = async (
     selectedPackage: string,
-    selectedVersion: string
+    selectedVersion: string,
   ) => {
     try {
       const response = await axios.post(
@@ -12,7 +12,7 @@ export function useAdminClient() {
         {
           application: selectedPackage,
           version: selectedVersion,
-        }
+        },
       );
       return { data: response?.data };
     } catch (error) {
@@ -31,7 +31,7 @@ export function useAdminClient() {
         return {
           error: {
             code: 500,
-            message: "Try again later.",
+            message: 'Try again later.',
           },
         };
       }

@@ -1,8 +1,7 @@
-
-const BASE_PATH = "/admin-dashboard";
+const BASE_PATH = '/admin-dashboard';
 
 export const getPathname = () => {
-    return location.pathname.startsWith(BASE_PATH)
-    ? location.pathname.slice(BASE_PATH.length)
-    : location.pathname;
-}
+  return window.location.pathname.startsWith(BASE_PATH)
+    ? window.location.pathname.slice(BASE_PATH.length)
+    : window.location.pathname;
+};

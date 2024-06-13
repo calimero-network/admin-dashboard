@@ -1,9 +1,9 @@
-import React from "react";
-import styled from "styled-components";
-import CalimeroLogo from "../assets/calimero-logo.svg";
-import translations from "../constants/en.global.json";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import React from 'react';
+import styled from 'styled-components';
+import CalimeroLogo from '../assets/calimero-logo.svg';
+import translations from '../constants/en.global.json';
+import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const NavigationWrapper = styled.div`
   background-color: #111111;
@@ -55,7 +55,7 @@ const NavigationWrapper = styled.div`
 
   .nav-item-active {
     color: #fff !important;
-    background-color: rgb(255,255,255,0.05);
+    background-color: rgb(255, 255, 255, 0.05);
   }
 
   .nav-item,
@@ -84,28 +84,28 @@ const NavigationWrapper = styled.div`
 const NavigationItems = [
   {
     id: 0,
-    title: "Identity",
-    path: "/identity",
+    title: 'Identity',
+    path: '/identity',
   },
   {
     id: 1,
-    title: "Contexts",
-    path: "/contexts",
+    title: 'Contexts',
+    path: '/contexts',
   },
   {
     id: 2,
-    title: "Applications",
-    path: "/applications",
+    title: 'Applications',
+    path: '/applications',
   },
   {
     id: 4,
-    title: "Export",
-    path: "/export",
+    title: 'Export',
+    path: '/export',
   },
   {
     id: 5,
-    title: "Logout",
-    path: "",
+    title: 'Logout',
+    path: '',
   },
 ];
 
@@ -115,8 +115,8 @@ export function Navigation() {
 
   const logout = () => {
     localStorage.clear();
-    window.location.href = "/admin-dashboard/";
-  }
+    window.location.href = '/admin-dashboard/';
+  };
   return (
     <NavigationWrapper>
       <div className="logo-wrapper">
@@ -140,14 +140,15 @@ export function Navigation() {
                 to={item.path}
                 key={item.id}
                 className={
-                  location.pathname === item.path || location.pathname.includes(item.path)
-                    ? "nav-item-active"
-                    : "nav-item"
+                  location.pathname === item.path ||
+                  location.pathname.includes(item.path)
+                    ? 'nav-item-active'
+                    : 'nav-item'
                 }
               >
                 {item.title}
               </Link>
-            )
+            ),
           )}
         </div>
       </div>

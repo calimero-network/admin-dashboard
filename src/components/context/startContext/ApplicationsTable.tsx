@@ -1,14 +1,14 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../../constants/en.global.json";
-import { ContentCard } from "../../common/ContentCard";
-import OptionsHeader, { TableOptions } from "../../common/OptionsHeader";
-import ListTable from "../../common/ListTable";
-import rowItem from "./RowItem";
-import { Options } from "../../../constants/ApplicationsConstants";
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import { Applications } from "./ApplicationsPopup";
-import { Application } from "../../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../../constants/en.global.json';
+import { ContentCard } from '../../common/ContentCard';
+import OptionsHeader, { TableOptions } from '../../common/OptionsHeader';
+import ListTable from '../../common/ListTable';
+import rowItem from './RowItem';
+import { Options } from '../../../constants/ApplicationsConstants';
+import { XMarkIcon } from '@heroicons/react/24/solid';
+import { Applications } from './ApplicationsPopup';
+import { Application } from '../../../pages/Applications';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -46,7 +46,7 @@ export default function ApplicationsTable({
   selectApplication,
 }: ApplicationsTableProps) {
   const t = translations.startContextPage.applicationList;
-  const headersList = ["NAME", "ID", "LATEST VERSION", "PUBLISHED"];
+  const headersList = ['NAME', 'ID', 'LATEST VERSION', 'PUBLISHED'];
 
   return (
     <ContentCard headerTitle={t.listTitle}>

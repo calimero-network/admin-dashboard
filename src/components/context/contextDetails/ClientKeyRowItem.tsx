@@ -1,6 +1,6 @@
-import React from "react";
-import { ClientKey } from "../../../pages/ContextDetails";
-import styled from "styled-components";
+import React from 'react';
+import { ClientKey } from '../../../pages/ContextDetails';
+import styled from 'styled-components';
 
 interface ClientKeyRowItemProps {
   $hasBorders: boolean;
@@ -39,7 +39,11 @@ const RowItem = styled.div<ClientKeyRowItemProps>`
   }
 `;
 
-export default function clientKeyRowItem(item: ClientKey, id: number, count: number): JSX.Element {
+export default function clientKeyRowItem(
+  item: ClientKey,
+  id: number,
+  count: number,
+): JSX.Element {
   return (
     <RowItem key={item.publicKey} $hasBorders={id === count}>
       <div className="row-item type">{item.type}</div>

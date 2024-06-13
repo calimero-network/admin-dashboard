@@ -4,7 +4,7 @@ html {
   font-weight: 400;
 
   color-scheme: light dark;
-  color: #FFFFFF;
+  color: #ffffff;
   background-color: #111111;
 
   font-synthesis: none;
@@ -17,11 +17,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;

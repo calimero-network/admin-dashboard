@@ -1,10 +1,10 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import { ContentCard } from "../common/ContentCard";
-import ListTable from "../common/ListTable";
-import { RootKeyObject } from "../../utils/rootkey";
-import identityRowItem from "./IdentityRowItem";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import { ContentCard } from '../common/ContentCard';
+import ListTable from '../common/ListTable';
+import { RootKeyObject } from '../../utils/rootkey';
+import identityRowItem from './IdentityRowItem';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -19,7 +19,7 @@ interface IdentitiesTableProps {
 export default function IdentitiesTable({
   rootKeysList,
   onAddRootKey,
-  onCopyKeyClick
+  onCopyKeyClick,
 }: IdentitiesTableProps) {
   const t = translations.identityPage;
   return (
@@ -28,13 +28,14 @@ export default function IdentitiesTable({
       headerOptionText={t.addRootKeyText}
       headerOnOptionClick={onAddRootKey}
       headerDescription={
-        rootKeysList.length > 0 ?
-        `${t.loggedInLabel}${rootKeysList[0]!.publicKey}` : ""
+        rootKeysList.length > 0
+          ? `${t.loggedInLabel}${rootKeysList[0]!.publicKey}`
+          : ''
       }
     >
       <FlexWrapper>
         <ListTable<RootKeyObject>
-          listHeaderItems={["TYPE", "ADDED", "PUBLIC KEY"]}
+          listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
           numOfColumns={6}
           listItems={rootKeysList}
           rowItem={identityRowItem}

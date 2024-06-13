@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import styled from "styled-components";
-import ExportCard from "../components/exportIdentity/ExportCard";
-import translations from "../constants/en.global.json";
-import { ModalContentItem } from "../components/common/StatusModalItem";
-import { getAppEndpointKey } from "../utils/storage";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import styled from 'styled-components';
+import ExportCard from '../components/exportIdentity/ExportCard';
+import translations from '../constants/en.global.json';
+import { ModalContentItem } from '../components/common/StatusModalItem';
+import { getAppEndpointKey } from '../utils/storage';
 
 const ExportWrapper = styled.div`
   display: flex;
@@ -15,7 +15,7 @@ const ExportWrapper = styled.div`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -24,8 +24,8 @@ export default function Export() {
   const t = translations.exportIdentityPage;
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ModalContentItem>({
-    title: "",
-    data: "",
+    title: '',
+    data: '',
     error: false,
   });
 
@@ -39,7 +39,7 @@ export default function Export() {
         error: false,
       });
     } catch (error) {
-      console.error("Error exporting identity", error);
+      console.error('Error exporting identity', error);
       setExportStatus({
         title: t.exportErrorTitle,
         // @ts-ignore
@@ -57,8 +57,8 @@ export default function Export() {
       navigator.clipboard.writeText(exportStatus.data);
     }
     setExportStatus({
-      title: "",
-      data: "",
+      title: '',
+      data: '',
       error: false,
     });
   };

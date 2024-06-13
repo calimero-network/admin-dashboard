@@ -1,7 +1,7 @@
 name: setup
-description: "Setup - Cache dependencies ⚡ - Install dependencies 🔧"
+description: 'Setup - Cache dependencies ⚡ - Install dependencies 🔧'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Install pnpm
       run: npm install -g pnpm

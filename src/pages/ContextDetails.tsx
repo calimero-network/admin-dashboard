@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import ContextTable from "../components/context/contextDetails/ContextTable";
-import { useParams } from "react-router-dom";
-import apiClient from "../api/index";
-import { DetailsOptions } from "../constants/ContextConstants";
-import { useNavigate } from "react-router-dom";
-import { useRPC } from "../hooks/useNear";
-import { TableOptions } from "../components/common/OptionsHeader";
+import React, { useState, useEffect } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import ContextTable from '../components/context/contextDetails/ContextTable';
+import { useParams } from 'react-router-dom';
+import apiClient from '../api/index';
+import { DetailsOptions } from '../constants/ContextConstants';
+import { useNavigate } from 'react-router-dom';
+import { useRPC } from '../hooks/useNear';
+import { TableOptions } from '../components/common/OptionsHeader';
 
 const initialOptions = [
   {
-    name: "Details",
+    name: 'Details',
     id: DetailsOptions.DETAILS,
     count: -1,
   },
   {
-    name: "Client Keys",
+    name: 'Client Keys',
     id: DetailsOptions.CLIENT_KEYS,
     count: 0,
   },
   {
-    name: "Users",
+    name: 'Users',
     id: DetailsOptions.USERS,
     count: 0,
   },
@@ -59,7 +59,7 @@ export default function ContextDetails() {
   const navigate = useNavigate();
   const [nodeContextDetails, setNodeContextDetails] = useState<ContextObject>();
   const [currentOption, setCurrentOption] = useState<string>(
-    DetailsOptions.DETAILS
+    DetailsOptions.DETAILS,
   );
   const [tableOptions, setTableOptions] =
     useState<TableOptions[]>(initialOptions);
@@ -72,7 +72,7 @@ export default function ContextDetails() {
       ...packageData,
       ...context,
       ...versionData,
-      contextId: id
+      contextId: id,
     };
   };
 
@@ -86,17 +86,17 @@ export default function ContextDetails() {
           //TBD - after client keys and users are implemented
           setTableOptions([
             {
-              name: "Details",
+              name: 'Details',
               id: DetailsOptions.DETAILS,
               count: -1,
             },
             {
-              name: "Client Keys",
+              name: 'Client Keys',
               id: DetailsOptions.CLIENT_KEYS,
               count: 0,
             },
             {
-              name: "Users",
+              name: 'Users',
               id: DetailsOptions.USERS,
               count: 0,
             },
@@ -111,13 +111,15 @@ export default function ContextDetails() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-        {nodeContextDetails && <ContextTable
-          nodeContextDetails={nodeContextDetails}
-          navigateToContextList={() => navigate("/contexts")}
-          currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
-          tableOptions={tableOptions}
-        />}
+        {nodeContextDetails && (
+          <ContextTable
+            nodeContextDetails={nodeContextDetails}
+            navigateToContextList={() => navigate('/contexts')}
+            currentOption={currentOption}
+            setCurrentOption={setCurrentOption}
+            tableOptions={tableOptions}
+          />
+        )}
       </PageContentWrapper>
     </FlexLayout>
   );

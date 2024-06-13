@@ -6,8 +6,8 @@ import {
   HealthRequest,
   HealthStatus,
   NearRootKey,
-} from "./dataSource/NodeDataSource";
-import { ApiResponse } from "./response";
+} from './dataSource/NodeDataSource';
+import { ApiResponse } from './response';
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
@@ -17,7 +17,7 @@ export interface NodeApi {
   startContexts(
     applicationId: string,
     initFunction: string,
-    initArguments: string
+    initArguments: string,
   ): Promise<boolean>;
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;

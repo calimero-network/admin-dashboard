@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import ContextTable from "../components/context/ContextTable";
-import { Options } from "../constants/ContextConstants";
-import { useNavigate } from "react-router-dom";
-import { useRPC } from "../hooks/useNear";
-import apiClient from "../api/index";
-import { Context, ContextsList } from "../api/dataSource/NodeDataSource";
-import { ModalContent } from "../components/common/StatusModal";
-import { TableOptions } from "../components/common/OptionsHeader";
+import React, { useState, useEffect } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import ContextTable from '../components/context/ContextTable';
+import { Options } from '../constants/ContextConstants';
+import { useNavigate } from 'react-router-dom';
+import { useRPC } from '../hooks/useNear';
+import apiClient from '../api/index';
+import { Context, ContextsList } from '../api/dataSource/NodeDataSource';
+import { ModalContent } from '../components/common/StatusModal';
+import { TableOptions } from '../components/common/OptionsHeader';
 
 export interface Invitation {
   id: string;
@@ -27,12 +27,12 @@ export interface ContextObject {
 
 const initialOptions = [
   {
-    name: "Joined",
+    name: 'Joined',
     id: Options.JOINED,
     count: 0,
   },
   {
-    name: "Invited",
+    name: 'Invited',
     id: Options.INVITED,
     count: 0,
   },
@@ -47,11 +47,11 @@ export default function Contexts() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [selectedContextId, setSelectedContextId] = useState<string | null>(
-    null
+    null,
   );
   const [deleteStatus, setDeleteStatus] = useState<ModalContent>({
-    title: "",
-    message: "",
+    title: '',
+    message: '',
     error: false,
   });
   const [nodeContextList, setNodeContextList] = useState<
@@ -62,18 +62,18 @@ export default function Contexts() {
   });
 
   const generateContextObjects = async (
-    contexts: Context[]
+    contexts: Context[],
   ): Promise<ContextObject[]> => {
     try {
       const tempContextObjects = await Promise.all(
         contexts.map(async (app: Context) => {
           const packageData = await getPackage(app.applicationId);
           return { ...packageData, id: app.id, applicationId: packageData.id };
-        })
+        }),
       );
       return tempContextObjects;
     } catch (error) {
-      console.error("Error generating context objects:", error);
+      console.error('Error generating context objects:', error);
       return [];
     }
   };
@@ -89,12 +89,12 @@ export default function Contexts() {
       }));
       setTableOptions([
         {
-          name: "Joined",
+          name: 'Joined',
           id: Options.JOINED,
           count: nodeContexts.joined?.length ?? 0,
         },
         {
-          name: "Invited",
+          name: 'Invited',
           id: Options.INVITED,
           count: nodeContexts.invited?.length ?? 0,
         },
@@ -113,13 +113,13 @@ export default function Contexts() {
       .deleteContext(selectedContextId);
     if (nodeContexts) {
       setDeleteStatus({
-        title: "Success",
+        title: 'Success',
         message: `Context with id: ${selectedContextId} deleted.`,
         error: false,
       });
     } else {
       setDeleteStatus({
-        title: "Error",
+        title: 'Error',
         message: `Could not delete context with id: ${selectedContextId}!`,
         error: true,
       });
@@ -135,8 +135,8 @@ export default function Contexts() {
       await fetchNodeContexts();
     }
     setDeleteStatus({
-      title: "",
-      message: "",
+      title: '',
+      message: '',
       error: false,
     });
   };
@@ -153,7 +153,7 @@ export default function Contexts() {
     } else {
       // TODO: handle invitation rejection
     }
-  }
+  };
 
   return (
     <FlexLayout>
@@ -161,7 +161,7 @@ export default function Contexts() {
       <PageContentWrapper>
         <ContextTable
           nodeContextList={nodeContextList}
-          naviageToStartContext={() => navigate("/contexts/start-context")}
+          naviageToStartContext={() => navigate('/contexts/start-context')}
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
           tableOptions={tableOptions}
