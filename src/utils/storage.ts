@@ -51,7 +51,7 @@ const verifyNodeUrl = async (url: string): Promise<boolean> => {
     const response: ResponseData<HealthStatus> = await apiClient
       .node()
       .health({ url: url });
-    if (response.data?.status !== "alive") {
+    if (response.data) {
       return false;
     }
     return true;
