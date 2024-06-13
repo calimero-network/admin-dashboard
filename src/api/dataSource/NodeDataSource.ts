@@ -214,7 +214,6 @@ export class NodeDataSource {
     }
   }
 
-
   async health(request: HealthRequest): ApiResponse<HealthStatus> {
     return await this.client.get<HealthStatus>(
       `${request.url}/admin-api/health`,
