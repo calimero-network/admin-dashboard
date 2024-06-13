@@ -1,6 +1,6 @@
 import { getAppEndpointKey } from "../../utils/storage";
 import { HttpClient } from "../httpClient";
-import { ApiResponse } from "../response";
+import { ApiResponse, ResponseData } from "../response";
 
 enum Network {
   NEAR = "NEAR",
@@ -64,6 +64,10 @@ interface RootkeyResponse {
   root_keys: ApiRootKey[];
 }
 
+interface ListApplicationsResponse {
+  apps: Application[];
+}
+
 export interface HealthRequest {
   url: String;
 }
@@ -81,11 +85,10 @@ export class NodeDataSource {
 
   async getInstalledApplications(): Promise<Application[]> {
     try {
-      const response = await this.client.get<Application[]>(
-        `${getAppEndpointKey()}/admin-api/applications`
+      const response: ResponseData<ListApplicationsResponse>  = await this.client.get<ListApplicationsResponse>(
+         `${getAppEndpointKey()}/admin-api/applications`
       );
-      // @ts-ignore with adminAPI update TODO: fix admin api response
-      return response?.apps ?? [];
+      return response?.data?.apps ?? [];
     } catch (error) {
       console.error("Error fetching installed applications:", error);
       return [];
