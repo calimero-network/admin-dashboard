@@ -1,26 +1,26 @@
-import React, { useEffect } from "react";
-import { Routes, Route, BrowserRouter } from "react-router-dom";
-import { setNodeUrlFromQuery } from "./utils/storage";
+import React, { useEffect } from 'react';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { setNodeUrlFromQuery } from './utils/storage';
 
-import Identity from "./pages/Identity";
-import Applications from "./pages/Applications";
-import Contexts from "./pages/Contexts";
-import StartContext from "./pages/StartContext";
-import ContextDetails from "./pages/ContextDetails";
-import Export from "./pages/Export";
-import ApplicationDetails from "./pages/ApplicationDetails";
-import PublishApplication from "./pages/PublishApplication";
-import AddRelease from "./pages/AddRelease";
-import Metamask from "./pages/Metamask";
-import AddNearRootKey from "./pages/AddNearRootKey";
-import AddMetamaskRootKey from "./pages/AddMetamaskRootKey";
-import Authenticate from "./pages/Authenticate";
-import AddRootKey from "./pages/AddRootKey";
-import SetupPage from "./pages/setup";
-import Near from "./pages/Near";
-import ProtectedRoute from "./components/protectedRoutes/ProtectedRoute";
+import Identity from './pages/Identity';
+import Applications from './pages/Applications';
+import Contexts from './pages/Contexts';
+import StartContext from './pages/StartContext';
+import ContextDetails from './pages/ContextDetails';
+import Export from './pages/Export';
+import ApplicationDetails from './pages/ApplicationDetails';
+import PublishApplication from './pages/PublishApplication';
+import AddRelease from './pages/AddRelease';
+import Metamask from './pages/Metamask';
+import AddNearRootKey from './pages/AddNearRootKey';
+import AddMetamaskRootKey from './pages/AddMetamaskRootKey';
+import Authenticate from './pages/Authenticate';
+import AddRootKey from './pages/AddRootKey';
+import SetupPage from './pages/setup';
+import Near from './pages/Near';
+import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 
-import "bootstrap/dist/css/bootstrap.min.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
   useEffect(() => {

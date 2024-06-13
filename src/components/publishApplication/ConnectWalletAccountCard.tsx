@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import Button from "../common/Button";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import styled from 'styled-components';
+import Button from '../common/Button';
+import translations from '../../constants/en.global.json';
 
 const CardWrapper = styled.div`
   display: flex;
@@ -38,7 +38,11 @@ export function ConnectWalletAccountCard({
     <CardWrapper>
       <div className="title">{t.connectAccountTitle}</div>
       <div className="subtitle">{t.connectAccountSubtitle}</div>
-      <Button onClick={onClick} text={t.connectAccountButtonText} width="11.375rem"/>
+      <Button
+        onClick={onClick}
+        text={t.connectAccountButtonText}
+        width="11.375rem"
+      />
     </CardWrapper>
   );
 }

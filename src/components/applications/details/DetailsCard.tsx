@@ -1,8 +1,8 @@
-import React from "react";
-import styled from "styled-components";
-import LoaderSpinner from "../../common/LoaderSpinner";
-import translations from "../../../constants/en.global.json";
-import { Package } from "../../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import LoaderSpinner from '../../common/LoaderSpinner';
+import translations from '../../../constants/en.global.json';
+import { Package } from '../../../pages/Applications';
 
 const DetailsCardWrapper = styled.div`
   .container {

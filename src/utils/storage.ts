@@ -1,14 +1,14 @@
-import apiClient from "../api";
-import { HealthStatus } from "../api/dataSource/NodeDataSource";
-import { ApiResponse, ResponseData } from "../api/response";
+import apiClient from '../api';
+import { HealthStatus } from '../api/dataSource/NodeDataSource';
+import { ResponseData } from '../api/response';
 
-export const APP_URL = "app-url";
-const CLIENT_KEY = "client-key";
-const NODE_URL = "node-url";
+export const APP_URL = 'app-url';
+const CLIENT_KEY = 'client-key';
+const NODE_URL = 'node-url';
 
 export const getAppEndpointKey = (): string | null => {
   try {
-    if (typeof window !== "undefined" && window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
       let storageRecord: string | null = localStorage.getItem(APP_URL);
       if (storageRecord) {
         let url: string = JSON.parse(storageRecord);
@@ -28,7 +28,7 @@ export const setAppEndpointKey = (url: string) => {
 };
 
 export const getClientKey = (): String => {
-  return localStorage.getItem(CLIENT_KEY) ?? "";
+  return localStorage.getItem(CLIENT_KEY) ?? '';
 };
 
 export const setNodeUrlFromQuery = async () => {
@@ -38,10 +38,10 @@ export const setNodeUrlFromQuery = async () => {
     setAppEndpointKey(nodeUrl);
     const newUrl = `${window.location.pathname}auth`;
     window.location.href = newUrl;
-  } else if (!nodeUrl){
+  } else if (!nodeUrl) {
     return;
   } else {
-    window.alert("Node URL is not valid or not reachable. Please try again.");
+    window.alert('Node URL is not valid or not reachable. Please try again.');
   }
 };
 

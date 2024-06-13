@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
 
 export const ContentLayout = styled.div`
   display: flex;
@@ -40,20 +40,24 @@ interface UploadSwitchProps {
   tabSwitch: boolean;
 }
 
-export function UploadSwitch({ children, setTabSwitch, tabSwitch }: UploadSwitchProps) {
+export function UploadSwitch({
+  children,
+  setTabSwitch,
+  tabSwitch,
+}: UploadSwitchProps) {
   const t = translations.uploadPage;
   return (
     <ContentLayout>
       <div className="content-card">
         <div className="switch">
           <div
-            className={`switchButton ${tabSwitch && "active"}`}
+            className={`switchButton ${tabSwitch && 'active'}`}
             onClick={() => setTabSwitch(true)}
           >
             {t.switchPackageText}
           </div>
           <div
-            className={`switchButton ${!tabSwitch && "active"}`}
+            className={`switchButton ${!tabSwitch && 'active'}`}
             onClick={() => setTabSwitch(false)}
           >
             {t.switchReleaseText}

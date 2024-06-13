@@ -1,9 +1,9 @@
-import React from "react";
-import styled from "styled-components";
-import { Invitation } from "../../pages/Contexts";
-import Button from "../common/Button";
-import { formatDateWithTime } from "../../utils/date";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import styled from 'styled-components';
+import { Invitation } from '../../pages/Contexts';
+import Button from '../common/Button';
+import { formatDateWithTime } from '../../utils/date';
+import translations from '../../constants/en.global.json';
 
 const RowItem = styled.div`
   display: flex;
@@ -51,7 +51,7 @@ export default function invitationRowItem(
   item: Invitation,
   id: number,
   _count: number,
-  onitemClicked?: (id: string, isAccepted?: boolean) => void
+  onitemClicked?: (id: string, isAccepted?: boolean) => void,
 ): JSX.Element {
   const t = translations.contextPage.contextInvitation;
   return (
@@ -60,7 +60,7 @@ export default function invitationRowItem(
         <div className="invitation-id">{item.id}</div>
         <div className="invitation-date">
           {t.invitationText}
-          {formatDateWithTime(item.invitedOn)}{" "}
+          {formatDateWithTime(item.invitedOn)}{' '}
         </div>
       </div>
       <div className="flex-wrapper-h">

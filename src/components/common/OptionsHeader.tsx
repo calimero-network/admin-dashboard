@@ -1,5 +1,5 @@
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
+import styled from 'styled-components';
 
 interface HeaderGridProps {
   $optionsCount: number;
@@ -52,12 +52,12 @@ export default function OptionsHeader({
         return (
           <div
             className={`header-option ${
-              currentOption === option.id ? "active" : ""
+              currentOption === option.id ? 'active' : ''
             }`}
             key={index}
             onClick={() => setCurrentOption(option.id)}
           >
-            {`${option.name} ${option.count !== -1 && showOptionsCount ? `(${option.count})` : ""}`}
+            {`${option.name} ${option.count !== -1 && showOptionsCount ? `(${option.count})` : ''}`}
           </div>
         );
       })}

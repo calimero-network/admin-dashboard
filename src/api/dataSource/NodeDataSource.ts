@@ -1,10 +1,10 @@
-import { getAppEndpointKey } from "../../utils/storage";
-import { HttpClient } from "../httpClient";
-import { ApiResponse, ResponseData } from "../response";
+import { getAppEndpointKey } from '../../utils/storage';
+import { HttpClient } from '../httpClient';
+import { ApiResponse, ResponseData } from '../response';
 
 enum Network {
-  NEAR = "NEAR",
-  ETH = "ETH",
+  NEAR = 'NEAR',
+  ETH = 'ETH',
 }
 
 export interface Application {
@@ -85,12 +85,13 @@ export class NodeDataSource {
 
   async getInstalledApplications(): Promise<Application[]> {
     try {
-      const response: ResponseData<ListApplicationsResponse>  = await this.client.get<ListApplicationsResponse>(
-         `${getAppEndpointKey()}/admin-api/applications`
-      );
+      const response: ResponseData<ListApplicationsResponse> =
+        await this.client.get<ListApplicationsResponse>(
+          `${getAppEndpointKey()}/admin-api/applications`,
+        );
       return response?.data?.apps ?? [];
     } catch (error) {
-      console.error("Error fetching installed applications:", error);
+      console.error('Error fetching installed applications:', error);
       return [];
     }
   }
@@ -98,7 +99,7 @@ export class NodeDataSource {
   async getContexts(): Promise<ContextsList<Context>> {
     try {
       const response = await this.client.get<Context[]>(
-        `${getAppEndpointKey()}/admin-api/contexts`
+        `${getAppEndpointKey()}/admin-api/contexts`,
       );
       if (response?.data) {
         // invited is empty for now as we don't have this endpoint available
@@ -111,7 +112,7 @@ export class NodeDataSource {
         return { joined: [], invited: [] };
       }
     } catch (error) {
-      console.error("Error fetching contexts:", error);
+      console.error('Error fetching contexts:', error);
       return { joined: [], invited: [] };
     }
   }
@@ -119,7 +120,7 @@ export class NodeDataSource {
   async getContext(contextId: string): Promise<Context | null> {
     try {
       const response = await this.client.get<Context>(
-        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
       );
       if (response?.data) {
         return response.data;
@@ -127,7 +128,7 @@ export class NodeDataSource {
         return null;
       }
     } catch (error) {
-      console.error("Error fetching context:", error);
+      console.error('Error fetching context:', error);
       return null;
     }
   }
@@ -135,7 +136,7 @@ export class NodeDataSource {
   async deleteContext(contextId: string): Promise<boolean> {
     try {
       const response = await this.client.delete<boolean>(
-        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
       );
       if (response?.data) {
         return response.data;
@@ -143,7 +144,7 @@ export class NodeDataSource {
         return false;
       }
     } catch (error) {
-      console.error("Error deleting context:", error);
+      console.error('Error deleting context:', error);
       return false;
     }
   }
@@ -151,7 +152,7 @@ export class NodeDataSource {
   async startContexts(
     applicationId: string,
     initFunction: string,
-    initArguments: string
+    initArguments: string,
   ): Promise<boolean> {
     try {
       const response = await this.client.post<Context>(
@@ -160,7 +161,7 @@ export class NodeDataSource {
           applicationId: applicationId,
           ...(initFunction && { initFunction }),
           ...(initArguments && { initArgs: JSON.stringify(initArguments) }),
-        }
+        },
       );
       if (response?.data) {
         return !!response.data;
@@ -168,7 +169,7 @@ export class NodeDataSource {
         return false;
       }
     } catch (error) {
-      console.error("Error starting contexts:", error);
+      console.error('Error starting contexts:', error);
       return true;
     }
   }
@@ -176,7 +177,7 @@ export class NodeDataSource {
   async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
     try {
       const response = await this.client.get<RootkeyResponse>(
-        `${getAppEndpointKey()}/admin-api/did`
+        `${getAppEndpointKey()}/admin-api/did`,
       );
       if (response?.data?.root_keys) {
         const rootKeys: (ETHRootKey | NearRootKey)[] =
@@ -204,14 +205,14 @@ export class NodeDataSource {
         return [];
       }
     } catch (error) {
-      console.error("Error fetching DID list:", error);
+      console.error('Error fetching DID list:', error);
       return [];
     }
   }
 
   async health(request: HealthRequest): ApiResponse<HealthStatus> {
     return await this.client.get<HealthStatus>(
-      `${request.url}/admin-api/health`
+      `${request.url}/admin-api/health`,
     );
   }
 }

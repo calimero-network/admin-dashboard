@@ -1,8 +1,8 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import Button from "../common/Button";
-import StatusModalItem, { ModalContentItem } from "../common/StatusModalItem";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import Button from '../common/Button';
+import StatusModalItem, { ModalContentItem } from '../common/StatusModalItem';
 
 const CardWrapper = styled.div`
   padding: 2rem 2rem 3.75rem;
@@ -61,7 +61,7 @@ export default function ExportCard({
       />
       <div className="title">{t.title}</div>
       <div className="description">{t.description}</div>
-      <Button text={t.buttonExportText} onClick={onClick} width={"182px"} />
+      <Button text={t.buttonExportText} onClick={onClick} width={'182px'} />
     </CardWrapper>
   );
 }

@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import { PackageInfo } from "../../pages/PublishApplication";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import { PackageInfo } from '../../pages/PublishApplication';
 
 const ContractFormLayout = styled.div`
   display: flex;

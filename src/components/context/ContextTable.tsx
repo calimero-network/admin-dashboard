@@ -1,16 +1,16 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import { ContentCard } from "../common/ContentCard";
-import OptionsHeader, { TableOptions } from "../common/OptionsHeader";
-import ListTable from "../common/ListTable";
-import rowItem from "./RowItem";
-import invitationRowItem from "./InvitationRowItem";
-import { Options } from "../../constants/ContextConstants";
-import StatusModal, { ModalContent } from "../common/StatusModal";
-import ActionDialog from "../common/ActionDialog";
-import { ContextsList } from "../../api/dataSource/NodeDataSource";
-import { ContextObject, Invitation } from "../../pages/Contexts";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import { ContentCard } from '../common/ContentCard';
+import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
+import ListTable from '../common/ListTable';
+import rowItem from './RowItem';
+import invitationRowItem from './InvitationRowItem';
+import { Options } from '../../constants/ContextConstants';
+import StatusModal, { ModalContent } from '../common/StatusModal';
+import ActionDialog from '../common/ActionDialog';
+import { ContextsList } from '../../api/dataSource/NodeDataSource';
+import { ContextObject, Invitation } from '../../pages/Contexts';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -45,7 +45,7 @@ export default function ContextTable({
   showActionDialog,
   setShowActionDialog,
   showModal,
-  handleInvitation
+  handleInvitation,
 }: ContextTableProps) {
   const t = translations.contextPage;
 
@@ -77,7 +77,7 @@ export default function ContextTable({
         />
         {currentOption == Options.JOINED ? (
           <ListTable<ContextObject>
-            listHeaderItems={["ID", "INSTALLED APPLICATION"]}
+            listHeaderItems={['ID', 'INSTALLED APPLICATION']}
             numOfColumns={2}
             listItems={nodeContextList.joined}
             rowItem={rowItem}

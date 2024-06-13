@@ -1,7 +1,7 @@
-import React from "react";
-import Modal from "react-bootstrap/Modal";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import Modal from 'react-bootstrap/Modal';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
 
 const ModalWrapper = styled.div`
   display: flex;
@@ -54,7 +54,7 @@ const ModalWrapper = styled.div`
 
       .button-cancel {
         color: #111;
-        background-color: #6CECAC;
+        background-color: #6cecac;
       }
 
       .button,
@@ -115,7 +115,7 @@ export default function ActionDialog({
         <div className="container">
           <div className="modal-subtitle">{subtitle}</div>
           <div className="button-wrapper">
-          <button className="button-cancel" onClick={closeDialog}>
+            <button className="button-cancel" onClick={closeDialog}>
               {t.buttonCancelText}
             </button>
             <button className="button" onClick={onConfirm}>

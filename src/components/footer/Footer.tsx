@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
 
 const FooterWrapper = styled.div`
   display: flex;
@@ -31,6 +31,7 @@ export function Footer() {
         href="https://www.calimero.network"
         className="footer-text"
         target="_blank"
+        rel="noreferrer"
       >
         {t.title}
       </a>

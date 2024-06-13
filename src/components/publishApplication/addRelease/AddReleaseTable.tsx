@@ -1,15 +1,15 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../../constants/en.global.json";
-import { ContentCard } from "../../common/ContentCard";
-import { Account } from "@near-wallet-selector/core";
-import { ReleaseInfo } from "../../../pages/PublishApplication";
-import { AddReleaseForm } from "../AddReleaseForm";
-import { ConnectWalletAccountCard } from "../ConnectWalletAccountCard";
-import StatusModal, { ModalContent } from "../../common/StatusModal";
-import Button from "../../common/Button";
-import { Package } from "../../../pages/Applications";
-import DetailsCard from "../../applications/details/DetailsCard";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../../constants/en.global.json';
+import { ContentCard } from '../../common/ContentCard';
+import { Account } from '@near-wallet-selector/core';
+import { ReleaseInfo } from '../../../pages/PublishApplication';
+import { AddReleaseForm } from '../AddReleaseForm';
+import { ConnectWalletAccountCard } from '../ConnectWalletAccountCard';
+import StatusModal, { ModalContent } from '../../common/StatusModal';
+import Button from '../../common/Button';
+import { Package } from '../../../pages/Applications';
+import DetailsCard from '../../applications/details/DetailsCard';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -69,7 +69,9 @@ export default function AddReleaseTable({
       headerBackText={t.title}
       headerOnBackClick={navigateToApplicationDetails}
       descriptionComponent={
-        applicationInformation && <DetailsCard details={applicationInformation} />
+        applicationInformation && (
+          <DetailsCard details={applicationInformation} />
+        )
       }
       isOverflow={true}
     >

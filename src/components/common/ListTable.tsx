@@ -1,5 +1,5 @@
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
+import styled from 'styled-components';
 
 interface ListWrapperProps {
   $numOfColumns: number;
@@ -89,7 +89,7 @@ interface ListTableProps<T> {
     item: T,
     id: number,
     lastIndex: number,
-    onRowItemClick?: (id: string) => void
+    onRowItemClick?: (id: string) => void,
   ) => JSX.Element;
   numOfColumns: number;
   roundTopItem: boolean;
@@ -117,7 +117,7 @@ export default function ListTable<T>({
       )}
       <div className="list-items">
         {listItems?.map((item: T, id: number) =>
-          rowItem(item, id, listItems.length - 1, onRowItemClick)
+          rowItem(item, id, listItems.length - 1, onRowItemClick),
         )}
         {listItems?.length === 0 && (
           <div className="no-items-text">{noItemsText}</div>

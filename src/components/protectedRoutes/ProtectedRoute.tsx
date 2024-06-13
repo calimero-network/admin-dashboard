@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
-import { getClientKey } from "../../utils/storage";
-import { getPathname } from "../../utils/protectedRoute";
+import React, { useEffect } from 'react';
+import { useNavigate, Outlet } from 'react-router-dom';
+import { getClientKey } from '../../utils/storage';
+import { getPathname } from '../../utils/protectedRoute';
 
 export default function ProtectedRoute() {
   const navigate = useNavigate();
@@ -9,13 +9,13 @@ export default function ProtectedRoute() {
   const pathname = getPathname();
 
   useEffect(() => {
-    const isAuthPath = pathname.startsWith("/auth");
+    const isAuthPath = pathname.startsWith('/auth');
     if (clientKey) {
       if (isAuthPath) {
-        navigate("/identity");
+        navigate('/identity');
       }
     } else {
-      navigate("/auth");
+      navigate('/auth');
     }
   }, [clientKey]);
 

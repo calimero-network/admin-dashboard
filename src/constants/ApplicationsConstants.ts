@@ -1,4 +1,4 @@
 export enum Options {
-  AVAILABLE = "AVAILABLE",
-  OWNED = "OWNED",
+  AVAILABLE = 'AVAILABLE',
+  OWNED = 'OWNED',
 }

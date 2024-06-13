@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import LoaderSpinner from "./LoaderSpinner";
+import React from 'react';
+import styled from 'styled-components';
+import LoaderSpinner from './LoaderSpinner';
 
 interface StyledButtonProps {
   $btnWidth?: string;
@@ -16,9 +16,10 @@ interface StyledButtonProps {
 }
 
 const ButtonStyled = styled.button<StyledButtonProps>`
-  background-color: ${(props) => (props.disabled ? props.$color : props.$disabledColor)};
+  background-color: ${(props) =>
+    props.disabled ? props.$color : props.$disabledColor};
   height: ${(props) => props.$height};
-  width: ${(props) => (props.$btnWidth ? props.$btnWidth : "fit-content")};
+  width: ${(props) => (props.$btnWidth ? props.$btnWidth : 'fit-content')};
   padding: ${(props) => props.$padding};
   border-radius: ${(props) => props.$borderRadius};
   color: ${(props) => props.$textColor};
@@ -58,20 +59,20 @@ export default function Button({
   width,
   isLoading,
   isDisabled = false,
-  color = "#434546",
-  disabledColor = "#4cfafc",
-  highlightColor = "#76f5f9",
-  textColor = "#000000",
-  fontSize = "0.875rem",
-  lineHeight = "1.25rem",
-  height = "2.375rem",
-  padding = "0.625rem 0.75rem",
-  borderRadius = "0.5rem"
+  color = '#434546',
+  disabledColor = '#4cfafc',
+  highlightColor = '#76f5f9',
+  textColor = '#000000',
+  fontSize = '0.875rem',
+  lineHeight = '1.25rem',
+  height = '2.375rem',
+  padding = '0.625rem 0.75rem',
+  borderRadius = '0.5rem',
 }: ButtonProps) {
   return (
     <ButtonStyled
       onClick={onClick}
-      $btnWidth={width ?? ""}
+      $btnWidth={width ?? ''}
       disabled={isDisabled}
       $color={color}
       $disabledColor={disabledColor}
