@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { setNodeUrlFromQuery } from "./utils/storage";
 
 import Identity from "./pages/Identity";
 import Applications from "./pages/Applications";
@@ -22,8 +22,11 @@ import ProtectedRoute from "./components/protectedRoutes/ProtectedRoute";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-
 export default function App() {
+  useEffect(() => {
+    setNodeUrlFromQuery();
+  }, []);
+
   return (
     <>
       <BrowserRouter basename="/admin-dashboard">
