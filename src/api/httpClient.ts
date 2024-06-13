@@ -106,9 +106,8 @@ export class AxiosHttpClient implements HttpClient {
       //head does not return body so we are adding data manually
       // @ts-ignore
       if (response.config.method.toUpperCase() === "HEAD") {
-        // @ts-ignore
         return {
-          data: undefined,
+          data: undefined as unknown as T,
         };
       } else {
         return response.data;
@@ -116,8 +115,7 @@ export class AxiosHttpClient implements HttpClient {
     } catch (e: unknown) {
       if (e instanceof AxiosError) {
         //head does not return body so we are adding error manually
-        // @ts-ignore
-        if (e.config.method.toUpperCase() === "HEAD") {
+        if (e.config?.method?.toUpperCase() === "HEAD") {
           return {
             error: {
               code: e.request.status,
@@ -126,9 +124,9 @@ export class AxiosHttpClient implements HttpClient {
           };
         }
 
-        const error: ErrorResponse = e.response?.data.error;
-        //TODO make code mandatory
-        if (!error || !error.message) {
+        const errorResponse = e.response?.data as ResponseData<T>;
+        const error: ErrorResponse | null | undefined = errorResponse.error;
+        if (!error || !error.message || !error.code) {
           return {
             error: GENERIC_ERROR,
           };

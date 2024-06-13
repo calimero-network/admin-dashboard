@@ -3,35 +3,35 @@ import styled from "styled-components";
 import LoaderSpinner from "./LoaderSpinner";
 
 interface StyledButtonProps {
-  btnWidth?: string;
-  color: string;
-  disabledColor: string;
-  highlightColor: string;
-  textColor: string;
-  fontSize: string;
-  lineHeight: string;
-  height: string;
-  padding: string;
-  borderRadius: string;
+  $btnWidth?: string;
+  $color: string;
+  $disabledColor: string;
+  $highlightColor: string;
+  $textColor: string;
+  $fontSize: string;
+  $lineHeight: string;
+  $height: string;
+  $padding: string;
+  $borderRadius: string;
 }
 
 const ButtonStyled = styled.button<StyledButtonProps>`
-  background-color: ${(props) => (props.disabled ? props.color : props.disabledColor)};
-  height: ${(props) => props.height};
-  width: ${(props) => (props.btnWidth ? props.btnWidth : "fit-content")};
-  padding: ${(props) => props.padding};
-  border-radius: ${(props) => props.borderRadius};
-  color: ${(props) => props.textColor};
-  font-size: ${(props) => props.fontSize};
+  background-color: ${(props) => (props.disabled ? props.$color : props.$disabledColor)};
+  height: ${(props) => props.$height};
+  width: ${(props) => (props.$btnWidth ? props.$btnWidth : "fit-content")};
+  padding: ${(props) => props.$padding};
+  border-radius: ${(props) => props.$borderRadius};
+  color: ${(props) => props.$textColor};
+  font-size: ${(props) => props.$fontSize};
   font-weight: 500;
-  line-height: ${(props) => props.lineHeight};
+  line-height: ${(props) => props.$lineHeight};
   text-align: center;
   cursor: pointer;
   outline: none;
   border: none;
 
   &:hover {
-    background-color: ${(props) => props.highlightColor};
+    background-color: ${(props) => props.$highlightColor};
   }
 `;
 
@@ -71,17 +71,17 @@ export default function Button({
   return (
     <ButtonStyled
       onClick={onClick}
-      btnWidth={width ?? ""}
+      $btnWidth={width ?? ""}
       disabled={isDisabled}
-      color={color}
-      disabledColor={disabledColor}
-      highlightColor={highlightColor}
-      textColor={textColor}
-      fontSize={fontSize}
-      lineHeight={lineHeight}
-      height={height}
-      padding={padding}
-      borderRadius={borderRadius}
+      $color={color}
+      $disabledColor={disabledColor}
+      $highlightColor={highlightColor}
+      $textColor={textColor}
+      $fontSize={fontSize}
+      $lineHeight={lineHeight}
+      $height={height}
+      $padding={padding}
+      $borderRadius={borderRadius}
     >
       {isLoading ? <LoaderSpinner /> : text}
     </ButtonStyled>

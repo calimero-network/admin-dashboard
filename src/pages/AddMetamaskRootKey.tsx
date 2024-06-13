@@ -4,7 +4,7 @@ import { MetamaskWrapper } from "@calimero-is-near/calimero-p2p-sdk";
 import ContentWrapper from "../components/login/ContentWrapper";
 import { getNodeUrl } from "../utils/node";
 
-export default function Metamask() {
+export default function AddMetamaskRootKey() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>
@@ -12,8 +12,8 @@ export default function Metamask() {
         applicationId={"admin-ui"}
         rpcBaseUrl={getNodeUrl()}
         successRedirect={() => navigate("/identity")}
-        navigateBack={() => navigate("/auth")}
-        clientLogin={true}
+        navigateBack={() => navigate("/")}
+        clientLogin={false}
       />
     </ContentWrapper>
   );

@@ -4,7 +4,6 @@ import { FlexLayout } from "../components/layout/FlexLayout";
 import {
   Account,
   BrowserWallet,
-  NetworkId,
   setupWalletSelector,
 } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
@@ -17,6 +16,7 @@ import PageContentWrapper from "../components/common/PageContentWrapper";
 import PublishApplicationTable from "../components/publishApplication/PublishApplicationTable";
 import { useNavigate } from "react-router-dom";
 import { isFinalExecution } from "../utils/wallet";
+import { getNearEnvironment } from "../utils/node";
 
 const BLOBBY_IPFS = "https://blobby-public.euw3.prod.gcp.calimero.network";
 
@@ -99,7 +99,7 @@ export default function PublishApplication() {
 
   const addWalletAccount = async () => {
     const selector = await setupWalletSelector({
-      network: process.env["VITE_NEAR_ENVIRONMENT"] as NetworkId ?? "testnet",
+      network: getNearEnvironment(),
       modules: [setupMyNearWallet()],
     });
     const wallet: BrowserWallet = await selector.wallet("my-near-wallet");
@@ -179,9 +179,7 @@ export default function PublishApplication() {
           },
         ],
       });
-      if (
-        isFinalExecution(res)
-      ) {
+      if (isFinalExecution(res)) {
         setDeployStatus({
           title: "Package added successfully",
           message: `Package ${packageInfo.name} added successfully`,
@@ -232,9 +230,7 @@ export default function PublishApplication() {
           },
         ],
       });
-      if (
-        isFinalExecution(res)
-      ) {
+      if (isFinalExecution(res)) {
         setDeployStatus({
           title: "Application published",
           message: `Application ${packageInfo.name} with release version ${releaseInfo.version} published`,

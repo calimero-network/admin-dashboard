@@ -1,4 +1,13 @@
-import { Application, Context, ContextsList, ETHRootKey, NearRootKey } from "./dataSource/NodeDataSource";
+import {
+  Application,
+  Context,
+  ContextsList,
+  ETHRootKey,
+  HealthRequest,
+  HealthStatus,
+  NearRootKey,
+} from "./dataSource/NodeDataSource";
+import { ApiResponse } from "./response";
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
@@ -11,4 +20,5 @@ export interface NodeApi {
     initArguments: string
   ): Promise<boolean>;
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
+  health(request: HealthRequest): ApiResponse<HealthStatus>;
 }

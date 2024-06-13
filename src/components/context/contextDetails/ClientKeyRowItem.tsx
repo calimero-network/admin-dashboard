@@ -3,7 +3,7 @@ import { ClientKey } from "../../../pages/ContextDetails";
 import styled from "styled-components";
 
 interface ClientKeyRowItemProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 const RowItem = styled.div<ClientKeyRowItemProps>`
@@ -18,7 +18,7 @@ const RowItem = styled.div<ClientKeyRowItemProps>`
   padding-right: 1.5rem;
   padding-left: 1.5rem;
   ${(props) =>
-    props.hasBorders
+    props.$hasBorders
       ? `
     border-top: 1px solid #23262D;
     border-bottom: 1px solid #23262D;
@@ -41,7 +41,7 @@ const RowItem = styled.div<ClientKeyRowItemProps>`
 
 export default function clientKeyRowItem(item: ClientKey, id: number, count: number): JSX.Element {
   return (
-    <RowItem key={item.publicKey} hasBorders={id === count}>
+    <RowItem key={item.publicKey} $hasBorders={id === count}>
       <div className="row-item type">{item.type}</div>
       <div className="row-item read">{item.date}</div>
       <div className="row-item pk">{item.publicKey}</div>

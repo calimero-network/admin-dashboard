@@ -5,7 +5,7 @@ import { RootKeyObject } from "../../utils/rootkey";
 import { formatTimestampToDate } from "../../utils/date";
 
 interface RowItemProps {
-  hasBorders: boolean;
+  $hasBorders: boolean;
 }
 
 const RowItem = styled.div<RowItemProps>`
@@ -13,7 +13,7 @@ const RowItem = styled.div<RowItemProps>`
   align-items: center;
   padding-left: 1.5rem;
   ${(props) =>
-    props.hasBorders
+    props.$hasBorders
       ? `
     border-top: 1px solid #23262D;
     border-bottom: 1px solid #23262D;
@@ -61,7 +61,7 @@ export default function identityRowItem(
   onitemClicked?: (id: string) => void
 ): JSX.Element {
   return (
-    <RowItem key={id} hasBorders={id === count}>
+    <RowItem key={id} $hasBorders={id === count}>
       <div className="row-item type">{item.type}</div>
       <div className="row-item date">{formatTimestampToDate(item.createdAt)}</div>
       <div className="row-item public-key">{item.publicKey}</div>
