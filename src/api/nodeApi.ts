@@ -1,5 +1,6 @@
 import {
   Application,
+  ApplicationStorageResponse,
   Context,
   ContextsList,
   ETHRootKey,
@@ -21,4 +22,5 @@ export interface NodeApi {
   ): Promise<boolean>;
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
+  getContextStorageUsage(contextId: string): Promise<ApplicationStorageResponse>;
 }

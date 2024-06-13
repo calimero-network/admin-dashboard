@@ -76,6 +76,10 @@ export interface HealthStatus {
   status: String;
 }
 
+export interface ApplicationStorageResponse {
+  sizeInBytes: number;
+}
+
 export class NodeDataSource {
   private client: HttpClient;
 
@@ -214,5 +218,17 @@ export class NodeDataSource {
     return await this.client.get<HealthStatus>(
       `${request.url}/admin-api/health`,
     );
+  }
+
+  async getContextStorageUsage(
+    contextId: string,
+  ): Promise<ApplicationStorageResponse> {
+    const response = await this.client.get<ApplicationStorageResponse>(
+      `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`);
+    if (response?.data) {
+      return response.data;
+    } else {
+      return { sizeInBytes: 0 };
+    }
   }
 }
