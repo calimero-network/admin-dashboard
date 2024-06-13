@@ -52,7 +52,7 @@ export interface ContextObject {
   clientKeys: ClientKey[];
   users: User[];
   contextId: string;
-  sizeInMb: string;
+  sizeInBytes: number;
 }
 
 export default function ContextDetails() {
@@ -69,14 +69,14 @@ export default function ContextDetails() {
   const generateContextObjects = async (context: any) => {
     const packageData = await getPackage(context.applicationId);
     const versionData = await getLatestRelease(context.applicationId);
-    const storageInfo = await apiClient.node().getApplicationStorageUsage(packageData.id, versionData?.version!);
+    const storageInfo = await apiClient.node().getContextStorageUsage(context.id);
 
     return {
       ...packageData,
       ...context,
       ...versionData,
       contextId: id,
-      sizeInMb: storageInfo.sizeInBytes,
+      sizeInBytes: storageInfo.sizeInBytes,
     };
   };
 

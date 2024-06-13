@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import LoaderSpinner from '../../common/LoaderSpinner';
 import translations from '../../../constants/en.global.json';
 import { ContextObject } from '../../../pages/ContextDetails';
+import { convertBytesToMB } from '../../../utils/displayFunctions';
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
@@ -89,7 +90,7 @@ export default function DetailsCard({ details }: DetailsCardProps) {
         <div className="highlight title">{t.titleStorage}</div>
         <div className="item">
           {t.labelStorageText}
-          <span className="highlight">{`${details.sizeInBytes} MB`}</span>
+          <span className="highlight">{`${convertBytesToMB(details.sizeInBytes)} MB`}</span>
         </div>
       </div>
     </DetailsCardWrapper>

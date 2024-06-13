@@ -28,3 +28,12 @@ export const getStatus = (active: boolean, revoked: boolean): string => {
     return '';
   }
 };
+
+export const convertBytesToMB = (bytes: number): number => {
+  if (bytes === 0) {
+    return 0;
+  }
+  const bytesInOneMB = 1024 * 1024;
+  const mb = bytes / bytesInOneMB;
+  return Math.round(mb * 100) / 100;
+};

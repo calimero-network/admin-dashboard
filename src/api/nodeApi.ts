@@ -22,5 +22,5 @@ export interface NodeApi {
   ): Promise<boolean>;
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
-  getApplicationStorageUsage(applicationId: string, version: string): Promise<ApplicationStorageResponse>;
+  getContextStorageUsage(contextId: string): Promise<ApplicationStorageResponse>;
 }

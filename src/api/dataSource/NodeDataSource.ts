@@ -77,7 +77,7 @@ export interface HealthStatus {
 }
 
 export interface ApplicationStorageResponse {
-  sizeInBytes: string;
+  sizeInBytes: number;
 }
 
 export class NodeDataSource {
@@ -221,22 +221,15 @@ export class NodeDataSource {
     );
   }
 
-  async getApplicationStorageUsage(
-    applicationId: string,
-    version: string
+  async getContextStorageUsage(
+    contextId: string,
   ): Promise<ApplicationStorageResponse> {
-    const response = await this.client.post<ApplicationStorageResponse>(
-      `${getAppEndpointKey()}/admin-api/storage`,
-      {
-        applicationId: applicationId,
-        version: version,
-      }
-    );
-    console.log(response);
+    const response = await this.client.get<ApplicationStorageResponse>(
+      `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`);
     if (response?.data) {
       return response.data;
     } else {
-      return { sizeInBytes: "0" };
+      return { sizeInBytes: 0 };
     }
   }
 }
