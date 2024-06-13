@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from 'react-router-dom';
 import styled from "styled-components";
 import MenuIconDropdown from "../common/MenuIconDropdown";
 import { ContextObject } from "../../pages/Contexts";
@@ -66,9 +65,9 @@ export default function rowItem(
 ): JSX.Element {
   return (
     <RowItem key={item.id} $hasBorders={id === count}>
-      <Link to={item.id} className="row-item id">
+      <a href={`contexts/${item.id}`} className="row-item id">
         {item.id}
-      </Link>
+      </a>
       <div className="row-item name">{item.name}</div>
       <div className="menu-dropdown">
         <MenuIconDropdown
