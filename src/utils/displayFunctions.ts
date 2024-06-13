@@ -29,11 +29,19 @@ export const getStatus = (active: boolean, revoked: boolean): string => {
   }
 };
 
-export const convertBytesToMB = (bytes: number): number => {
+export const convertBytes = (bytes: number): string => {
   if (bytes === 0) {
-    return 0;
+    return '0 MB';
   }
+
   const bytesInOneMB = 1024 * 1024;
-  const mb = bytes / bytesInOneMB;
-  return Math.round(mb * 100) / 100;
+  const bytesInOneGB = 1024 * 1024 * 1024;
+
+  if (bytes < bytesInOneGB) {
+    const mb = bytes / bytesInOneMB;
+    return `${(Math.round(mb * 100) / 100).toFixed(2)} MB`;
+  } else {
+    const gb = bytes / bytesInOneGB;
+    return `${(Math.round(gb * 100) / 100).toFixed(2)} GB`;
+  }
 };
