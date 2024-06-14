@@ -7,6 +7,20 @@ enum Network {
   ETH = 'ETH',
 }
 
+export interface ContextClientKeysList {
+  clientKeys: ClientKey[]
+}
+
+export interface ContextUsersList {
+  contextUsers: User[]
+}
+
+export interface User {
+  userId: string;
+  joinedAt: number;
+  contextId: string;
+}
+
 export interface Application {
   id: string;
   version: string;
@@ -52,10 +66,11 @@ interface ApiRootKey {
   created_at: number;
 }
 
-interface ClientKey {
-  signing_key: string;
-  type: Network;
-  created_at: number;
+export interface ClientKey {
+  signingKey: string;
+  walletType: NetworkType;
+  createdAt: number;
+  applicationId: string;
 }
 
 interface RootkeyResponse {
@@ -76,7 +91,7 @@ export interface HealthStatus {
   status: String;
 }
 
-export interface ApplicationStorageResponse {
+export interface ContextStorage {
   sizeInBytes: number;
 }
 
@@ -121,19 +136,61 @@ export class NodeDataSource {
     }
   }
 
-  async getContext(contextId: string): Promise<Context | null> {
+  async getContext(contextId: string): Promise<ResponseData<Context>> {
     try {
       const response = await this.client.get<Context>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
       );
-      if (response?.data) {
-        return response.data;
-      } else {
-        return null;
-      }
+      return response;
     } catch (error) {
       console.error('Error fetching context:', error);
-      return null;
+      return { error: { code: 500, message: 'Failed to fetch context data.' } };
+    }
+  }
+
+  async getContextClientKeys(
+    contextId: string,
+  ): Promise<ResponseData<ContextClientKeysList>> {
+    try {
+      const response = await this.client.get<ContextClientKeysList>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context:', error);
+      return {
+        error: { code: 500, message: 'Failed to fetch context client keys.' },
+      };
+    }
+  }
+
+  async getContextUsers(contextId: string): Promise<ResponseData<ContextUsersList>> {
+    try {
+      const response = await this.client.get<ContextUsersList>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context:', error);
+      return {
+        error: { code: 500, message: 'Failed to fetch context users.' },
+      };
+    }
+  }
+
+  async getContextStorageUsage(
+    contextId: string,
+  ): Promise<ResponseData<ContextStorage>> {
+    try {
+      const response = await this.client.get<ContextStorage>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context storage usage:', error);
+      return {
+        error: { code: 500, message: 'Failed to fetch context storage usage.' },
+      };
     }
   }
 
@@ -218,17 +275,5 @@ export class NodeDataSource {
     return await this.client.get<HealthStatus>(
       `${request.url}/admin-api/health`,
     );
-  }
-
-  async getContextStorageUsage(
-    contextId: string,
-  ): Promise<ApplicationStorageResponse> {
-    const response = await this.client.get<ApplicationStorageResponse>(
-      `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`);
-    if (response?.data) {
-      return response.data;
-    } else {
-      return { sizeInBytes: 0 };
-    }
   }
 }

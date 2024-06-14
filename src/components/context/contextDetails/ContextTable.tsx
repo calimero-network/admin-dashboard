@@ -1,21 +1,25 @@
-import React from 'react';
-import styled from 'styled-components';
-import translations from '../../../constants/en.global.json';
-import { ContentCard } from '../../common/ContentCard';
-import OptionsHeader, { TableOptions } from '../../common/OptionsHeader';
-import ListTable from '../../common/ListTable';
-import clientKeyRowItem from './ClientKeyRowItem';
-import userRowItem from './UserRowItem';
-import { DetailsOptions } from '../../../constants/ContextConstants';
-import DetailsCard from './DetailsCard';
-import { ClientKey, ContextObject, User } from '../../../pages/ContextDetails';
+import React from "react";
+import styled from "styled-components";
+import translations from "../../../constants/en.global.json";
+import { ContentCard } from "../../common/ContentCard";
+import OptionsHeader, { TableOptions } from "../../common/OptionsHeader";
+import ListTable from "../../common/ListTable";
+import clientKeyRowItem from "./ClientKeyRowItem";
+import userRowItem from "./UserRowItem";
+import { DetailsOptions } from "../../../constants/ContextConstants";
+import DetailsCard from "./DetailsCard";
+import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
+import { ClientKey, ContextStorage, User } from "../../../api/dataSource/NodeDataSource";
 
 const FlexWrapper = styled.div`
   flex: 1;
 `;
 
 interface ContextTableProps {
-  nodeContextDetails: ContextObject;
+  contextDetails: ApiResponse<ContextObject>;
+  contextClientKeys: ApiResponse<ClientKey[]>;
+  contextUsers: ApiResponse<User[]>;
+  contextStorage: ApiResponse<ContextStorage>;
   navigateToContextList: () => void;
   currentOption: string;
   setCurrentOption: (option: string) => void;
@@ -23,7 +27,10 @@ interface ContextTableProps {
 }
 
 export default function ContextTable({
-  nodeContextDetails,
+  contextDetails,
+  contextClientKeys,
+  contextUsers,
+  contextStorage,
   navigateToContextList,
   currentOption,
   setCurrentOption,
@@ -43,25 +50,27 @@ export default function ContextTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption == DetailsOptions.DETAILS && (
-          <DetailsCard details={nodeContextDetails} />
+        {currentOption === DetailsOptions.DETAILS && (
+          <DetailsCard details={contextDetails} contextStorage={contextStorage}/>
         )}
-        {currentOption == DetailsOptions.CLIENT_KEYS && (
+        {currentOption === DetailsOptions.CLIENT_KEYS && (
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
-            listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
-            listItems={nodeContextDetails.clientKeys || []}
+            listHeaderItems={["TYPE", "ADDED", "PUBLIC KEY"]}
+            listItems={contextClientKeys.data || []}
+            error={contextClientKeys.error ?? ""}
             rowItem={clientKeyRowItem}
             roundTopItem={true}
             noItemsText={t.noClientKeysText}
           />
         )}
-        {currentOption == DetailsOptions.USERS && (
+        {currentOption === DetailsOptions.USERS && (
           <ListTable<User>
             numOfColumns={2}
-            listItems={nodeContextDetails.users || []}
-            listHeaderItems={['USER ID', 'JOINED']}
+            listItems={contextUsers.data || []}
+            error={contextUsers.error ?? ""}
+            listHeaderItems={["USER ID", "JOINED"]}
             rowItem={userRowItem}
             roundTopItem={true}
             noItemsText={t.noUsersText}

@@ -1,19 +1,23 @@
 import {
   Application,
-  ApplicationStorageResponse,
+  ContextStorage,
   Context,
   ContextsList,
   ETHRootKey,
   HealthRequest,
   HealthStatus,
   NearRootKey,
-} from './dataSource/NodeDataSource';
-import { ApiResponse } from './response';
+  ContextClientKeysList,
+  ContextUsersList,
+} from "./dataSource/NodeDataSource";
+import { ApiResponse } from "./response";
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
   getContexts(): Promise<ContextsList<Context>>;
-  getContext(contextId: string): Promise<Context | null>;
+  getContext(contextId: string): ApiResponse<Context>;
+  getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
+  getContextUsers(contextId: string): ApiResponse<ContextUsersList>;
   deleteContext(contextId: string): Promise<Boolean>;
   startContexts(
     applicationId: string,
@@ -22,5 +26,5 @@ export interface NodeApi {
   ): Promise<boolean>;
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
-  getContextStorageUsage(contextId: string): Promise<ApplicationStorageResponse>;
+  getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
 }

@@ -11,6 +11,13 @@ export const truncatePublicKey = (publicKey: string): string => {
   }
 };
 
+export const truncateText = (text: string): string => {
+  return `${text.substring(0, 4)}...${text.substring(
+    text.length - 4,
+    text.length
+  )}`;
+};
+
 export const truncateHash = (hash: string): string => {
   return `
       ${hash.substring(0, 4)}...${hash.substring(
