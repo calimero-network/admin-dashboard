@@ -9,7 +9,7 @@ import userRowItem from "./UserRowItem";
 import { DetailsOptions } from "../../../constants/ContextConstants";
 import DetailsCard from "./DetailsCard";
 import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
-import { ClientKey, User } from "../../../api/dataSource/NodeDataSource";
+import { ClientKey, ContextStorage, User } from "../../../api/dataSource/NodeDataSource";
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -19,6 +19,7 @@ interface ContextTableProps {
   contextDetails: ApiResponse<ContextObject>;
   contextClientKeys: ApiResponse<ClientKey[]>;
   contextUsers: ApiResponse<User[]>;
+  contextStorage: ApiResponse<ContextStorage>;
   navigateToContextList: () => void;
   currentOption: string;
   setCurrentOption: (option: string) => void;
@@ -29,6 +30,7 @@ export default function ContextTable({
   contextDetails,
   contextClientKeys,
   contextUsers,
+  contextStorage,
   navigateToContextList,
   currentOption,
   setCurrentOption,
@@ -48,10 +50,10 @@ export default function ContextTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption == DetailsOptions.DETAILS && (
-          <DetailsCard details={contextDetails} />
+        {currentOption === DetailsOptions.DETAILS && (
+          <DetailsCard details={contextDetails} contextStorage={contextStorage}/>
         )}
-        {currentOption == DetailsOptions.CLIENT_KEYS && (
+        {currentOption === DetailsOptions.CLIENT_KEYS && (
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
@@ -63,7 +65,7 @@ export default function ContextTable({
             noItemsText={t.noClientKeysText}
           />
         )}
-        {currentOption == DetailsOptions.USERS && (
+        {currentOption === DetailsOptions.USERS && (
           <ListTable<User>
             numOfColumns={2}
             listItems={contextUsers.data || []}

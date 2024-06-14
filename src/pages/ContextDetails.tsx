@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import ContextTable from "../components/context/contextDetails/ContextTable";
-import { useParams, useNavigate } from "react-router-dom";
-import apiClient from "../api/index";
-import { DetailsOptions } from "../constants/ContextConstants";
-import { useRPC } from "../hooks/useNear";
-import { TableOptions } from "../components/common/OptionsHeader";
-import { ClientKey, Context, User } from "../api/dataSource/NodeDataSource";
+import React, { useState, useEffect } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import ContextTable from '../components/context/contextDetails/ContextTable';
+import { useParams, useNavigate } from 'react-router-dom';
+import apiClient from '../api/index';
+import { DetailsOptions } from '../constants/ContextConstants';
+import { useRPC } from '../hooks/useNear';
+import { TableOptions } from '../components/common/OptionsHeader';
+import {
+  ClientKey,
+  Context,
+  ContextStorage,
+  User,
+} from '../api/dataSource/NodeDataSource';
 
 const initialOptions = [
   {
@@ -38,7 +43,6 @@ export interface ContextObject {
   version: string;
   owner: string;
   contextId: string;
-  sizeInBytes: number;
 }
 
 export interface ApiResponse<T> {
@@ -54,6 +58,8 @@ export default function ContextDetails() {
   const [contextClientKeys, setContextClientKeys] =
     useState<ApiResponse<ClientKey[]>>();
   const [contextUsers, setContextUsers] = useState<ApiResponse<User[]>>();
+  const [contextStorage, setContextStorage] =
+    useState<ApiResponse<ContextStorage>>();
   const [currentOption, setCurrentOption] = useState<string>(
     DetailsOptions.DETAILS,
   );
@@ -64,26 +70,29 @@ export default function ContextDetails() {
   const generateContextObjects = async (context: Context) => {
     const packageData = await getPackage(context.applicationId);
     const versionData = await getLatestRelease(context.applicationId);
-    const storageInfo = await apiClient.node().getContextStorageUsage(context.id);
 
     return {
       ...packageData,
       ...versionData,
       contextId: id,
       applicationId: context.applicationId,
-      sizeInBytes: storageInfo.sizeInBytes,
     } as ContextObject;
   };
 
   useEffect(() => {
     const fetchNodeContexts = async () => {
       if (id) {
-        const [nodeContext, contextClientKeys, contextClientUsers] =
-          await Promise.all([
-            apiClient.node().getContext(id),
-            apiClient.node().getContextClientKeys(id),
-            apiClient.node().getContextUsers(id),
-          ]);
+        const [
+          nodeContext,
+          contextClientKeys,
+          contextClientUsers,
+          contextStorage,
+        ] = await Promise.all([
+          apiClient.node().getContext(id),
+          apiClient.node().getContextClientKeys(id),
+          apiClient.node().getContextUsers(id),
+          apiClient.node().getContextStorageUsage(id),
+        ]);
 
         if (nodeContext.data) {
           const contextObject = await generateContextObjects(nodeContext.data);
@@ -104,19 +113,25 @@ export default function ContextDetails() {
           setContextUsers({ error: contextClientUsers.error?.message });
         }
 
+        if (contextStorage.data) {
+          setContextStorage({ data: contextStorage.data });
+        } else {
+          setContextStorage({ error: contextStorage.error?.message });
+        }
+
         setTableOptions([
           {
-            name: "Details",
+            name: 'Details',
             id: DetailsOptions.DETAILS,
             count: -1,
           },
           {
-            name: "Client Keys",
+            name: 'Client Keys',
             id: DetailsOptions.CLIENT_KEYS,
             count: contextClientKeys.data?.length ?? 0,
           },
           {
-            name: "Users",
+            name: 'Users',
             id: DetailsOptions.USERS,
             count: contextClientUsers.data?.length ?? 0,
           },
@@ -130,17 +145,21 @@ export default function ContextDetails() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-        {contextDetails && contextClientKeys && contextUsers && (
-          <ContextTable
-            contextDetails={contextDetails}
-            contextClientKeys={contextClientKeys}
-            contextUsers={contextUsers}
-            navigateToContextList={() => navigate("/contexts")}
-            currentOption={currentOption}
-            setCurrentOption={setCurrentOption}
-            tableOptions={tableOptions}
-          />
-        )}
+        {contextDetails &&
+          contextClientKeys &&
+          contextUsers &&
+          contextStorage && (
+            <ContextTable
+              contextDetails={contextDetails}
+              contextClientKeys={contextClientKeys}
+              contextUsers={contextUsers}
+              contextStorage={contextStorage}
+              navigateToContextList={() => navigate('/contexts')}
+              currentOption={currentOption}
+              setCurrentOption={setCurrentOption}
+              tableOptions={tableOptions}
+            />
+          )}
       </PageContentWrapper>
     </FlexLayout>
   );

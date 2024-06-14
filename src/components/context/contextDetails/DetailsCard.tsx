@@ -1,9 +1,10 @@
-import React from "react";
-import styled from "styled-components";
-import LoaderSpinner from "../../common/LoaderSpinner";
-import translations from "../../../constants/en.global.json";
-import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
+import React from 'react';
+import styled from 'styled-components';
+import LoaderSpinner from '../../common/LoaderSpinner';
+import translations from '../../../constants/en.global.json';
+import { ApiResponse, ContextObject } from '../../../pages/ContextDetails';
 import { convertBytes } from '../../../utils/displayFunctions';
+import { ContextStorage } from '../../../api/dataSource/NodeDataSource';
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
@@ -51,9 +52,13 @@ const DetailsCardWrapper = styled.div`
 
 interface DetailsCardProps {
   details: ApiResponse<ContextObject>;
+  contextStorage: ApiResponse<ContextStorage>;
 }
 
-export default function DetailsCard({ details }: DetailsCardProps) {
+export default function DetailsCard({
+  details,
+  contextStorage,
+}: DetailsCardProps) {
   const t = translations.contextPage.contextDetails;
 
   if (!details) {
@@ -96,14 +101,18 @@ export default function DetailsCard({ details }: DetailsCardProps) {
           <div className="highlight title">{t.titleStorage}</div>
           <div className="item">
             {t.labelStorageText}
-            <span className="highlight">{"-"}</span>
+            <span className="highlight">{'-'}</span>
           </div>
-           <div className="highlight title">{t.titleStorage}</div>
-            <div className="item">
-              {t.labelStorageText}
-              <span className="highlight">{convertBytes(details.sizeInBytes)}</span>
-            </div>
+          <div className="highlight title">{t.titleStorage}</div>
+          <div className="item">
+            {t.labelStorageText}
+            <span className="highlight">
+              {contextStorage.data
+                ? convertBytes(contextStorage.data.sizeInBytes)
+                : contextStorage.error}
+            </span>
           </div>
+        </div>
       ) : (
         <div className="container-full">
           <div className="item">{details.error}</div>
