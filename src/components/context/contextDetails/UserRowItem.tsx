@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import { User } from "../../../api/dataSource/NodeDataSource";
+import React from 'react';
+import styled from 'styled-components';
+import { User } from '../../../api/dataSource/NodeDataSource';
 
 interface UserRowItemProps {
   $hasBorders: boolean;

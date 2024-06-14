@@ -9,8 +9,8 @@ import {
   NearRootKey,
   ContextClientKeysList,
   ContextUsersList,
-} from "./dataSource/NodeDataSource";
-import { ApiResponse } from "./response";
+} from './dataSource/NodeDataSource';
+import { ApiResponse } from './response';
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;

@@ -8,11 +8,11 @@ enum Network {
 }
 
 export interface ContextClientKeysList {
-  clientKeys: ClientKey[]
+  clientKeys: ClientKey[];
 }
 
 export interface ContextUsersList {
-  contextUsers: User[]
+  contextUsers: User[];
 }
 
 export interface User {
@@ -164,7 +164,9 @@ export class NodeDataSource {
     }
   }
 
-  async getContextUsers(contextId: string): Promise<ResponseData<ContextUsersList>> {
+  async getContextUsers(
+    contextId: string,
+  ): Promise<ResponseData<ContextUsersList>> {
     try {
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
