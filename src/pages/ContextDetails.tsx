@@ -102,13 +102,13 @@ export default function ContextDetails() {
         }
 
         if (contextClientKeys.data) {
-          setContextClientKeys({ data: contextClientKeys.data });
+          setContextClientKeys({ data: contextClientKeys.data.clientKeys });
         } else {
           setContextClientKeys({ error: contextClientKeys.error?.message });
         }
 
         if (contextClientUsers.data) {
-          setContextUsers({ data: contextClientUsers.data });
+          setContextUsers({ data: contextClientUsers.data.contextUsers });
         } else {
           setContextUsers({ error: contextClientUsers.error?.message });
         }
@@ -128,19 +128,19 @@ export default function ContextDetails() {
           {
             name: 'Client Keys',
             id: DetailsOptions.CLIENT_KEYS,
-            count: contextClientKeys.data?.length ?? 0,
+            count: contextClientKeys.data?.clientKeys?.length ?? 0,
           },
           {
             name: 'Users',
             id: DetailsOptions.USERS,
-            count: contextClientUsers.data?.length ?? 0,
+            count: contextClientUsers.data?.contextUsers?.length ?? 0,
           },
         ]);
       }
     };
     fetchNodeContexts();
   }, []);
-  // TODO - handler for failed to fetch context details
+
   return (
     <FlexLayout>
       <Navigation />

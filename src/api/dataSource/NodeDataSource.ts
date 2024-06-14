@@ -7,6 +7,14 @@ enum Network {
   ETH = 'ETH',
 }
 
+export interface ContextClientKeysList {
+  clientKeys: ClientKey[]
+}
+
+export interface ContextUsersList {
+  contextUsers: User[]
+}
+
 export interface User {
   userId: string;
   joinedAt: number;
@@ -142,9 +150,9 @@ export class NodeDataSource {
 
   async getContextClientKeys(
     contextId: string,
-  ): Promise<ResponseData<ClientKey[]>> {
+  ): Promise<ResponseData<ContextClientKeysList>> {
     try {
-      const response = await this.client.get<ClientKey[]>(
+      const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
       );
       return response;
@@ -156,9 +164,9 @@ export class NodeDataSource {
     }
   }
 
-  async getContextUsers(contextId: string): Promise<ResponseData<User[]>> {
+  async getContextUsers(contextId: string): Promise<ResponseData<ContextUsersList>> {
     try {
-      const response = await this.client.get<User[]>(
+      const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
       );
       return response;
