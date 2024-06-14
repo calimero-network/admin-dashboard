@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
-import { ReleaseInfo } from "../../pages/PublishApplication";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
+import { ReleaseInfo } from '../../pages/PublishApplication';
 
 const Wrapper = styled.div`
   width: 100%;

@@ -1,11 +1,11 @@
-import React from "react";
-import styled from "styled-components";
-import Button from "../../common/Button";
-import ApplicationsPopup from "./ApplicationsPopup";
-import translations from "../../../constants/en.global.json";
-import StatusModal, { ModalContent } from "../../common/StatusModal";
-import { ContextApplication } from "../../../pages/StartContext";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import React from 'react';
+import styled from 'styled-components';
+import Button from '../../common/Button';
+import ApplicationsPopup from './ApplicationsPopup';
+import translations from '../../../constants/en.global.json';
+import StatusModal, { ModalContent } from '../../common/StatusModal';
+import { ContextApplication } from '../../../pages/StartContext';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const Wrapper = styled.div`
   display: flex;
@@ -15,7 +15,7 @@ const Wrapper = styled.div`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -173,7 +173,7 @@ export default function StartContextCard({
   isLoading,
   showStatusModal,
   closeModal,
-  startContextStatus
+  startContextStatus,
 }: StartContextCardProps) {
   const t = translations.startContextPage;
   const onStartContextClick = async () => {
@@ -191,7 +191,7 @@ export default function StartContextCard({
       const formattedJson = JSON.stringify(JSON.parse(argumentsJson), null, 2);
       setArgumentsJson(formattedJson);
     } catch (error) {
-      console.log("error", error);
+      console.log('error', error);
     }
   };
 
@@ -211,28 +211,45 @@ export default function StartContextCard({
       )}
       <div className="select-app-section">
         <div className="section-title">
-          {application.appId ? t.selectedApplicationTitle : t.selectApplicationTitle}
-          {application.appId && <XMarkIcon className="cancel-icon" onClick={() => setApplication({
-            appId: "",
-            name: "",
-            version: ""
-          })}
-          />}
+          {application.appId
+            ? t.selectedApplicationTitle
+            : t.selectApplicationTitle}
+          {application.appId && (
+            <XMarkIcon
+              className="cancel-icon"
+              onClick={() =>
+                setApplication({
+                  appId: '',
+                  name: '',
+                  version: '',
+                })
+              }
+            />
+          )}
         </div>
         {application.appId ? (
           <div className="selected-app">
-            <p className="label">{t.idLabelText}<span className="value">{application.appId}</span></p>
-            <p className="label">{t.nameLabelText}<span className="value">{application.name}</span></p>
-            <p className="label">{t.versionLabelText}<span className="value">{application.version}</span></p>
+            <p className="label">
+              {t.idLabelText}
+              <span className="value">{application.appId}</span>
+            </p>
+            <p className="label">
+              {t.nameLabelText}
+              <span className="value">{application.name}</span>
+            </p>
+            <p className="label">
+              {t.versionLabelText}
+              <span className="value">{application.version}</span>
+            </p>
           </div>
         ) : (
           <div className="button-container">
             <Button
               text="Browse"
-              width={"144px"}
+              width={'144px'}
               onClick={() => setShowBrowseApplication(true)}
             />
-            <Button text="Upload" width={"144px"} onClick={onUploadClick} />
+            <Button text="Upload" width={'144px'} onClick={onUploadClick} />
           </div>
         )}
       </div>
@@ -274,7 +291,12 @@ export default function StartContextCard({
             </div>
           </div>
         )}
-        <Button text="Start" width={"144px"} onClick={onStartContextClick} isLoading={isLoading}/>
+        <Button
+          text="Start"
+          width={'144px'}
+          onClick={onStartContextClick}
+          isLoading={isLoading}
+        />
       </div>
     </Wrapper>
   );

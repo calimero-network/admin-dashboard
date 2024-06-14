@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import { Footer } from "../footer/Footer";
-import CalimeroLogo from "../../assets/calimero-logo.svg";
+import React from 'react';
+import styled from 'styled-components';
+import { Footer } from '../footer/Footer';
+import CalimeroLogo from '../../assets/calimero-logo.svg';
 
 const Wrapper = styled.div`
   background-color: #111111;
@@ -54,7 +54,11 @@ const Wrapper = styled.div`
   }
 `;
 
-export default function ContentWrapper({children}: {children: React.ReactNode}) {
+export default function ContentWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <Wrapper>
       <div className="login-navbar">
@@ -68,9 +72,7 @@ export default function ContentWrapper({children}: {children: React.ReactNode}) 
         </div>
       </div>
       <div className="content-card">
-        <div className="content-wrapper">
-          {children}
-        </div>
+        <div className="content-wrapper">{children}</div>
         <Footer />
       </div>
     </Wrapper>

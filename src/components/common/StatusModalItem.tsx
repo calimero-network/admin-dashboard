@@ -1,12 +1,12 @@
-import React from "react";
-import Modal from "react-bootstrap/Modal";
-import styled from "styled-components";
+import React from 'react';
+import Modal from 'react-bootstrap/Modal';
+import styled from 'styled-components';
 import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
-} from "@heroicons/react/24/solid";
-import translations from "../../constants/en.global.json";
-import Button from "./Button";
+} from '@heroicons/react/24/solid';
+import translations from '../../constants/en.global.json';
+import Button from './Button';
 
 const ModalWrapper = styled.div`
   display: flex;
@@ -95,7 +95,11 @@ export default function StatusModalItem({
         <div className="container">
           <div className="modal-item">{itemObject(modalContent.data)}</div>
           <div className="button-wrapper">
-            <Button width="100%" text={modalContent.error ? t.buttonCloseText : t.buttonCopyText} onClick={closeModal}/>
+            <Button
+              width="100%"
+              text={modalContent.error ? t.buttonCloseText : t.buttonCopyText}
+              onClick={closeModal}
+            />
           </div>
         </div>
       </ModalWrapper>

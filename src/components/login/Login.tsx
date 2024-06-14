@@ -1,8 +1,8 @@
-import React from "react";
-import CryptoWalletSelectorAnimation from "../../assets/crypto-wallet-selector-animation.svg";
-import CalimeroLogo from "../../assets/calimero-logo.svg";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import CryptoWalletSelectorAnimation from '../../assets/crypto-wallet-selector-animation.svg';
+import CalimeroLogo from '../../assets/calimero-logo.svg';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
 
 const LoginWrapper = styled.div`
   background-color: #111111;
@@ -108,13 +108,16 @@ const LoginWrapper = styled.div`
     vertical-align: middle;
     appearance: none;
     text-decoration: none;
-    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    transition:
+      background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
       box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
       border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
       color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
     background-color: rgb(255, 132, 45);
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
-      rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+    box-shadow:
+      rgba(0, 0, 0, 0.2) 0px 3px 1px -2px,
+      rgba(0, 0, 0, 0.14) 0px 2px 2px 0px,
+      rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
     min-width: 0px;
     border-radius: 8px;
     white-space: nowrap;

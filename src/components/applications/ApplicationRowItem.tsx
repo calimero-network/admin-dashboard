@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import { truncateHash } from "../../utils/displayFunctions";
-import { Application } from "../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import { truncateHash } from '../../utils/displayFunctions';
+import { Application } from '../../pages/Applications';
 
 interface ApplicationRowItemProps {
   $hasBorders: boolean;
@@ -16,7 +16,7 @@ const RowItem = styled.div<ApplicationRowItemProps>`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -53,7 +53,7 @@ export default function applicationRowItem(
   item: Application,
   id: number,
   count: number,
-  onRowItemClick?: (id: string) => void
+  onRowItemClick?: (id: string) => void,
 ): JSX.Element {
   return (
     <RowItem key={item.id} $hasBorders={id === count}>

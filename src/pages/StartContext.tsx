@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import { useNavigate } from "react-router-dom";
-import { ContentCard } from "../components/common/ContentCard";
-import StartContextCard from "../components/context/startContext/StartContextCard";
-import translations from "../constants/en.global.json";
-import apiClient from "../api/index";
-import { useAdminClient } from "../hooks/useAdminClient";
+import React, { useState } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import { useNavigate } from 'react-router-dom';
+import { ContentCard } from '../components/common/ContentCard';
+import StartContextCard from '../components/context/startContext/StartContextCard';
+import translations from '../constants/en.global.json';
+import apiClient from '../api/index';
+import { useAdminClient } from '../hooks/useAdminClient';
 
 export interface ContextApplication {
   appId: string;
@@ -20,19 +20,19 @@ export default function StartContext() {
   const navigate = useNavigate();
   const { installApplication } = useAdminClient();
   const [application, setApplication] = useState<ContextApplication>({
-    appId: "",
-    name: "",
-    version: ""
+    appId: '',
+    name: '',
+    version: '',
   });
   const [isArgsChecked, setIsArgsChecked] = useState(false);
-  const [methodName, setMethodName] = useState("");
-  const [argumentsJson, setArgumentsJson] = useState("");
+  const [methodName, setMethodName] = useState('');
+  const [argumentsJson, setArgumentsJson] = useState('');
   const [showBrowseApplication, setShowBrowseApplication] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [startContextStatus, setStartContextStatus] = useState({
-    title: "",
-    message: "",
+    title: '',
+    message: '',
     error: false,
   });
 
@@ -82,11 +82,11 @@ export default function StartContext() {
     }
     const response = await installApplication(
       application.appId,
-      application.version
+      application.version,
     );
     if (response.error) {
       setStartContextStatus({
-        title: "Error installing application",
+        title: 'Error installing application',
         message: response.error.message,
         error: true,
       });
@@ -105,13 +105,13 @@ export default function StartContext() {
     setShowStatusModal(false);
     if (startContextStatus.error) {
       setStartContextStatus({
-        title: "",
-        message: "",
+        title: '',
+        message: '',
         error: false,
       });
       return;
     }
-    navigate("/contexts");
+    navigate('/contexts');
   };
 
   return (
@@ -120,7 +120,7 @@ export default function StartContext() {
       <PageContentWrapper>
         <ContentCard
           headerBackText={t.backButtonText}
-          headerOnBackClick={() => navigate("/contexts")}
+          headerOnBackClick={() => navigate('/contexts')}
         >
           <StartContextCard
             application={application}
@@ -134,7 +134,7 @@ export default function StartContext() {
             startContext={startContext}
             showBrowseApplication={showBrowseApplication}
             setShowBrowseApplication={setShowBrowseApplication}
-            onUploadClick={() => navigate("/publish-application")}
+            onUploadClick={() => navigate('/publish-application')}
             isLoading={isLoading}
             showStatusModal={showStatusModal}
             closeModal={closeModal}

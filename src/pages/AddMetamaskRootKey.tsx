@@ -1,18 +1,18 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import MetamaskWrapper from "@calimero-is-near/calimero-p2p-sdk/lib/wallets/MetamaskLogin/MetamaskWrapper";
-import ContentWrapper from "../components/login/ContentWrapper";
-import { getNodeUrl } from "../utils/node";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MetamaskWrapper } from '@calimero-is-near/calimero-p2p-sdk';
+import ContentWrapper from '../components/login/ContentWrapper';
+import { getNodeUrl } from '../utils/node';
 
 export default function AddMetamaskRootKey() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>
       <MetamaskWrapper
-        applicationId={"admin-ui"}
+        applicationId={'admin-ui'}
         rpcBaseUrl={getNodeUrl()}
-        successRedirect={() => navigate("/identity")}
-        navigateBack={() => navigate("/")}
+        successRedirect={() => navigate('/identity')}
+        navigateBack={() => navigate('/')}
         clientLogin={false}
       />
     </ContentWrapper>

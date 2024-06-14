@@ -1,9 +1,9 @@
-import React from "react";
-import styled from "styled-components";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import Button from "./Button";
+import React from 'react';
+import styled from 'styled-components';
+import { ArrowLeftIcon } from '@heroicons/react/24/solid';
+import Button from './Button';
 
-const Container = styled.div<{$isOverflow: boolean}>`
+const Container = styled.div<{ $isOverflow: boolean }>`
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -12,7 +12,7 @@ const Container = styled.div<{$isOverflow: boolean}>`
   border-radius: 0.5rem;
   background-color: #212325;
   color: #fff;
-  ${(props) => props.$isOverflow ? "" : "height: 100%;"}
+  ${(props) => (props.$isOverflow ? '' : 'height: 100%;')}
 
   .header-back {
     display: flex;
@@ -95,7 +95,7 @@ export function ContentCard({
   headerOnBackClick,
   children,
   descriptionComponent,
-  isOverflow = false
+  isOverflow = false,
 }: ContentCardProps) {
   return (
     <Container $isOverflow={isOverflow}>

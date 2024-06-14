@@ -1,6 +1,6 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../constants/en.global.json";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../constants/en.global.json';
 
 export const ContentLayout = styled.div`
   padding: 42px 26px 26px 26px;
@@ -47,7 +47,10 @@ interface UploadAppContentProps {
   children: React.ReactNode;
 }
 
-export function UploadAppContent({ addWalletAccount, children }: UploadAppContentProps) {
+export function UploadAppContent({
+  addWalletAccount,
+  children,
+}: UploadAppContentProps) {
   const t = translations.uploadPage;
   return (
     <ContentLayout>

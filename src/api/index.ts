@@ -1,13 +1,13 @@
-import axios from "axios";
-import { AxiosHttpClient, HttpClient } from "./httpClient";
-import { NodeApi } from "./nodeApi";
-import { NodeDataSource } from "./dataSource/NodeDataSource";
+import axios from 'axios';
+import { AxiosHttpClient, HttpClient } from './httpClient';
+import { NodeApi } from './nodeApi';
+import { NodeDataSource } from './dataSource/NodeDataSource';
 
 interface IApiClient {
   node(): NodeApi;
 }
 
-class ApiClient implements IApiClient{
+class ApiClient implements IApiClient {
   private nodeApi: NodeApi;
 
   constructor(httpClient: HttpClient) {

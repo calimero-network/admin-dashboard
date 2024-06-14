@@ -1,7 +1,7 @@
-import React from "react";
-import styled from "styled-components";
-import { truncateHash } from "../../../utils/displayFunctions";
-import { Release } from "../../../pages/Applications";
+import React from 'react';
+import styled from 'styled-components';
+import { truncateHash } from '../../../utils/displayFunctions';
+import { Release } from '../../../pages/Applications';
 
 export interface RowItemProps {
   $hasBorders: boolean;
@@ -16,7 +16,7 @@ export const RowItem = styled.div<RowItemProps>`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -50,7 +50,7 @@ export const RowItem = styled.div<RowItemProps>`
 export default function releaseRowItem(
   item: Release,
   id: number,
-  count: number
+  count: number,
 ): JSX.Element {
   return (
     <RowItem key={item.hash} $hasBorders={id === count}>

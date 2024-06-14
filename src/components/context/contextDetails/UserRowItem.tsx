@@ -35,7 +35,6 @@ const RowItem = styled.div<UserRowItemProps>`
   }
 `;
 
-
 export default function userRowItem(item: User, id: number, count: number) {
   return (
     <RowItem key={item.userId} $hasBorders={id === count}>

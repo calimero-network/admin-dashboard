@@ -12,17 +12,17 @@ import { ClientKey, Context, User } from "../api/dataSource/NodeDataSource";
 
 const initialOptions = [
   {
-    name: "Details",
+    name: 'Details',
     id: DetailsOptions.DETAILS,
     count: -1,
   },
   {
-    name: "Client Keys",
+    name: 'Client Keys',
     id: DetailsOptions.CLIENT_KEYS,
     count: 0,
   },
   {
-    name: "Users",
+    name: 'Users',
     id: DetailsOptions.USERS,
     count: 0,
   },
@@ -38,6 +38,7 @@ export interface ContextObject {
   version: string;
   owner: string;
   contextId: string;
+  sizeInBytes: number;
 }
 
 export interface ApiResponse<T> {
@@ -54,7 +55,7 @@ export default function ContextDetails() {
     useState<ApiResponse<ClientKey[]>>();
   const [contextUsers, setContextUsers] = useState<ApiResponse<User[]>>();
   const [currentOption, setCurrentOption] = useState<string>(
-    DetailsOptions.DETAILS
+    DetailsOptions.DETAILS,
   );
   const [tableOptions, setTableOptions] =
     useState<TableOptions[]>(initialOptions);
@@ -63,11 +64,14 @@ export default function ContextDetails() {
   const generateContextObjects = async (context: Context) => {
     const packageData = await getPackage(context.applicationId);
     const versionData = await getLatestRelease(context.applicationId);
+    const storageInfo = await apiClient.node().getContextStorageUsage(context.id);
+
     return {
       ...packageData,
       ...versionData,
       contextId: id,
       applicationId: context.applicationId,
+      sizeInBytes: storageInfo.sizeInBytes,
     } as ContextObject;
   };
 

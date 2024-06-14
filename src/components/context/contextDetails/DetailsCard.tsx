@@ -3,6 +3,7 @@ import styled from "styled-components";
 import LoaderSpinner from "../../common/LoaderSpinner";
 import translations from "../../../constants/en.global.json";
 import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
+import { convertBytes } from '../../../utils/displayFunctions';
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
@@ -97,7 +98,12 @@ export default function DetailsCard({ details }: DetailsCardProps) {
             {t.labelStorageText}
             <span className="highlight">{"-"}</span>
           </div>
-        </div>
+           <div className="highlight title">{t.titleStorage}</div>
+            <div className="item">
+              {t.labelStorageText}
+              <span className="highlight">{convertBytes(details.sizeInBytes)}</span>
+            </div>
+          </div>
       ) : (
         <div className="container-full">
           <div className="item">{details.error}</div>

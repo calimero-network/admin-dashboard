@@ -1,51 +1,51 @@
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
+import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
 import {
   Account,
   BrowserWallet,
   FinalExecutionOutcome,
   setupWalletSelector,
-} from "@near-wallet-selector/core";
-import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
-import { useRPC } from "../hooks/useNear";
-import axios from "axios";
+} from '@near-wallet-selector/core';
+import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
+import { useRPC } from '../hooks/useNear';
+import axios from 'axios';
 
-import * as nearAPI from "near-api-js";
-import { Package } from "./Applications";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import { useNavigate, useParams } from "react-router-dom";
-import AddReleaseTable from "../components/publishApplication/addRelease/AddReleaseTable";
-import { DeployStatus, ReleaseInfo } from "./PublishApplication";
-import { isFinalExecution } from "../utils/wallet";
-import { getNearEnvironment } from "../utils/node";
+import * as nearAPI from 'near-api-js';
+import { Package } from './Applications';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import { useNavigate, useParams } from 'react-router-dom';
+import AddReleaseTable from '../components/publishApplication/addRelease/AddReleaseTable';
+import { DeployStatus, ReleaseInfo } from './PublishApplication';
+import { isFinalExecution } from '../utils/wallet';
+import { getNearEnvironment } from '../utils/node';
 
-const BLOBBY_IPFS = "https://blobby-public.euw3.prod.gcp.calimero.network";
+const BLOBBY_IPFS = 'https://blobby-public.euw3.prod.gcp.calimero.network';
 
 export default function AddRelease() {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [ipfsPath, setIpfsPath] = useState("");
-  const [fileHash, setFileHash] = useState("");
+  const [ipfsPath, setIpfsPath] = useState('');
+  const [fileHash, setFileHash] = useState('');
   const { getPackage, getLatestRelease } = useRPC();
   const [deployerAccount, setDeployerAccount] = useState<Account>();
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [applicationInformation, setApplicationInformation] =
     useState<Package>();
-  const [latestRelease, setLatestRelease] = useState("");
+  const [latestRelease, setLatestRelease] = useState('');
   const [deployStatus, setDeployStatus] = useState<DeployStatus>({
-    title: "",
-    message: "",
+    title: '',
+    message: '',
     error: false,
   });
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo>({
-    name: "",
-    version: "",
-    notes: "",
-    path: "",
-    hash: "",
+    name: '',
+    version: '',
+    notes: '',
+    path: '',
+    hash: '',
   });
 
   useEffect(() => {
@@ -59,10 +59,10 @@ export default function AddRelease() {
   useEffect(() => {
     const fetchWalletAccounts = async () => {
       const selector = await setupWalletSelector({
-        network: "testnet",
+        network: 'testnet',
         modules: [setupMyNearWallet()],
       });
-      const wallet = await selector.wallet("my-near-wallet");
+      const wallet = await selector.wallet('my-near-wallet');
       const accounts = await wallet.getAccounts();
       if (accounts.length !== 0) {
         setDeployerAccount(accounts[0]);
@@ -86,28 +86,28 @@ export default function AddRelease() {
       network: getNearEnvironment(),
       modules: [setupMyNearWallet()],
     });
-    const wallet: BrowserWallet = await selector.wallet("my-near-wallet");
+    const wallet: BrowserWallet = await selector.wallet('my-near-wallet');
     await wallet.signOut();
-    wallet.signIn({ contractId: "calimero-package-manager.testnet" });
+    wallet.signIn({ contractId: 'calimero-package-manager.testnet' });
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files && event.target.files[0];
-    if (file && file.name.endsWith(".wasm")) {
+    if (file && file.name.endsWith('.wasm')) {
       const reader = new FileReader();
       reader.onload = async (e: ProgressEvent<FileReader>) => {
         const arrayBuffer = new Uint8Array(e.target?.result as ArrayBufferLike);
         const bytes = new Uint8Array(arrayBuffer);
-        const blob = new Blob([bytes], { type: "application/wasm" });
+        const blob = new Blob([bytes], { type: 'application/wasm' });
 
         const hashBuffer = await crypto.subtle.digest(
-          "SHA-256",
-          await blob.arrayBuffer()
+          'SHA-256',
+          await blob.arrayBuffer(),
         );
 
         const hashHex = Array.from(new Uint8Array(hashBuffer))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("");
+          .map((byte) => byte.toString(16).padStart(2, '0'))
+          .join('');
 
         setFileHash(hashHex);
 
@@ -117,14 +117,14 @@ export default function AddRelease() {
             setIpfsPath(`${BLOBBY_IPFS}/${response.data.cid}`);
           })
           .catch((error) => {
-            console.error("Error occurred while uploading the file:", error);
+            console.error('Error occurred while uploading the file:', error);
           });
       };
 
       reader.onerror = (e: ProgressEvent<FileReader>) => {
         console.error(
-          "Error occurred while reading the file:",
-          e.target?.error
+          'Error occurred while reading the file:',
+          e.target?.error,
         );
       };
 
@@ -134,19 +134,19 @@ export default function AddRelease() {
 
   const addRelease = async () => {
     const selector = await setupWalletSelector({
-      network: "testnet",
+      network: 'testnet',
       modules: [setupMyNearWallet()],
     });
-    const wallet = await selector.wallet("my-near-wallet");
+    const wallet = await selector.wallet('my-near-wallet');
     try {
       const res: FinalExecutionOutcome | void =
         await wallet.signAndSendTransaction({
-          signerId: deployerAccount ? deployerAccount.accountId : "",
+          signerId: deployerAccount ? deployerAccount.accountId : '',
           actions: [
             {
-              type: "FunctionCall",
+              type: 'FunctionCall',
               params: {
-                methodName: "add_release",
+                methodName: 'add_release',
                 args: {
                   name: applicationInformation?.name!,
                   version: releaseInfo.version,
@@ -155,15 +155,15 @@ export default function AddRelease() {
                   hash: releaseInfo.hash,
                 },
                 gas:
-                  nearAPI.utils.format.parseNearAmount("0.00000000003") ?? "0",
-                deposit: "",
+                  nearAPI.utils.format.parseNearAmount('0.00000000003') ?? '0',
+                deposit: '',
               },
             },
           ],
         });
       if (isFinalExecution(res)) {
         setDeployStatus({
-          title: "Application published",
+          title: 'Application published',
           message: `Release version ${
             releaseInfo.version
           } for ${applicationInformation?.name!} has been added!`,
@@ -171,17 +171,17 @@ export default function AddRelease() {
         });
       }
     } catch (error) {
-      let errorMessage = "";
+      let errorMessage = '';
 
       if (error instanceof Error) {
         errorMessage =
           JSON.parse(error.message).kind?.kind?.FunctionCallError
             ?.ExecutionError ??
-          "An error occurred while publishing the release";
+          'An error occurred while publishing the release';
       }
 
       setDeployStatus({
-        title: "Failed to publish release",
+        title: 'Failed to publish release',
         message: errorMessage,
         error: true,
       });
@@ -192,21 +192,21 @@ export default function AddRelease() {
     setShowStatusModal(false);
     if (!deployStatus.error) {
       setReleaseInfo({
-        name: "",
-        version: "",
-        notes: "",
-        path: "",
-        hash: "",
+        name: '',
+        version: '',
+        notes: '',
+        path: '',
+        hash: '',
       });
-      setFileHash("");
-      setIpfsPath("");
+      setFileHash('');
+      setIpfsPath('');
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
     }
     setDeployStatus({
-      title: "",
-      message: "",
+      title: '',
+      message: '',
       error: false,
     });
   };

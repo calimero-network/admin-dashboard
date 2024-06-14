@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
-import React from "react";
-import { Navigation } from "../components/Navigation";
-import { FlexLayout } from "../components/layout/FlexLayout";
-import { useRPC } from "../hooks/useNear";
-import { useNavigate } from "react-router-dom";
-import apiClient from "../api/index";
-import PageContentWrapper from "../components/common/PageContentWrapper";
-import ApplicationsTable from "../components/applications/ApplicationsTable";
-import { TableOptions } from "../components/common/OptionsHeader";
-import { ApplicationOptions } from "../constants/ContextConstants";
+import { useEffect, useState } from 'react';
+import React from 'react';
+import { Navigation } from '../components/Navigation';
+import { FlexLayout } from '../components/layout/FlexLayout';
+import { useRPC } from '../hooks/useNear';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/index';
+import PageContentWrapper from '../components/common/PageContentWrapper';
+import ApplicationsTable from '../components/applications/ApplicationsTable';
+import { TableOptions } from '../components/common/OptionsHeader';
+import { ApplicationOptions } from '../constants/ContextConstants';
 
 export enum Tabs {
   INSTALL_APPLICATION,
@@ -41,12 +41,12 @@ export interface Application extends Package {
 
 const initialOptions = [
   {
-    name: "Available",
+    name: 'Available',
     id: ApplicationOptions.AVAILABLE,
     count: 0,
   },
   {
-    name: "Owned",
+    name: 'Owned',
     id: ApplicationOptions.OWNED,
     count: 0,
   },
@@ -62,7 +62,7 @@ export default function Applications() {
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
   const [currentOption, setCurrentOption] = useState<string>(
-    ApplicationOptions.AVAILABLE
+    ApplicationOptions.AVAILABLE,
   );
   const [tableOptions, _setTableOptions] =
     useState<TableOptions[]>(initialOptions);
@@ -91,7 +91,7 @@ export default function Applications() {
           installedApplications.map(async (app: NodeApp) => {
             const packageData = await getPackage(app.id);
             return { ...packageData, id: app.id, version: app.version };
-          })
+          }),
         );
         setApplications((prevState: Applications) => ({
           ...prevState,
@@ -107,17 +107,15 @@ export default function Applications() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-          <ApplicationsTable
-            applicationsList={applications}
-            currentOption={currentOption}
-            setCurrentOption={setCurrentOption}
-            tableOptions={tableOptions}
-            navigateToAppDetails={(id: string) =>
-              navigate(`/applications/${id}`)
-            }
-            navigateToPublishApp={() => navigate("/publish-application")}
-            changeSelectedTab={() => setSelectedTab(Tabs.INSTALL_APPLICATION)}
-          />
+        <ApplicationsTable
+          applicationsList={applications}
+          currentOption={currentOption}
+          setCurrentOption={setCurrentOption}
+          tableOptions={tableOptions}
+          navigateToAppDetails={(id: string) => navigate(`/applications/${id}`)}
+          navigateToPublishApp={() => navigate('/publish-application')}
+          changeSelectedTab={() => setSelectedTab(Tabs.INSTALL_APPLICATION)}
+        />
       </PageContentWrapper>
     </FlexLayout>
   );

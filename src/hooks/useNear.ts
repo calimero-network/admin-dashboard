@@ -1,8 +1,8 @@
-import { Buffer } from "buffer";
-import * as nearAPI from "near-api-js";
-import { Package, Release } from "../pages/Applications";
+import { Buffer } from 'buffer';
+import * as nearAPI from 'near-api-js';
+import { Package, Release } from '../pages/Applications';
 
-const JSON_RPC_ENDPOINT = "https://rpc.testnet.near.org";
+const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
 
 export function useRPC() {
   const getPackages = async (): Promise<Package[]> => {
@@ -11,16 +11,16 @@ export function useRPC() {
     });
 
     const rawResult = await provider.query({
-      request_type: "call_function",
-      account_id: "calimero-package-manager.testnet",
-      method_name: "get_packages",
+      request_type: 'call_function',
+      account_id: 'calimero-package-manager.testnet',
+      method_name: 'get_packages',
       args_base64: btoa(
         JSON.stringify({
           offset: 0,
           limit: 100,
-        })
+        }),
       ),
-      finality: "final",
+      finality: 'final',
     });
     // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
     return JSON.parse(Buffer.from(rawResult.result).toString());
@@ -32,15 +32,15 @@ export function useRPC() {
     });
 
     const rawResult = await provider.query({
-      request_type: "call_function",
-      account_id: "calimero-package-manager.testnet",
-      method_name: "get_package",
+      request_type: 'call_function',
+      account_id: 'calimero-package-manager.testnet',
+      method_name: 'get_package',
       args_base64: btoa(
         JSON.stringify({
           id,
-        })
+        }),
       ),
-      finality: "final",
+      finality: 'final',
     });
     // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
     return JSON.parse(Buffer.from(rawResult.result).toString());
@@ -52,17 +52,17 @@ export function useRPC() {
     });
 
     const rawResult = await provider.query({
-      request_type: "call_function",
-      account_id: "calimero-package-manager.testnet",
-      method_name: "get_releases",
+      request_type: 'call_function',
+      account_id: 'calimero-package-manager.testnet',
+      method_name: 'get_releases',
       args_base64: btoa(
         JSON.stringify({
           id,
           offset: 0,
           limit: 100,
-        })
+        }),
       ),
-      finality: "final",
+      finality: 'final',
     });
     // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
     return JSON.parse(Buffer.from(rawResult.result).toString());
@@ -74,17 +74,17 @@ export function useRPC() {
     });
     try {
       const rawResult = await provider.query({
-        request_type: "call_function",
-        account_id: "calimero-package-manager.testnet",
-        method_name: "get_releases",
+        request_type: 'call_function',
+        account_id: 'calimero-package-manager.testnet',
+        method_name: 'get_releases',
         args_base64: btoa(
           JSON.stringify({
             id,
             offset: 0,
             limit: 100,
-          })
+          }),
         ),
-        finality: "final",
+        finality: 'final',
       });
       // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
       const releases = JSON.parse(Buffer.from(rawResult.result).toString());
@@ -93,7 +93,7 @@ export function useRPC() {
       }
       return releases[releases.length - 1];
     } catch (e) {
-      console.log("Error getting latest relase", e);
+      console.log('Error getting latest relase', e);
       return null;
     }
   };

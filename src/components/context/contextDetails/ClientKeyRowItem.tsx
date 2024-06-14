@@ -40,7 +40,11 @@ const RowItem = styled.div<ClientKeyRowItemProps>`
   }
 `;
 
-export default function clientKeyRowItem(item: ClientKey, id: number, count: number): JSX.Element {
+export default function clientKeyRowItem(
+  item: ClientKey,
+  id: number,
+  count: number,
+): JSX.Element {
   return (
     <RowItem key={item.signing_key} $hasBorders={id === count}>
       <div className="row-item type">{item.wallet.type}</div>
