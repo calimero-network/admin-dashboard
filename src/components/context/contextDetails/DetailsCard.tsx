@@ -101,11 +101,6 @@ export default function DetailsCard({
           <div className="highlight title">{t.titleStorage}</div>
           <div className="item">
             {t.labelStorageText}
-            <span className="highlight">{'-'}</span>
-          </div>
-          <div className="highlight title">{t.titleStorage}</div>
-          <div className="item">
-            {t.labelStorageText}
             <span className="highlight">
               {contextStorage.data
                 ? convertBytes(contextStorage.data.sizeInBytes)
