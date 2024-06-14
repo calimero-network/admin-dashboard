@@ -1,8 +1,8 @@
-import React from "react";
-import styled from "styled-components";
-import { formatTimestampToDate } from "../../../utils/date";
-import { ClientKey } from "../../../api/dataSource/NodeDataSource";
-import { truncateText } from "../../../utils/displayFunctions";
+import React from 'react';
+import styled from 'styled-components';
+import { formatTimestampToDate } from '../../../utils/date';
+import { ClientKey } from '../../../api/dataSource/NodeDataSource';
+import { truncateText } from '../../../utils/displayFunctions';
 
 interface ClientKeyRowItemProps {
   $hasBorders: boolean;
@@ -17,7 +17,7 @@ const RowItem = styled.div<ClientKeyRowItemProps>`
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-variation-settings: "slnt" 0;
+  font-variation-settings: 'slnt' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
@@ -48,7 +48,9 @@ export default function clientKeyRowItem(
   return (
     <RowItem key={item.signing_key} $hasBorders={id === count}>
       <div className="row-item type">{item.wallet.type}</div>
-      <div className="row-item read">{formatTimestampToDate(item.created_at)}</div>
+      <div className="row-item read">
+        {formatTimestampToDate(item.created_at)}
+      </div>
       <div className="row-item pk">{truncateText(item.signing_key)}</div>
     </RowItem>
   );

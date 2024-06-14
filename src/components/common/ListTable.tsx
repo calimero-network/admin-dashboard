@@ -132,14 +132,20 @@ export default function ListTable<T>({
       {listHeaderItems && listHeaderItems?.length > 0 && (
         <TableHeader tableHeaderItems={listHeaderItems} />
       )}
-      {error ? (<div className="container"><div className="error-text">{error}</div></div>) : (<div className="list-items">
-        {listItems?.map((item: T, id: number) =>
-          rowItem(item, id, listItems.length - 1, onRowItemClick),
-        )}
-        {listItems?.length === 0 && (
-          <div className="no-items-text">{noItemsText}</div>
-        )}
-      </div>)}
+      {error ? (
+        <div className="container">
+          <div className="error-text">{error}</div>
+        </div>
+      ) : (
+        <div className="list-items">
+          {listItems?.map((item: T, id: number) =>
+            rowItem(item, id, listItems.length - 1, onRowItemClick),
+          )}
+          {listItems?.length === 0 && (
+            <div className="no-items-text">{noItemsText}</div>
+          )}
+        </div>
+      )}
     </ListWrapper>
   );
 }

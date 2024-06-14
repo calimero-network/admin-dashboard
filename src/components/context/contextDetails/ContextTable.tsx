@@ -1,15 +1,19 @@
-import React from "react";
-import styled from "styled-components";
-import translations from "../../../constants/en.global.json";
-import { ContentCard } from "../../common/ContentCard";
-import OptionsHeader, { TableOptions } from "../../common/OptionsHeader";
-import ListTable from "../../common/ListTable";
-import clientKeyRowItem from "./ClientKeyRowItem";
-import userRowItem from "./UserRowItem";
-import { DetailsOptions } from "../../../constants/ContextConstants";
-import DetailsCard from "./DetailsCard";
-import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
-import { ClientKey, ContextStorage, User } from "../../../api/dataSource/NodeDataSource";
+import React from 'react';
+import styled from 'styled-components';
+import translations from '../../../constants/en.global.json';
+import { ContentCard } from '../../common/ContentCard';
+import OptionsHeader, { TableOptions } from '../../common/OptionsHeader';
+import ListTable from '../../common/ListTable';
+import clientKeyRowItem from './ClientKeyRowItem';
+import userRowItem from './UserRowItem';
+import { DetailsOptions } from '../../../constants/ContextConstants';
+import DetailsCard from './DetailsCard';
+import { ApiResponse, ContextObject } from '../../../pages/ContextDetails';
+import {
+  ClientKey,
+  ContextStorage,
+  User,
+} from '../../../api/dataSource/NodeDataSource';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -51,15 +55,18 @@ export default function ContextTable({
           setCurrentOption={setCurrentOption}
         />
         {currentOption === DetailsOptions.DETAILS && (
-          <DetailsCard details={contextDetails} contextStorage={contextStorage}/>
+          <DetailsCard
+            details={contextDetails}
+            contextStorage={contextStorage}
+          />
         )}
         {currentOption === DetailsOptions.CLIENT_KEYS && (
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
-            listHeaderItems={["TYPE", "ADDED", "PUBLIC KEY"]}
+            listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
             listItems={contextClientKeys.data || []}
-            error={contextClientKeys.error ?? ""}
+            error={contextClientKeys.error ?? ''}
             rowItem={clientKeyRowItem}
             roundTopItem={true}
             noItemsText={t.noClientKeysText}
@@ -69,8 +76,8 @@ export default function ContextTable({
           <ListTable<User>
             numOfColumns={2}
             listItems={contextUsers.data || []}
-            error={contextUsers.error ?? ""}
-            listHeaderItems={["USER ID", "JOINED"]}
+            error={contextUsers.error ?? ''}
+            listHeaderItems={['USER ID', 'JOINED']}
             rowItem={userRowItem}
             roundTopItem={true}
             noItemsText={t.noUsersText}
