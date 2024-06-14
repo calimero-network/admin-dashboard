@@ -61,6 +61,21 @@ const ListWrapper = styled.div<ListWrapperProps>`
   .list-items {
     overflow-y: scroll;
   }
+
+  .container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+
+    .error-text {
+      font-weight: 500;
+      color: #6b7280;
+      padding-bottom: 4px;
+    }
+  }
 `;
 
 interface TableHeaderProps {
@@ -85,6 +100,7 @@ interface ListTableProps<T> {
   listDescription?: string;
   listHeaderItems?: string[];
   listItems: T[];
+  error?: string;
   rowItem: (
     item: T,
     id: number,
@@ -101,6 +117,7 @@ export default function ListTable<T>({
   listDescription,
   listHeaderItems,
   listItems,
+  error,
   rowItem,
   numOfColumns,
   roundTopItem,
@@ -115,14 +132,14 @@ export default function ListTable<T>({
       {listHeaderItems && listHeaderItems?.length > 0 && (
         <TableHeader tableHeaderItems={listHeaderItems} />
       )}
-      <div className="list-items">
+      {error ? (<div className="container"><div className="error-text">{error}</div></div>) : (<div className="list-items">
         {listItems?.map((item: T, id: number) =>
           rowItem(item, id, listItems.length - 1, onRowItemClick)
         )}
         {listItems?.length === 0 && (
           <div className="no-items-text">{noItemsText}</div>
         )}
-      </div>
+      </div>)}
     </ListWrapper>
   );
 }

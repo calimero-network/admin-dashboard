@@ -8,7 +8,7 @@ import apiClient from "../api/index";
 import { DetailsOptions } from "../constants/ContextConstants";
 import { useRPC } from "../hooks/useNear";
 import { TableOptions } from "../components/common/OptionsHeader";
-import { ClientKey, ContextData, User } from "../api/dataSource/NodeDataSource";
+import { ClientKey, Context, User } from "../api/dataSource/NodeDataSource";
 
 const initialOptions = [
   {
@@ -37,15 +37,22 @@ export interface ContextObject {
   path: string;
   version: string;
   owner: string;
-  clientKeys: ClientKey[];
-  users: User[];
   contextId: string;
+}
+
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
 }
 
 export default function ContextDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [nodeContextDetails, setNodeContextDetails] = useState<ContextObject>();
+  const [contextDetails, setContextDetails] =
+    useState<ApiResponse<ContextObject>>();
+  const [contextClientKeys, setContextClientKeys] =
+    useState<ApiResponse<ClientKey[]>>();
+  const [contextUsers, setContextUsers] = useState<ApiResponse<User[]>>();
   const [currentOption, setCurrentOption] = useState<string>(
     DetailsOptions.DETAILS
   );
@@ -53,45 +60,63 @@ export default function ContextDetails() {
     useState<TableOptions[]>(initialOptions);
   const { getPackage, getLatestRelease } = useRPC();
 
-  const generateContextObjects = async (nodeContext: ContextData) => {
-    const packageData = await getPackage(nodeContext.context.applicationId);
-    const versionData = await getLatestRelease(nodeContext.context.applicationId);
+  const generateContextObjects = async (context: Context) => {
+    const packageData = await getPackage(context.applicationId);
+    const versionData = await getLatestRelease(context.applicationId);
     return {
       ...packageData,
       ...versionData,
       contextId: id,
-      clientKeys: nodeContext.clientKeys,
-      users: [],
-      applicationId: nodeContext.context.applicationId,
+      applicationId: context.applicationId,
     } as ContextObject;
   };
 
   useEffect(() => {
     const fetchNodeContexts = async () => {
       if (id) {
-        const nodeContext = await apiClient.node().getContext(id);
-        if (nodeContext) {
-          const contextObject = await generateContextObjects(nodeContext);
-          setNodeContextDetails(contextObject);
-          //TBD - after client keys and users are implemented
-          setTableOptions([
-            {
-              name: "Details",
-              id: DetailsOptions.DETAILS,
-              count: -1,
-            },
-            {
-              name: "Client Keys",
-              id: DetailsOptions.CLIENT_KEYS,
-              count: nodeContext.clientKeys.length,
-            },
-            {
-              name: "Users",
-              id: DetailsOptions.USERS,
-              count: nodeContext.users.length,
-            },
+        const [nodeContext, contextClientKeys, contextClientUsers] =
+          await Promise.all([
+            apiClient.node().getContext(id),
+            apiClient.node().getContextClientKeys(id),
+            apiClient.node().getContextUsers(id),
           ]);
+
+        if (nodeContext.data) {
+          const contextObject = await generateContextObjects(nodeContext.data);
+          setContextDetails({ data: contextObject });
+        } else {
+          setContextDetails({ error: nodeContext.error?.message });
         }
+
+        if (contextClientKeys.data) {
+          setContextClientKeys({ data: contextClientKeys.data });
+        } else {
+          setContextClientKeys({ error: contextClientKeys.error?.message });
+        }
+
+        if (contextClientUsers.data) {
+          setContextUsers({ data: contextClientUsers.data });
+        } else {
+          setContextUsers({ error: contextClientUsers.error?.message });
+        }
+
+        setTableOptions([
+          {
+            name: "Details",
+            id: DetailsOptions.DETAILS,
+            count: -1,
+          },
+          {
+            name: "Client Keys",
+            id: DetailsOptions.CLIENT_KEYS,
+            count: contextClientKeys.data?.length ?? 0,
+          },
+          {
+            name: "Users",
+            id: DetailsOptions.USERS,
+            count: contextClientUsers.data?.length ?? 0,
+          },
+        ]);
       }
     };
     fetchNodeContexts();
@@ -101,13 +126,17 @@ export default function ContextDetails() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-        {nodeContextDetails && <ContextTable
-          nodeContextDetails={nodeContextDetails}
-          navigateToContextList={() => navigate("/contexts")}
-          currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
-          tableOptions={tableOptions}
-        />}
+        {contextDetails && contextClientKeys && contextUsers && (
+          <ContextTable
+            contextDetails={contextDetails}
+            contextClientKeys={contextClientKeys}
+            contextUsers={contextUsers}
+            navigateToContextList={() => navigate("/contexts")}
+            currentOption={currentOption}
+            setCurrentOption={setCurrentOption}
+            tableOptions={tableOptions}
+          />
+        )}
       </PageContentWrapper>
     </FlexLayout>
   );

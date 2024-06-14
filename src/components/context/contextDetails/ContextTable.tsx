@@ -8,7 +8,7 @@ import clientKeyRowItem from "./ClientKeyRowItem";
 import userRowItem from "./UserRowItem";
 import { DetailsOptions } from "../../../constants/ContextConstants";
 import DetailsCard from "./DetailsCard";
-import { ContextObject } from "../../../pages/ContextDetails";
+import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
 import { ClientKey, User } from "../../../api/dataSource/NodeDataSource";
 
 const FlexWrapper = styled.div`
@@ -16,7 +16,9 @@ const FlexWrapper = styled.div`
 `;
 
 interface ContextTableProps {
-  nodeContextDetails: ContextObject;
+  contextDetails: ApiResponse<ContextObject>;
+  contextClientKeys: ApiResponse<ClientKey[]>;
+  contextUsers: ApiResponse<User[]>;
   navigateToContextList: () => void;
   currentOption: string;
   setCurrentOption: (option: string) => void;
@@ -24,7 +26,9 @@ interface ContextTableProps {
 }
 
 export default function ContextTable({
-  nodeContextDetails,
+  contextDetails,
+  contextClientKeys,
+  contextUsers,
   navigateToContextList,
   currentOption,
   setCurrentOption,
@@ -45,14 +49,15 @@ export default function ContextTable({
           setCurrentOption={setCurrentOption}
         />
         {currentOption == DetailsOptions.DETAILS && (
-          <DetailsCard details={nodeContextDetails} />
+          <DetailsCard details={contextDetails} />
         )}
         {currentOption == DetailsOptions.CLIENT_KEYS && (
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
             listHeaderItems={["TYPE", "ADDED", "PUBLIC KEY"]}
-            listItems={nodeContextDetails.clientKeys || []}
+            listItems={contextClientKeys.data || []}
+            error={contextClientKeys.error ?? ""}
             rowItem={clientKeyRowItem}
             roundTopItem={true}
             noItemsText={t.noClientKeysText}
@@ -61,7 +66,8 @@ export default function ContextTable({
         {currentOption == DetailsOptions.USERS && (
           <ListTable<User>
             numOfColumns={2}
-            listItems={nodeContextDetails.users || []}
+            listItems={contextUsers.data || []}
+            error={contextUsers.error ?? ""}
             listHeaderItems={["USER ID", "JOINED"]}
             rowItem={userRowItem}
             roundTopItem={true}

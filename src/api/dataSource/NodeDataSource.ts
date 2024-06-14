@@ -1,5 +1,6 @@
 import { getAppEndpointKey } from "../../utils/storage";
 import { HttpClient } from "../httpClient";
+import { ResponseData } from "../response";
 
 enum Network {
   NEAR = "NEAR",
@@ -8,7 +9,8 @@ enum Network {
 
 export interface User {
   userId: string;
-  joined_at: number;
+  joinedAt: number;
+  contextId: string;
 }
 
 export interface Application {
@@ -24,12 +26,6 @@ export interface Context {
   applicationId: string;
   id: string;
   signingKey: SigningKey;
-}
-
-export interface ContextData {
-  context: Context,
-  clientKeys: ClientKey[],
-  users: string[],//TBD - which format is saved
 }
 
 export interface ContextsList<T> {
@@ -63,10 +59,10 @@ interface ApiRootKey {
 }
 
 export interface ClientKey {
-  signing_key: string;
-  wallet: NetworkType;
-  created_at: number;
-  application_id: string;
+  signingKey: string;
+  walletType: NetworkType;
+  createdAt: number;
+  applicationId: string;
 }
 
 interface RootkeyResponse {
@@ -116,19 +112,39 @@ export class NodeDataSource {
     }
   }
 
-  async getContext(contextId: string): Promise<ContextData | null> {
+  async getContext(contextId: string): Promise<ResponseData<Context>> {
     try {
-      const response = await this.client.get<ContextData>(
+      const response = await this.client.get<Context>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`
       );
-      if (response?.data) {
-        return response.data;
-      } else {
-        return null;
-      }
+      return response;
     } catch (error) {
       console.error("Error fetching context:", error);
-      return null;
+      return { error: { code: 500, message: "Failed to fetch context data." } };
+    }
+  }
+
+  async getContextClientKeys(contextId: string): Promise<ResponseData<ClientKey[]>> {
+    try {
+      const response = await this.client.get<ClientKey[]>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching context:", error);
+      return { error: { code: 500, message: "Failed to fetch context client keys." } };
+    }
+  }
+
+  async getContextUsers(contextId: string): Promise<ResponseData<User[]>> {
+    try {
+      const response = await this.client.get<User[]>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching context:", error);
+      return { error: { code: 500, message: "Failed to fetch context users." } };
     }
   }
 

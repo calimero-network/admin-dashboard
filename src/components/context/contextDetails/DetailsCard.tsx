@@ -2,12 +2,13 @@ import React from "react";
 import styled from "styled-components";
 import LoaderSpinner from "../../common/LoaderSpinner";
 import translations from "../../../constants/en.global.json";
-import { ContextObject } from "../../../pages/ContextDetails";
+import { ApiResponse, ContextObject } from "../../../pages/ContextDetails";
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
 
-  .container {
+  .container,
+  .container-full {
     padding: 1rem;
     display: flex;
     flex-direction: column;
@@ -41,10 +42,14 @@ const DetailsCardWrapper = styled.div`
       padding-bottom: 4px;
     }
   }
+  .container-full {
+    display: flex;
+    align-items: center;
+  }
 `;
 
 interface DetailsCardProps {
-  details: ContextObject;
+  details: ApiResponse<ContextObject>;
 }
 
 export default function DetailsCard({ details }: DetailsCardProps) {
@@ -56,42 +61,48 @@ export default function DetailsCard({ details }: DetailsCardProps) {
 
   return (
     <DetailsCardWrapper>
-      <div className="container">
-        <div className="context-id">
-          {t.labelIdText}
-          {details.contextId}
+      {details.data ? (
+        <div className="container">
+          <div className="context-id">
+            {t.labelIdText}
+            {details.data.contextId}
+          </div>
+          <div className="highlight title inter-mid">{t.titleApps}</div>
+          <div className="item">
+            {t.labelNameText}
+            <span className="highlight">{details.data.name}</span>
+          </div>
+          <div className="item">
+            {t.labelOwnerText}
+            <span className="highlight">{details.data.owner}</span>
+          </div>
+          <div className="item">
+            {t.labelDescriptionText}
+            {details.data.description}
+          </div>
+          <div className="item">
+            {t.labelRepositoryText}
+            {details.data.repository}
+          </div>
+          <div className="item">
+            {t.lableVersionText}
+            <span className="highlight">{details.data.version}</span>
+          </div>
+          <div className="item">
+            {t.labelAppId}
+            {details.data.applicationId}
+          </div>
+          <div className="highlight title">{t.titleStorage}</div>
+          <div className="item">
+            {t.labelStorageText}
+            <span className="highlight">{"-"}</span>
+          </div>
         </div>
-        <div className="highlight title inter-mid">{t.titleApps}</div>
-        <div className="item">
-          {t.labelNameText}
-          <span className="highlight">{details.name}</span>
+      ) : (
+        <div className="container-full">
+          <div className="item">{details.error}</div>
         </div>
-        <div className="item">
-          {t.labelOwnerText}
-          <span className="highlight">{details.owner}</span>
-        </div>
-        <div className="item">
-          {t.labelDescriptionText}
-          {details.description}
-        </div>
-        <div className="item">
-          {t.labelRepositoryText}
-          {details.repository}
-        </div>
-        <div className="item">
-          {t.lableVersionText}
-          <span className="highlight">{details.version}</span>
-        </div>
-        <div className="item">
-          {t.labelAppId}
-          {details.applicationId}
-        </div>
-        <div className="highlight title">{t.titleStorage}</div>
-        <div className="item">
-          {t.labelStorageText}
-          <span className="highlight">{"-"}</span>
-        </div>
-      </div>
+      )}
     </DetailsCardWrapper>
   );
 }
