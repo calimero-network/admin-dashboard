@@ -1,5 +1,6 @@
+import { createAuthHeader } from '@calimero-is-near/calimero-p2p-sdk';
 import { getAppEndpointKey } from '../../utils/storage';
-import { HttpClient } from '../httpClient';
+import { Header, HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
 enum Network {
@@ -238,9 +239,12 @@ export class NodeDataSource {
   }
 
   async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
+    const authHeaders: Header[] | null = await createAuthHeader(getAppEndpointKey() ?? "");
+    
     try {
       const response = await this.client.get<RootkeyResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
+        authHeaders ? authHeaders : [],
       );
       if (response?.data?.root_keys) {
         const rootKeys: (ETHRootKey | NearRootKey)[] =
