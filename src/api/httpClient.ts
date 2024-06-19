@@ -1,33 +1,33 @@
 import { Axios, AxiosError, AxiosResponse } from 'axios';
 import { ErrorResponse, ResponseData } from './response';
 
-export interface Header {
+export interface AxiosHeader {
   [key: string]: string;
 }
 
 export interface HttpClient {
-  get<T>(url: string, headers?: Header[]): Promise<ResponseData<T>>;
+  get<T>(url: string, headers?: AxiosHeader): Promise<ResponseData<T>>;
   post<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers?: AxiosHeader,
   ): Promise<ResponseData<T>>;
   put<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers?: AxiosHeader,
   ): Promise<ResponseData<T>>;
   delete<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers?: AxiosHeader,
   ): Promise<ResponseData<T>>;
   patch<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers?: AxiosHeader,
   ): Promise<ResponseData<T>>;
-  head(url: string, headers?: Header[]): Promise<ResponseData<void>>;
+  head(url: string, headers?: AxiosHeader): Promise<ResponseData<void>>;
 }
 
 export class AxiosHttpClient implements HttpClient {
@@ -37,64 +37,57 @@ export class AxiosHttpClient implements HttpClient {
     this.axios = axios;
   }
 
-  async get<T>(url: string, headers?: Header[]): Promise<ResponseData<T>> {
-    return this.request<T>(
-      this.axios.get<ResponseData<T>>(url, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
-    );
+  async get<T>(
+    url: string,
+    headers: AxiosHeader = {},
+  ): Promise<ResponseData<T>> {
+    return this.request<T>(this.axios.get<ResponseData<T>>(url, { headers }));
   }
 
   async post<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers: AxiosHeader = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
-      this.axios.post<ResponseData<T>>(url, body, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
+      this.axios.post<ResponseData<T>>(url, body, { headers }),
     );
   }
 
   async put<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers: AxiosHeader = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
-      this.axios.put<ResponseData<T>>(url, body, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
+      this.axios.put<ResponseData<T>>(url, body, { headers }),
     );
   }
 
-  async delete<T>(url: string, headers?: Header[]): Promise<ResponseData<T>> {
+  async delete<T>(
+    url: string,
+    headers: AxiosHeader = {},
+  ): Promise<ResponseData<T>> {
     return this.request<T>(
-      this.axios.delete<ResponseData<T>>(url, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
+      this.axios.delete<ResponseData<T>>(url, { headers }),
     );
   }
 
   async patch<T>(
     url: string,
     body?: unknown,
-    headers?: Header[],
+    headers: AxiosHeader = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
-      this.axios.patch<ResponseData<T>>(url, body, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
+      this.axios.patch<ResponseData<T>>(url, body, { headers }),
     );
   }
 
-  async head(url: string, headers?: Header[]): Promise<ResponseData<void>> {
-    return this.request(
-      this.axios.head(url, {
-        headers: headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-      }),
-    );
+  async head(
+    url: string,
+    headers: AxiosHeader = {},
+  ): Promise<ResponseData<void>> {
+    return this.request(this.axios.head(url, { headers }));
   }
 
   private async request<T>(
