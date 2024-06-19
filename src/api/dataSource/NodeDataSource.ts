@@ -1,4 +1,7 @@
-import { AxiosHeader, createAuthHeader } from '@calimero-is-near/calimero-p2p-sdk';
+import {
+  AxiosHeader,
+  createAuthHeader,
+} from '@calimero-is-near/calimero-p2p-sdk';
 import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
@@ -105,7 +108,9 @@ export class NodeDataSource {
 
   async getInstalledApplications(): Promise<Application[]> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(getAppEndpointKey() as string);
+      const authHeaders: AxiosHeader | null = await createAuthHeader(
+        getAppEndpointKey() as string,
+      );
       const response: ResponseData<ListApplicationsResponse> =
         await this.client.get<ListApplicationsResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
@@ -120,7 +125,9 @@ export class NodeDataSource {
 
   async getContexts(): Promise<ContextsList<Context>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(getAppEndpointKey() as string);
+      const authHeaders: AxiosHeader | null = await createAuthHeader(
+        getAppEndpointKey() as string,
+      );
       const response = await this.client.get<Context[]>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         authHeaders ? authHeaders : {},
@@ -231,7 +238,9 @@ export class NodeDataSource {
     initArguments: string,
   ): Promise<boolean> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(`${applicationId}${initFunction}${initArguments}`);
+      const authHeaders: AxiosHeader | null = await createAuthHeader(
+        `${applicationId}${initFunction}${initArguments}`,
+      );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         {
@@ -254,7 +263,9 @@ export class NodeDataSource {
 
   async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(getAppEndpointKey() as string);
+      const authHeaders: AxiosHeader | null = await createAuthHeader(
+        getAppEndpointKey() as string,
+      );
       const response = await this.client.get<RootkeyResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
         authHeaders ? authHeaders : {},
