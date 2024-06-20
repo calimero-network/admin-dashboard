@@ -239,7 +239,7 @@ export class NodeDataSource {
         JSON.stringify({
           applicationId,
           initFunction,
-          initArguments
+          initArguments,
         }),
       );
       const response = await this.client.post<Context>(
