@@ -1,5 +1,5 @@
 import {
-  AxiosHeader,
+  Header,
   createAuthHeader,
 } from '@calimero-is-near/calimero-p2p-sdk';
 import { getAppEndpointKey } from '../../utils/storage';
@@ -108,13 +108,13 @@ export class NodeDataSource {
 
   async getInstalledApplications(): Promise<Application[]> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(
+      const authHeaders: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
       const response: ResponseData<ListApplicationsResponse> =
         await this.client.get<ListApplicationsResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
-          authHeaders ? authHeaders : {},
+          authHeaders ?? {},
         );
       return response?.data?.apps ?? [];
     } catch (error) {
@@ -125,12 +125,12 @@ export class NodeDataSource {
 
   async getContexts(): Promise<ContextsList<Context>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(
+      const authHeaders: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
       const response = await this.client.get<Context[]>(
         `${getAppEndpointKey()}/admin-api/contexts`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       if (response?.data) {
         // invited is empty for now as we don't have this endpoint available
@@ -150,10 +150,10 @@ export class NodeDataSource {
 
   async getContext(contextId: string): Promise<ResponseData<Context>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(contextId);
+      const authHeaders: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<Context>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       return response;
     } catch (error) {
@@ -166,10 +166,10 @@ export class NodeDataSource {
     contextId: string,
   ): Promise<ResponseData<ContextClientKeysList>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(contextId);
+      const authHeaders: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       return response;
     } catch (error) {
@@ -184,10 +184,10 @@ export class NodeDataSource {
     contextId: string,
   ): Promise<ResponseData<ContextUsersList>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(contextId);
+      const authHeaders: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       return response;
     } catch (error) {
@@ -202,10 +202,10 @@ export class NodeDataSource {
     contextId: string,
   ): Promise<ResponseData<ContextStorage>> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(contextId);
+      const authHeaders: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       return response;
     } catch (error) {
@@ -238,7 +238,7 @@ export class NodeDataSource {
     initArguments: string,
   ): Promise<boolean> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(
+      const authHeaders: Header | null = await createAuthHeader(
         `${applicationId}${initFunction}${initArguments}`,
       );
       const response = await this.client.post<Context>(
@@ -248,7 +248,7 @@ export class NodeDataSource {
           ...(initFunction && { initFunction }),
           ...(initArguments && { initArgs: JSON.stringify(initArguments) }),
         },
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       if (response?.data) {
         return !!response.data;
@@ -263,12 +263,12 @@ export class NodeDataSource {
 
   async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
     try {
-      const authHeaders: AxiosHeader | null = await createAuthHeader(
+      const authHeaders: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
       const response = await this.client.get<RootkeyResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
-        authHeaders ? authHeaders : {},
+        authHeaders ?? {},
       );
       if (response?.data?.root_keys) {
         const rootKeys: (ETHRootKey | NearRootKey)[] =
