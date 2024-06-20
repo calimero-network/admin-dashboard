@@ -1,7 +1,4 @@
-import {
-  Header,
-  createAuthHeader,
-} from '@calimero-is-near/calimero-p2p-sdk';
+import { Header, createAuthHeader } from '@calimero-is-near/calimero-p2p-sdk';
 import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
