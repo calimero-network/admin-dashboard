@@ -236,7 +236,11 @@ export class NodeDataSource {
   ): Promise<boolean> {
     try {
       const headers: Header | null = await createAuthHeader(
-        `${applicationId}${initFunction}${initArguments}`,
+        JSON.stringify({
+          applicationId,
+          initFunction,
+          initArguments
+        }),
       );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
