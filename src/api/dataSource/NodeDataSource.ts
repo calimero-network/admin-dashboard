@@ -3,7 +3,7 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
-const ADMIN_UI = 'admin-ui';
+export const ADMIN_UI = 'admin-ui';
 
 enum Network {
   NEAR = 'NEAR',
