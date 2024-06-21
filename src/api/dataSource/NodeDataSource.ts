@@ -3,6 +3,8 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
+const ADMIN_UI = 'admin-ui';
+
 enum Network {
   NEAR = 'NEAR',
   ETH = 'ETH',
@@ -107,7 +109,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response: ResponseData<ListApplicationsResponse> =
         await this.client.get<ListApplicationsResponse>(
@@ -125,7 +127,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<Context[]>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -151,7 +153,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<Context>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
@@ -170,7 +172,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
@@ -191,7 +193,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
@@ -212,7 +214,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
@@ -231,7 +233,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.delete<boolean>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
@@ -260,7 +262,7 @@ export class NodeDataSource {
           initFunction,
           initArguments,
         }),
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -286,7 +288,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        'admin-ui',
+        ADMIN_UI,
       );
       const response = await this.client.get<RootkeyResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
