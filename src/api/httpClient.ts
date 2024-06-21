@@ -1,33 +1,33 @@
 import { Axios, AxiosError, AxiosResponse } from 'axios';
 import { ErrorResponse, ResponseData } from './response';
 
-export interface AxiosHeader {
+export interface Header {
   [key: string]: string;
 }
 
 export interface HttpClient {
-  get<T>(url: string, headers?: AxiosHeader): Promise<ResponseData<T>>;
+  get<T>(url: string, headers?: Header): Promise<ResponseData<T>>;
   post<T>(
     url: string,
     body?: unknown,
-    headers?: AxiosHeader,
+    headers?: Header,
   ): Promise<ResponseData<T>>;
   put<T>(
     url: string,
     body?: unknown,
-    headers?: AxiosHeader,
+    headers?: Header,
   ): Promise<ResponseData<T>>;
   delete<T>(
     url: string,
     body?: unknown,
-    headers?: AxiosHeader,
+    headers?: Header,
   ): Promise<ResponseData<T>>;
   patch<T>(
     url: string,
     body?: unknown,
-    headers?: AxiosHeader,
+    headers?: Header,
   ): Promise<ResponseData<T>>;
-  head(url: string, headers?: AxiosHeader): Promise<ResponseData<void>>;
+  head(url: string, headers?: Header): Promise<ResponseData<void>>;
 }
 
 export class AxiosHttpClient implements HttpClient {
@@ -39,7 +39,7 @@ export class AxiosHttpClient implements HttpClient {
 
   async get<T>(
     url: string,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(this.axios.get<ResponseData<T>>(url, { headers }));
   }
@@ -47,7 +47,7 @@ export class AxiosHttpClient implements HttpClient {
   async post<T>(
     url: string,
     body?: unknown,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
       this.axios.post<ResponseData<T>>(url, body, { headers }),
@@ -57,7 +57,7 @@ export class AxiosHttpClient implements HttpClient {
   async put<T>(
     url: string,
     body?: unknown,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
       this.axios.put<ResponseData<T>>(url, body, { headers }),
@@ -66,7 +66,7 @@ export class AxiosHttpClient implements HttpClient {
 
   async delete<T>(
     url: string,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
       this.axios.delete<ResponseData<T>>(url, { headers }),
@@ -76,7 +76,7 @@ export class AxiosHttpClient implements HttpClient {
   async patch<T>(
     url: string,
     body?: unknown,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<T>> {
     return this.request<T>(
       this.axios.patch<ResponseData<T>>(url, body, { headers }),
@@ -85,7 +85,7 @@ export class AxiosHttpClient implements HttpClient {
 
   async head(
     url: string,
-    headers: AxiosHeader = {},
+    headers: Header = {},
   ): Promise<ResponseData<void>> {
     return this.request(this.axios.head(url, { headers }));
   }
