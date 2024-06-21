@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { getAppEndpointKey } from '../utils/storage';
+import { Header, createAuthHeader } from '@calimero-is-near/calimero-p2p-sdk';
+import { ADMIN_UI } from '../api/dataSource/NodeDataSource';
 
 export function useAdminClient() {
   const installApplication = async (
@@ -7,12 +9,17 @@ export function useAdminClient() {
     selectedVersion: string,
   ) => {
     try {
+      const headers: Header | null = await createAuthHeader(
+        JSON.stringify({ selectedPackage, selectedVersion }),
+        ADMIN_UI,
+      );
       const response = await axios.post(
         `${getAppEndpointKey()}/admin-api/install-application`,
         {
           application: selectedPackage,
           version: selectedVersion,
         },
+        { headers: headers ?? {} },
       );
       return { data: response?.data };
     } catch (error) {
