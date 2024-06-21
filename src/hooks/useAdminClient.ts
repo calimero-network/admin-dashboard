@@ -19,7 +19,7 @@ export function useAdminClient() {
           application: selectedPackage,
           version: selectedVersion,
         },
-        {headers: headers ?? {}},
+        { headers: headers ?? {} },
       );
       return { data: response?.data };
     } catch (error) {
