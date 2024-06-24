@@ -353,7 +353,7 @@ export class NodeDataSource {
       );
       return response;
     } catch (error) {
-      console.error('Error starting contexts:', error);
+      console.error('Error installing application:', error);
       return {
         error: { code: 500, message: 'Failed to install application.' },
       };
