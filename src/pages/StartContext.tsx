@@ -83,14 +83,14 @@ export default function StartContext() {
       .installApplication(application.appId, application.version);
     if (response.error) {
       setStartContextStatus({
-        title: 'Error installing application',
+        title: t.failInstallTitle,
         message: response.error.message,
         error: true,
       });
       return false;
     } else {
       setStartContextStatus({
-        title: 'Application installed successfully',
+        title: t.successInstallTitle,
         message: `Installed application ${application.name}, version ${application.version}.`,
         error: false,
       });
