@@ -80,7 +80,7 @@ export default function ApplicationsPopup({
       }
     };
     setApplications();
-  }, []);
+  }, [getLatestRelease, getPackages]);
 
   const selectApplication = async (applicationId: string) => {
     const application = await getPackage(applicationId);

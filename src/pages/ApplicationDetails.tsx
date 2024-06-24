@@ -32,7 +32,7 @@ export default function ApplicationDetails() {
       }
     };
     fetchApplicationData();
-  }, []);
+  }, [getPackage, getReleases, id]);
 
   return (
     <FlexLayout>

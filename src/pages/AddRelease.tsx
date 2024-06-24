@@ -5,6 +5,7 @@ import {
   Account,
   BrowserWallet,
   FinalExecutionOutcome,
+  NetworkId,
   setupWalletSelector,
 } from '@near-wallet-selector/core';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
@@ -79,11 +80,11 @@ export default function AddRelease() {
 
     fetchWalletAccounts();
     fetchPackageInfo();
-  }, [id]);
+  }, [getLatestRelease, getPackage, id]);
 
   const addWalletAccount = async () => {
     const selector = await setupWalletSelector({
-      network: getNearEnvironment(),
+      network: getNearEnvironment() as NetworkId,
       modules: [setupMyNearWallet()],
     });
     const wallet: BrowserWallet = await selector.wallet('my-near-wallet');

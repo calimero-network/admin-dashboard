@@ -17,7 +17,7 @@ export default function ProtectedRoute() {
     } else {
       navigate('/auth');
     }
-  }, [clientKey]);
+  }, [clientKey, navigate, pathname]);
 
   return <Outlet />;
 }

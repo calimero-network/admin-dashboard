@@ -75,7 +75,7 @@ export default function ContextTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption == Options.JOINED ? (
+        {currentOption === Options.JOINED ? (
           <ListTable<ContextObject>
             listHeaderItems={['ID', 'INSTALLED APPLICATION']}
             numOfColumns={2}
