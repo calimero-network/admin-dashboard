@@ -175,7 +175,9 @@
     "startContextErrorMessage": "Failed to start the application context.",
     "idLabelText": "Application ID: ",
     "nameLabelText": "Application Name: ",
-    "versionLabelText": "Version: "
+    "versionLabelText": "Version: ",
+    "successInstallTitle": "Application installed successfully",
+    "failInstallTitle": "Error installing application"
   },
   "exportIdentityPage": {
     "title": "Export",

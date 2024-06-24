@@ -27,4 +27,8 @@ export interface NodeApi {
   getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
   getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
+  installApplication(
+    selectedPackage: string,
+    selectedVersion: string,
+  ): ApiResponse<boolean>;
 }
