@@ -90,7 +90,7 @@ export default function StartContext() {
       return false;
     } else {
       setStartContextStatus({
-        title: "Application installed successfully",
+        title: 'Application installed successfully',
         message: `Installed application ${application.name}, version ${application.version}.`,
         error: false,
       });
