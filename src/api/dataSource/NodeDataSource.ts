@@ -330,4 +330,29 @@ export class NodeDataSource {
       `${request.url}/admin-api/health`,
     );
   }
+
+  async installApplication(selectedPackage: string,
+    selectedVersion: string): ApiResponse<boolean> {
+      try {
+        const headers: Header | null = await createAuthHeader(
+          JSON.stringify({
+            selectedPackage,
+            selectedVersion,
+          }),
+          ADMIN_UI,
+        );
+        const response: ResponseData<boolean> = await this.client.post<boolean>(
+          `${getAppEndpointKey()}/admin-api/install-application`,
+          {
+            application: selectedPackage,
+            version: selectedVersion,
+          },
+          headers ?? {},
+        );
+        return response
+      } catch (error) {
+        console.error('Error starting contexts:', error);
+        return { error: { code: 500, message: 'Failed to install application.' } };
+      }
+    }
 }
