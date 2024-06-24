@@ -52,9 +52,9 @@ const verifyNodeUrl = async (url: string): Promise<boolean> => {
       .node()
       .health({ url: url });
     if (response.data) {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   } catch (error) {
     return false;
   }
