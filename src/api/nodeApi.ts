@@ -9,13 +9,14 @@ import {
   NearRootKey,
   ContextClientKeysList,
   ContextUsersList,
+  ApiContext,
 } from './dataSource/NodeDataSource';
 import { ApiResponse } from './response';
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
   getContexts(): Promise<ContextsList<Context>>;
-  getContext(contextId: string): ApiResponse<Context>;
+  getContext(contextId: string): ApiResponse<ApiContext>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
   getContextUsers(contextId: string): ApiResponse<ContextUsersList>;
   deleteContext(contextId: string): Promise<Boolean>;
