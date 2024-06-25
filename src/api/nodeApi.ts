@@ -1,5 +1,4 @@
 import {
-  Application,
   ContextStorage,
   Context,
   ContextsList,
@@ -9,11 +8,12 @@ import {
   NearRootKey,
   ContextClientKeysList,
   ContextUsersList,
+  ListApplicationsResponse,
 } from './dataSource/NodeDataSource';
 import { ApiResponse } from './response';
 
 export interface NodeApi {
-  getInstalledApplications(): Promise<Application[]>;
+  getInstalledApplications(): ApiResponse<ListApplicationsResponse>;
   getContexts(): Promise<ContextsList<Context>>;
   getContext(contextId: string): ApiResponse<Context>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
