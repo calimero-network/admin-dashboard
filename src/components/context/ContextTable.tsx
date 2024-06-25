@@ -47,7 +47,7 @@ export default function ContextTable({
   setShowActionDialog,
   showModal,
   handleInvitation,
-  errorMessage
+  errorMessage,
 }: ContextTableProps) {
   const t = translations.contextPage;
 

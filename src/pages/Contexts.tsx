@@ -89,7 +89,9 @@ export default function Contexts() {
     }
     if (fetchContextsResponse.data) {
       const nodeContexts = fetchContextsResponse.data;
-      const joinedContexts = await generateContextObjects(nodeContexts.contexts);
+      const joinedContexts = await generateContextObjects(
+        nodeContexts.contexts,
+      );
 
       setNodeContextList((prevState: ContextsList<ContextObject>) => ({
         ...prevState,
