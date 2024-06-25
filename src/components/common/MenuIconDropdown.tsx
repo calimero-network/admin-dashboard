@@ -4,6 +4,8 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import styled from 'styled-components';
 
 const DropdownWrapper = styled.div`
+  position: relative;
+
   .app-dropdown {
     background-color: transparent;
     border: none;
@@ -38,6 +40,7 @@ const DropdownWrapper = styled.div`
 
   .dropdown-container {
     padding: 0;
+    position: absolute;
 
     .menu-dropdown {
       width: 100%;
