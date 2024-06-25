@@ -119,7 +119,12 @@ export class NodeDataSource {
       return response;
     } catch (error) {
       console.error('Error fetching installed applications:', error);
-      return { error: { code: 500, message: 'Failed to fetch installed applications.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch installed applications.',
+        },
+      };
     }
   }
 

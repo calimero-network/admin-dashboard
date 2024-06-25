@@ -61,7 +61,7 @@ export default function Applications() {
   const navigate = useNavigate();
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const [currentOption, setCurrentOption] = useState<string>(
     ApplicationOptions.AVAILABLE,
   );
@@ -83,7 +83,7 @@ export default function Applications() {
 
   useEffect(() => {
     const setApps = async () => {
-      setErrorMessage("");
+      setErrorMessage('');
       const fetchApplicationResponse = await apiClient
         .node()
         .getInstalledApplications();
