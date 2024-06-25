@@ -3,7 +3,7 @@ import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { setNodeUrlFromQuery } from './utils/storage';
 
 import Identity from './pages/Identity';
-import Applications from './pages/Applications';
+import ApplicationsPage from './pages/Applications';
 import Contexts from './pages/Contexts';
 import StartContext from './pages/StartContext';
 import ContextDetails from './pages/ContextDetails';
@@ -46,7 +46,7 @@ export default function App() {
               path="/identity/root-key/metamask"
               element={<AddMetamaskRootKey />}
             />
-            <Route path="/applications" element={<Applications />} />
+            <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/applications/:id" element={<ApplicationDetails />} />
             <Route
               path="/publish-application"

@@ -58,7 +58,7 @@ export default function ApplicationsTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption == Options.AVAILABLE ? (
+        {currentOption === Options.AVAILABLE ? (
           <ListTable<Application>
             listHeaderItems={headersList}
             numOfColumns={4}
