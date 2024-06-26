@@ -30,6 +30,7 @@ interface ContextTableProps {
   setShowActionDialog: (show: boolean) => void;
   showModal: (id: string) => void;
   handleInvitation: (id: string, isAccepted?: boolean) => Promise<void>;
+  errorMessage: string;
 }
 
 export default function ContextTable({
@@ -46,6 +47,7 @@ export default function ContextTable({
   setShowActionDialog,
   showModal,
   handleInvitation,
+  errorMessage,
 }: ContextTableProps) {
   const t = translations.contextPage;
 
@@ -84,6 +86,7 @@ export default function ContextTable({
             roundTopItem={true}
             noItemsText={t.noJoinedAppsListText}
             onRowItemClick={showModal}
+            error={errorMessage}
           />
         ) : (
           <ListTable<Invitation>
