@@ -80,6 +80,10 @@ export interface ClientKey {
   applicationId: string;
 }
 
+export interface ApiContext {
+  context: Context;
+}
+
 interface RootkeyResponse {
   client_keys: ClientKey[];
   contexts: Context[];
@@ -144,13 +148,13 @@ export class NodeDataSource {
     }
   }
 
-  async getContext(contextId: string): Promise<ResponseData<Context>> {
+  async getContext(contextId: string): ApiResponse<ApiContext> {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
         ADMIN_UI,
       );
-      const response = await this.client.get<Context>(
+      const response = await this.client.get<ApiContext>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
       );
