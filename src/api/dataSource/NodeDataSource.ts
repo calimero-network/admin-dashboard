@@ -191,9 +191,7 @@ export class NodeDataSource {
     }
   }
 
-  async getContextUsers(
-    contextId: string,
-  ): ApiResponse<ContextUsersList> {
+  async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
@@ -212,9 +210,7 @@ export class NodeDataSource {
     }
   }
 
-  async getContextStorageUsage(
-    contextId: string,
-  ): ApiResponse<ContextStorage> {
+  async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
