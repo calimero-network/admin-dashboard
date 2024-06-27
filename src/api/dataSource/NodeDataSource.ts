@@ -90,7 +90,7 @@ interface RootkeyResponse {
   root_keys: ApiRootKey[];
 }
 
-interface ListApplicationsResponse {
+export interface ListApplicationsResponse {
   apps: Application[];
 }
 
@@ -113,7 +113,7 @@ export class NodeDataSource {
     this.client = client;
   }
 
-  async getInstalledApplications(): Promise<Application[]> {
+  async getInstalledApplications(): ApiResponse<ListApplicationsResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
@@ -124,10 +124,15 @@ export class NodeDataSource {
           `${getAppEndpointKey()}/admin-api/applications`,
           headers ?? {},
         );
-      return response?.data?.apps ?? [];
+      return response;
     } catch (error) {
       console.error('Error fetching installed applications:', error);
-      return [];
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch installed applications.',
+        },
+      };
     }
   }
 

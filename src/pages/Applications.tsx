@@ -61,6 +61,7 @@ export default function Applications() {
   const navigate = useNavigate();
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
+  const [errorMessage, setErrorMessage] = useState('');
   const [currentOption, setCurrentOption] = useState<string>(
     ApplicationOptions.AVAILABLE,
   );
@@ -82,10 +83,15 @@ export default function Applications() {
 
   useEffect(() => {
     const setApps = async () => {
-      const installedApplications = await apiClient
+      setErrorMessage('');
+      const fetchApplicationResponse = await apiClient
         .node()
         .getInstalledApplications();
-
+      if (fetchApplicationResponse.error) {
+        setErrorMessage(fetchApplicationResponse.error.message);
+        return;
+      }
+      let installedApplications = fetchApplicationResponse.data?.apps;
       if (installedApplications.length !== 0) {
         const tempApplications = await Promise.all(
           installedApplications.map(async (app: NodeApp) => {
@@ -115,6 +121,7 @@ export default function Applications() {
           navigateToAppDetails={(id: string) => navigate(`/applications/${id}`)}
           navigateToPublishApp={() => navigate('/publish-application')}
           changeSelectedTab={() => setSelectedTab(Tabs.INSTALL_APPLICATION)}
+          errorMessage={errorMessage}
         />
       </PageContentWrapper>
     </FlexLayout>
