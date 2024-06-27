@@ -1,15 +1,14 @@
 import {
   ContextStorage,
   Context,
-  ETHRootKey,
   HealthRequest,
   HealthStatus,
-  NearRootKey,
   ContextClientKeysList,
   ContextUsersList,
   ListApplicationsResponse,
   ApiContext,
   ContextList,
+  DidResponse,
 } from './dataSource/NodeDataSource';
 import { ApiResponse } from './response';
 
@@ -26,7 +25,7 @@ export interface NodeApi {
     initFunction: string,
     initArguments: string,
   ): Promise<boolean>;
-  getDidList(): Promise<(ETHRootKey | NearRootKey)[]>;
+  getDidList(): ApiResponse<DidResponse>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
   getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
   installApplication(
