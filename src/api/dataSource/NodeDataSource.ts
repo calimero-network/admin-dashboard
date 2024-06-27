@@ -258,7 +258,7 @@ export class NodeDataSource {
     applicationId: string,
     initFunction: string,
     initArguments: string,
-  ): Promise<boolean> {
+  ): ApiResponse<Context> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
@@ -277,14 +277,10 @@ export class NodeDataSource {
         },
         headers ?? {},
       );
-      if (response?.data) {
-        return !!response.data;
-      } else {
-        return false;
-      }
+      return response;
     } catch (error) {
       console.error('Error starting contexts:', error);
-      return true;
+      return { error: { code: 500, message: 'Failed to start context.' } };
     }
   }
 
