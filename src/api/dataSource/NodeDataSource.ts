@@ -39,6 +39,10 @@ export interface Context {
   signingKey: SigningKey;
 }
 
+export interface ContextList {
+  contexts: Context[];
+}
+
 export interface ContextsList<T> {
   joined: T[];
   invited: T[];
@@ -127,29 +131,20 @@ export class NodeDataSource {
     }
   }
 
-  async getContexts(): Promise<ContextsList<Context>> {
+  async getContexts(): ApiResponse<ContextList> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
         ADMIN_UI,
       );
-      const response = await this.client.get<Context[]>(
+      const response = await this.client.get<ContextList>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         headers ?? {},
       );
-      if (response?.data) {
-        // invited is empty for now as we don't have this endpoint available
-        // will be left as "no invites" until this becomes available
-        return {
-          joined: response.data,
-          invited: [],
-        };
-      } else {
-        return { joined: [], invited: [] };
-      }
+      return response;
     } catch (error) {
       console.error('Error fetching contexts:', error);
-      return { joined: [], invited: [] };
+      return { error: { code: 500, message: 'Failed to fetch context data.' } };
     }
   }
 

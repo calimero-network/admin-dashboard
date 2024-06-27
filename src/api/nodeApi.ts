@@ -2,7 +2,6 @@ import {
   Application,
   ContextStorage,
   Context,
-  ContextsList,
   ETHRootKey,
   HealthRequest,
   HealthStatus,
@@ -10,13 +9,15 @@ import {
   ContextClientKeysList,
   ContextUsersList,
   ApiContext,
+  ContextList,
 } from './dataSource/NodeDataSource';
 import { ApiResponse } from './response';
 
 export interface NodeApi {
   getInstalledApplications(): Promise<Application[]>;
-  getContexts(): Promise<ContextsList<Context>>;
+  getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
+  getContext(contextId: string): ApiResponse<Context>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
   getContextUsers(contextId: string): ApiResponse<ContextUsersList>;
   deleteContext(contextId: string): Promise<Boolean>;
