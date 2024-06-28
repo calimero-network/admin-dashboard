@@ -119,20 +119,20 @@ export default function Contexts() {
 
   const deleteNodeContext = async () => {
     if (!selectedContextId) return;
-    const nodeContexts = await apiClient
+    const deleteContextResponse = await apiClient
       .node()
       .deleteContext(selectedContextId);
-    if (nodeContexts) {
-      setDeleteStatus({
-        title: 'Success',
-        message: `Context with id: ${selectedContextId} deleted.`,
-        error: false,
-      });
-    } else {
+    if (deleteContextResponse.error) {
       setDeleteStatus({
         title: 'Error',
         message: `Could not delete context with id: ${selectedContextId}!`,
         error: true,
+      });
+    } else {
+      setDeleteStatus({
+        title: 'Success',
+        message: `Context with id: ${selectedContextId} deleted.`,
+        error: false,
       });
     }
     setSelectedContextId(null);

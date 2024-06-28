@@ -106,6 +106,10 @@ export interface ContextStorage {
   sizeInBytes: number;
 }
 
+export interface DeleteContextResponse {
+  isDeleted: boolean;
+}
+
 export class NodeDataSource {
   private client: HttpClient;
 
@@ -233,24 +237,20 @@ export class NodeDataSource {
     }
   }
 
-  async deleteContext(contextId: string): Promise<boolean> {
+  async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
         ADMIN_UI,
       );
-      const response = await this.client.delete<boolean>(
+      const response = await this.client.delete<DeleteContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
       );
-      if (response?.data) {
-        return response.data;
-      } else {
-        return false;
-      }
+      return response;
     } catch (error) {
       console.error('Error deleting context:', error);
-      return false;
+      return { error: { code: 500, message: 'Failed to delete context.' } };
     }
   }
 
