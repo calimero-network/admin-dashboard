@@ -12,7 +12,7 @@ export default function AddMetamaskRootKey() {
         applicationId={'admin-ui'}
         rpcBaseUrl={getNodeUrl()}
         successRedirect={() => navigate('/identity')}
-        navigateBack={() => navigate('/')}
+        navigateBack={() => navigate('/identity/root-key')}
         clientLogin={false}
       />
     </ContentWrapper>
