@@ -14,12 +14,14 @@ interface IdentitiesTableProps {
   rootKeysList: RootKeyObject[];
   onAddRootKey: () => void;
   onCopyKeyClick: (publicKey: string) => void;
+  errorMessage: string;
 }
 
 export default function IdentitiesTable({
   rootKeysList,
   onAddRootKey,
   onCopyKeyClick,
+  errorMessage,
 }: IdentitiesTableProps) {
   const t = translations.identityPage;
   return (
@@ -42,6 +44,7 @@ export default function IdentitiesTable({
           roundTopItem={true}
           noItemsText={t.noRootKeysText}
           onRowItemClick={onCopyKeyClick}
+          error={errorMessage}
         />
       </FlexWrapper>
     </ContentCard>

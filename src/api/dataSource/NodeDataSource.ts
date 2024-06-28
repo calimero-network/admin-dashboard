@@ -67,7 +67,7 @@ interface NetworkType {
   chainId?: number;
 }
 
-interface ApiRootKey {
+export interface ApiRootKey {
   signing_key: string;
   wallet: NetworkType;
   created_at: number;
@@ -84,10 +84,14 @@ export interface ApiContext {
   context: Context;
 }
 
-interface RootkeyResponse {
+interface Did {
   client_keys: ClientKey[];
   contexts: Context[];
   root_keys: ApiRootKey[];
+}
+
+export interface DidResponse {
+  did: Did;
 }
 
 export interface ListApplicationsResponse {
@@ -280,44 +284,20 @@ export class NodeDataSource {
     }
   }
 
-  async getDidList(): Promise<(ETHRootKey | NearRootKey)[]> {
+  async getDidList(): ApiResponse<DidResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
         ADMIN_UI,
       );
-      const response = await this.client.get<RootkeyResponse>(
+      const response = await this.client.get<DidResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
         headers ?? {},
       );
-      if (response?.data?.root_keys) {
-        const rootKeys: (ETHRootKey | NearRootKey)[] =
-          response?.data?.root_keys?.map((obj: ApiRootKey) => {
-            if (obj.wallet.type === Network.NEAR) {
-              return {
-                signingKey: obj.signing_key,
-                type: Network.NEAR,
-                chainId: obj.wallet.chainId ?? 1,
-                createdAt: obj.created_at,
-              } as NearRootKey;
-            } else {
-              return {
-                signingKey: obj.signing_key,
-                type: Network.ETH,
-                createdAt: obj.created_at,
-                ...(obj.wallet.chainId !== undefined && {
-                  chainId: obj.wallet.chainId,
-                }),
-              } as ETHRootKey;
-            }
-          });
-        return rootKeys;
-      } else {
-        return [];
-      }
+      return response;
     } catch (error) {
-      console.error('Error fetching DID list:', error);
-      return [];
+      console.error('Error fetching root keys:', error);
+      return { error: { code: 500, message: 'Failed to fetch root keys.' } };
     }
   }
 

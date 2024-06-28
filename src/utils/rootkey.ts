@@ -1,7 +1,12 @@
 import { Location } from 'react-router-dom';
 import axios from 'axios';
 import { getWalletCallbackUrl } from './wallet';
-import { ETHRootKey, NearRootKey } from '../api/dataSource/NodeDataSource';
+import {
+  ApiRootKey,
+  DidResponse,
+  ETHRootKey,
+  NearRootKey,
+} from '../api/dataSource/NodeDataSource';
 import { getAppEndpointKey } from './storage';
 
 export interface UrlParams {
@@ -73,17 +78,41 @@ export interface RootKeyObject {
 }
 
 export function mapApiResponseToObjects(
-  didList: (ETHRootKey | NearRootKey)[],
+  didResponse: DidResponse,
 ): RootKeyObject[] {
-  return didList.map((item) => ({
-    type:
-      item.type === Network.NEAR
-        ? Network.NEAR
-        : getMetamaskType(item.chainId ?? 1),
-    createdAt: item.createdAt,
-    publicKey:
-      item.type === 'NEAR'
-        ? item.signingKey.split(':')[1]!.trim()
-        : item.signingKey,
-  }));
+  if (didResponse?.did?.root_keys) {
+    const rootKeys: (ETHRootKey | NearRootKey)[] =
+      didResponse?.did?.root_keys?.map((obj: ApiRootKey) => {
+        if (obj.wallet.type === Network.NEAR) {
+          return {
+            signingKey: obj.signing_key,
+            type: Network.NEAR,
+            chainId: obj.wallet.chainId ?? 1,
+            createdAt: obj.created_at,
+          } as NearRootKey;
+        } else {
+          return {
+            signingKey: obj.signing_key,
+            type: Network.ETH,
+            createdAt: obj.created_at,
+            ...(obj.wallet.chainId !== undefined && {
+              chainId: obj.wallet.chainId,
+            }),
+          } as ETHRootKey;
+        }
+      });
+    return rootKeys.map((item) => ({
+      type:
+        item.type === Network.NEAR
+          ? Network.NEAR
+          : getMetamaskType(item.chainId ?? 1),
+      createdAt: item.createdAt,
+      publicKey:
+        item.type === 'NEAR'
+          ? item.signingKey.split(':')[1]!.trim()
+          : item.signingKey,
+    }));
+  } else {
+    return [];
+  }
 }
