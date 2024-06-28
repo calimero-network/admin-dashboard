@@ -42,32 +42,23 @@ export default function StartContext() {
       setShowStatusModal(true);
       return;
     }
-    try {
-      if (!application.appId) {
-        return;
-      }
-      const startContextResponse = await apiClient
-        .node()
-        .startContexts(application.appId, methodName, argumentsJson);
-      if (startContextResponse) {
-        setStartContextStatus({
-          title: t.startContextSuccessTitle,
-          message: t.startedContextMessage,
-          error: false,
-        });
-      } else {
-        setStartContextStatus({
-          title: t.startContextErrorTitle,
-          message: t.startContextErrorMessage,
-          error: true,
-        });
-      }
-    } catch (error: any) {
-      console.error(error);
+    if (!application.appId) {
+      return;
+    }
+    const startContextResponse = await apiClient
+      .node()
+      .startContexts(application.appId, methodName, argumentsJson);
+    if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
-        message: error.message,
+        message: t.startContextErrorMessage,
         error: true,
+      });
+    } else {
+      setStartContextStatus({
+        title: t.startContextSuccessTitle,
+        message: t.startedContextMessage,
+        error: false,
       });
     }
     setIsLoading(false);
