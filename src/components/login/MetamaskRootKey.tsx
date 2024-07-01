@@ -142,7 +142,7 @@ export function MetamaskRootKey({
     signData,
     successRedirect,
     walletSignatureData?.payload,
-    applicationId
+    applicationId,
   ]);
 
   useEffect(() => {

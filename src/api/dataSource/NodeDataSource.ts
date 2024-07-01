@@ -148,7 +148,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        null
+        null,
       );
       const response = await this.client.get<ContextList>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -163,10 +163,7 @@ export class NodeDataSource {
 
   async getContext(contextId: string): ApiResponse<ApiContext> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        null
-      );
+      const headers: Header | null = await createAuthHeader(contextId, null);
       const response = await this.client.get<ApiContext>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
@@ -182,10 +179,7 @@ export class NodeDataSource {
     contextId: string,
   ): ApiResponse<ContextClientKeysList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        null
-      );
+      const headers: Header | null = await createAuthHeader(contextId, null);
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
         headers ?? {},
@@ -201,10 +195,7 @@ export class NodeDataSource {
 
   async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        null
-      );
+      const headers: Header | null = await createAuthHeader(contextId, null);
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
         headers ?? {},
@@ -220,10 +211,7 @@ export class NodeDataSource {
 
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        null
-      );
+      const headers: Header | null = await createAuthHeader(contextId, null);
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
         headers ?? {},
@@ -266,7 +254,7 @@ export class NodeDataSource {
           initFunction,
           initArguments,
         }),
-        null
+        null,
       );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -288,7 +276,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        null
+        null,
       );
       const response = await this.client.get<DidResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
@@ -317,7 +305,7 @@ export class NodeDataSource {
           selectedPackage,
           selectedVersion,
         }),
-        null
+        null,
       );
       const response: ResponseData<boolean> = await this.client.post<boolean>(
         `${getAppEndpointKey()}/admin-api/install-application`,
