@@ -3,8 +3,6 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
-export const ADMIN_UI = 'admin-ui';
-
 enum Network {
   NEAR = 'NEAR',
   ETH = 'ETH',
@@ -125,7 +123,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
+        null,
       );
       const response: ResponseData<ListApplicationsResponse> =
         await this.client.get<ListApplicationsResponse>(
@@ -229,7 +227,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        ADMIN_UI,
+        null,
       );
       const response = await this.client.delete<DeleteContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
