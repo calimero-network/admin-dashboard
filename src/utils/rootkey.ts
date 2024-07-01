@@ -87,7 +87,6 @@ export function mapApiResponseToObjects(
           return {
             signingKey: obj.signing_key,
             type: Network.NEAR,
-            chainId: obj.wallet.chainId ?? 1,
             createdAt: obj.created_at,
           } as NearRootKey;
         } else {
