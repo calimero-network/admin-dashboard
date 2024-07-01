@@ -148,7 +148,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<ContextList>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -165,7 +165,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<ApiContext>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
@@ -184,7 +184,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
@@ -203,7 +203,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
@@ -222,7 +222,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         contextId,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
@@ -266,7 +266,7 @@ export class NodeDataSource {
           initFunction,
           initArguments,
         }),
-        ADMIN_UI,
+        null
       );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -288,7 +288,7 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
+        null
       );
       const response = await this.client.get<DidResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
@@ -317,7 +317,7 @@ export class NodeDataSource {
           selectedPackage,
           selectedVersion,
         }),
-        ADMIN_UI,
+        null
       );
       const response: ResponseData<boolean> = await this.client.post<boolean>(
         `${getAppEndpointKey()}/admin-api/install-application`,
