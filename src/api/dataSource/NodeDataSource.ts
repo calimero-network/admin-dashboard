@@ -225,10 +225,7 @@ export class NodeDataSource {
 
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        null,
-      );
+      const headers: Header | null = await createAuthHeader(contextId, null);
       const response = await this.client.delete<DeleteContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
