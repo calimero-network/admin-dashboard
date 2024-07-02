@@ -3,8 +3,6 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
-export const ADMIN_UI = 'admin-ui';
-
 export enum Network {
   NEAR = 'NEAR',
   ETH = 'ETH',
@@ -128,7 +126,6 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
       );
       const response: ResponseData<ListApplicationsResponse> =
         await this.client.get<ListApplicationsResponse>(
@@ -151,7 +148,6 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
       );
       const response = await this.client.get<ContextList>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -166,10 +162,7 @@ export class NodeDataSource {
 
   async getContext(contextId: string): ApiResponse<ApiContext> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        ADMIN_UI,
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ApiContext>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
@@ -185,10 +178,7 @@ export class NodeDataSource {
     contextId: string,
   ): ApiResponse<ContextClientKeysList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        ADMIN_UI,
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
         headers ?? {},
@@ -204,10 +194,7 @@ export class NodeDataSource {
 
   async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        ADMIN_UI,
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
         headers ?? {},
@@ -223,10 +210,7 @@ export class NodeDataSource {
 
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        ADMIN_UI,
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
         headers ?? {},
@@ -242,10 +226,7 @@ export class NodeDataSource {
 
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        ADMIN_UI,
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.delete<DeleteContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
@@ -269,7 +250,6 @@ export class NodeDataSource {
           initFunction,
           initArguments,
         }),
-        ADMIN_UI,
       );
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -291,7 +271,6 @@ export class NodeDataSource {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        ADMIN_UI,
       );
       const response = await this.client.get<DidResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
@@ -320,7 +299,6 @@ export class NodeDataSource {
           selectedPackage,
           selectedVersion,
         }),
-        ADMIN_UI,
       );
       const response: ResponseData<boolean> = await this.client.post<boolean>(
         `${getAppEndpointKey()}/admin-api/install-application`,
