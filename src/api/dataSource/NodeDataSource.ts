@@ -3,9 +3,12 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 
-enum Network {
+export enum Network {
   NEAR = 'NEAR',
   ETH = 'ETH',
+  BNB = 'BNB',
+  ARB = 'ARB',
+  ZK = 'ZK',
 }
 
 export interface ContextClientKeysList {
