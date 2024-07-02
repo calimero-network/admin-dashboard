@@ -5,9 +5,12 @@ import { ApiResponse, ResponseData } from '../response';
 
 export const ADMIN_UI = 'admin-ui';
 
-enum Network {
+export enum Network {
   NEAR = 'NEAR',
   ETH = 'ETH',
+  BNB = 'BNB',
+  ARB = 'ARB',
+  ZK = 'ZK',
 }
 
 export interface ContextClientKeysList {

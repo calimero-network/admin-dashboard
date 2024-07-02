@@ -6,6 +6,7 @@ import {
   DidResponse,
   ETHRootKey,
   NearRootKey,
+  Network,
 } from '../api/dataSource/NodeDataSource';
 import { getAppEndpointKey } from './storage';
 
@@ -48,14 +49,6 @@ export const submitRootKeyRequest = async (
   }
 };
 
-enum Network {
-  NEAR = 'NEAR',
-  ETH = 'ETH',
-  BNB = 'BNB',
-  ARB = 'ARB',
-  ZK = 'ZK',
-}
-
 const getMetamaskType = (chainId: number): Network => {
   switch (chainId) {
     case 1:
@@ -84,20 +77,20 @@ export function mapApiResponseToObjects(
     const rootKeys: (ETHRootKey | NearRootKey)[] =
       didResponse?.did?.root_keys?.map((obj: ApiRootKey) => {
         if (obj.wallet.type === Network.NEAR) {
-          return {
+          const nearObject: NearRootKey = {
             signingKey: obj.signing_key,
-            type: Network.NEAR,
             createdAt: obj.created_at,
-          } as NearRootKey;
+            type: Network.NEAR,
+          };
+          return nearObject;
         } else {
-          return {
+          const ethObject: ETHRootKey = {
             signingKey: obj.signing_key,
             type: Network.ETH,
             createdAt: obj.created_at,
-            ...(obj.wallet.chainId !== undefined && {
-              chainId: obj.wallet.chainId,
-            }),
-          } as ETHRootKey;
+            chainId: obj.wallet.chainId ?? 1,
+          };
+          return ethObject;
         }
       });
     return rootKeys.map((item) => ({
