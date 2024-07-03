@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
@@ -62,24 +62,29 @@ export default function Contexts() {
     invited: [],
   });
 
-  const generateContextObjects = async (
-    contexts: Context[],
-  ): Promise<ContextObject[]> => {
-    try {
-      const tempContextObjects = await Promise.all(
-        contexts.map(async (app: Context) => {
-          const packageData = await getPackage(app.applicationId);
-          return { ...packageData, id: app.id, applicationId: packageData.id };
-        }),
-      );
-      return tempContextObjects;
-    } catch (error) {
-      console.error('Error generating context objects:', error);
-      return [];
-    }
-  };
+  const generateContextObjects = useCallback(
+    async (contexts: Context[]): Promise<ContextObject[]> => {
+      try {
+        const tempContextObjects = await Promise.all(
+          contexts.map(async (app: Context) => {
+            const packageData = await getPackage(app.applicationId);
+            return {
+              ...packageData,
+              id: app.id,
+              applicationId: packageData.id,
+            };
+          }),
+        );
+        return tempContextObjects;
+      } catch (error) {
+        console.error('Error generating context objects:', error);
+        return [];
+      }
+    },
+    [getPackage],
+  );
 
-  const fetchNodeContexts = async () => {
+  const fetchNodeContexts = useCallback(async () => {
     setErrorMessage('');
     const fetchContextsResponse = await apiClient.node().getContexts();
     // TODO - fetch invitations
@@ -111,11 +116,12 @@ export default function Contexts() {
         },
       ]);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchNodeContexts();
-  }, []);
+  }, [fetchNodeContexts]);
 
   const deleteNodeContext = async () => {
     if (!selectedContextId) return;
@@ -157,7 +163,7 @@ export default function Contexts() {
     setShowActionDialog(true);
   };
 
-  const handleInvitation = async (id: string, isAccepted?: boolean) => {
+  const handleInvitation = async (_id: string, isAccepted?: boolean) => {
     // TODO: when api for handling invitations is ready
     if (isAccepted) {
       // TODO: handle invitation acceptance

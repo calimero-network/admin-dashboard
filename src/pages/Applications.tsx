@@ -57,7 +57,7 @@ export interface Applications {
   owned: Application[];
 }
 
-export default function Applications() {
+export default function ApplicationsPage() {
   const navigate = useNavigate();
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
@@ -65,8 +65,7 @@ export default function Applications() {
   const [currentOption, setCurrentOption] = useState<string>(
     ApplicationOptions.AVAILABLE,
   );
-  const [tableOptions, _setTableOptions] =
-    useState<TableOptions[]>(initialOptions);
+  const [tableOptions] = useState<TableOptions[]>(initialOptions);
   const [packages, setPackages] = useState<Package[]>([]);
   const [applications, setApplications] = useState<Applications>({
     available: [],
@@ -79,7 +78,7 @@ export default function Applications() {
         setPackages(await getPackages());
       })();
     }
-  }, []);
+  }, [getPackages, packages?.length]);
 
   useEffect(() => {
     const setApps = async () => {
@@ -107,7 +106,7 @@ export default function Applications() {
     };
 
     setApps();
-  }, [selectedTab]);
+  }, [getPackage, selectedTab]);
 
   return (
     <FlexLayout>
