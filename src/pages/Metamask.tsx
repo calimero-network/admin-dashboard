@@ -9,7 +9,6 @@ export default function Metamask() {
   return (
     <ContentWrapper>
       <MetamaskWrapper
-        applicationId={'admin-ui'}
         rpcBaseUrl={getNodeUrl()}
         successRedirect={() => navigate('/identity')}
         navigateBack={() => navigate('/auth')}

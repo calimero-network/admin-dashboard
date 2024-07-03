@@ -7,7 +7,6 @@ import { ContentCard } from '../components/common/ContentCard';
 import StartContextCard from '../components/context/startContext/StartContextCard';
 import translations from '../constants/en.global.json';
 import apiClient from '../api/index';
-import { useAdminClient } from '../hooks/useAdminClient';
 
 export interface ContextApplication {
   appId: string;
@@ -18,7 +17,6 @@ export interface ContextApplication {
 export default function StartContext() {
   const t = translations.startContextPage;
   const navigate = useNavigate();
-  const { installApplication } = useAdminClient();
   const [application, setApplication] = useState<ContextApplication>({
     appId: '',
     name: '',
@@ -44,32 +42,23 @@ export default function StartContext() {
       setShowStatusModal(true);
       return;
     }
-    try {
-      if (!application.appId) {
-        return;
-      }
-      const startContextResponse = await apiClient
-        .node()
-        .startContexts(application.appId, methodName, argumentsJson);
-      if (startContextResponse) {
-        setStartContextStatus({
-          title: t.startContextSuccessTitle,
-          message: t.startedContextMessage,
-          error: false,
-        });
-      } else {
-        setStartContextStatus({
-          title: t.startContextErrorTitle,
-          message: t.startContextErrorMessage,
-          error: true,
-        });
-      }
-    } catch (error: any) {
-      console.error(error);
+    if (!application.appId) {
+      return;
+    }
+    const startContextResponse = await apiClient
+      .node()
+      .startContexts(application.appId, methodName, argumentsJson);
+    if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
-        message: error.message,
+        message: t.startContextErrorMessage,
         error: true,
+      });
+    } else {
+      setStartContextStatus({
+        title: t.startContextSuccessTitle,
+        message: t.startedContextMessage,
+        error: false,
       });
     }
     setIsLoading(false);
@@ -80,20 +69,19 @@ export default function StartContext() {
     if (!application.appId || !application.version) {
       return false;
     }
-    const response = await installApplication(
-      application.appId,
-      application.version,
-    );
+    const response = await apiClient
+      .node()
+      .installApplication(application.appId, application.version);
     if (response.error) {
       setStartContextStatus({
-        title: 'Error installing application',
+        title: t.failInstallTitle,
         message: response.error.message,
         error: true,
       });
       return false;
     } else {
       setStartContextStatus({
-        title: response.data,
+        title: t.successInstallTitle,
         message: `Installed application ${application.name}, version ${application.version}.`,
         error: false,
       });

@@ -44,6 +44,7 @@ export default function Contexts() {
   const [currentOption, setCurrentOption] = useState<string>(Options.JOINED);
   const [tableOptions, setTableOptions] =
     useState<TableOptions[]>(initialOptions);
+  const [errorMessage, setErrorMessage] = useState('');
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [selectedContextId, setSelectedContextId] = useState<string | null>(
@@ -84,9 +85,18 @@ export default function Contexts() {
   );
 
   const fetchNodeContexts = useCallback(async () => {
-    const nodeContexts = await apiClient.node().getContexts();
-    if (nodeContexts) {
-      const joinedContexts = await generateContextObjects(nodeContexts.joined);
+    setErrorMessage('');
+    const fetchContextsResponse = await apiClient.node().getContexts();
+    // TODO - fetch invitations
+    if (fetchContextsResponse.error) {
+      setErrorMessage(fetchContextsResponse.error.message);
+      return;
+    }
+    if (fetchContextsResponse.data) {
+      const nodeContexts = fetchContextsResponse.data;
+      const joinedContexts = await generateContextObjects(
+        nodeContexts.contexts,
+      );
 
       setNodeContextList((prevState: ContextsList<ContextObject>) => ({
         ...prevState,
@@ -96,12 +106,13 @@ export default function Contexts() {
         {
           name: 'Joined',
           id: Options.JOINED,
-          count: nodeContexts.joined?.length ?? 0,
+          count: nodeContexts.contexts?.length ?? 0,
         },
         {
           name: 'Invited',
+          // TODO - invitation count when api is ready
           id: Options.INVITED,
-          count: nodeContexts.invited?.length ?? 0,
+          count: 0,
         },
       ]);
     }
@@ -114,20 +125,20 @@ export default function Contexts() {
 
   const deleteNodeContext = async () => {
     if (!selectedContextId) return;
-    const nodeContexts = await apiClient
+    const deleteContextResponse = await apiClient
       .node()
       .deleteContext(selectedContextId);
-    if (nodeContexts) {
-      setDeleteStatus({
-        title: 'Success',
-        message: `Context with id: ${selectedContextId} deleted.`,
-        error: false,
-      });
-    } else {
+    if (deleteContextResponse.error) {
       setDeleteStatus({
         title: 'Error',
         message: `Could not delete context with id: ${selectedContextId}!`,
         error: true,
+      });
+    } else {
+      setDeleteStatus({
+        title: 'Success',
+        message: `Context with id: ${selectedContextId} deleted.`,
+        error: false,
       });
     }
     setSelectedContextId(null);
@@ -179,6 +190,7 @@ export default function Contexts() {
           setShowActionDialog={setShowActionDialog}
           showModal={showModal}
           handleInvitation={handleInvitation}
+          errorMessage={errorMessage}
         />
       </PageContentWrapper>
     </FlexLayout>

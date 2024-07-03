@@ -98,7 +98,9 @@ export default function ContextDetails() {
         ]);
 
         if (nodeContext.data) {
-          const contextObject = await generateContextObjects(nodeContext.data);
+          const contextObject = await generateContextObjects(
+            nodeContext.data.context,
+          );
           setContextDetails({ data: contextObject });
         } else {
           setContextDetails({ error: nodeContext.error?.message });

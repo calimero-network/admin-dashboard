@@ -13,12 +13,19 @@ export interface RootKey {
 
 export default function Identity() {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('');
   const [rootKeys, setRootKeys] = useState<RootKeyObject[]>([]);
   useEffect(() => {
     const setDids = async () => {
-      const didList = await apiClient.node().getDidList();
-      const rootKeyObjectsList = mapApiResponseToObjects(didList);
-      setRootKeys(rootKeyObjectsList);
+      setErrorMessage('');
+      const didResponse = await apiClient.node().getDidList();
+      if (didResponse.error) {
+        setErrorMessage(didResponse.error.message);
+        return;
+      } else {
+        const rootKeyObjectsList = mapApiResponseToObjects(didResponse.data);
+        setRootKeys(rootKeyObjectsList);
+      }
     };
     setDids();
   }, []);
@@ -33,6 +40,7 @@ export default function Identity() {
           onCopyKeyClick={(publicKey: string) =>
             navigator.clipboard.writeText(publicKey)
           }
+          errorMessage={errorMessage}
         />
       </PageContentWrapper>
     </FlexLayout>

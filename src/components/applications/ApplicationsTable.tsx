@@ -35,6 +35,7 @@ interface ApplicationsTableProps {
   navigateToAppDetails: (applicationId: string) => void;
   navigateToPublishApp: () => void;
   changeSelectedTab: () => void;
+  errorMessage: string;
 }
 
 export default function ApplicationsTable({
@@ -45,6 +46,7 @@ export default function ApplicationsTable({
   navigateToAppDetails,
   navigateToPublishApp,
   changeSelectedTab,
+  errorMessage,
 }: ApplicationsTableProps) {
   const t = translations.applicationsPage.applicationsTable;
   const headersList = ['NAME', 'ID', 'LATEST VERSION', 'PUBLISHED'];
@@ -71,6 +73,7 @@ export default function ApplicationsTable({
             roundTopItem={true}
             noItemsText={t.noAvailableAppsText}
             onRowItemClick={navigateToAppDetails}
+            error={errorMessage}
           />
         ) : (
           <ListTable<Application>

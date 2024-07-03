@@ -1,7 +1,13 @@
 import { Location } from 'react-router-dom';
 import axios from 'axios';
 import { getWalletCallbackUrl } from './wallet';
-import { ETHRootKey, NearRootKey } from '../api/dataSource/NodeDataSource';
+import {
+  ApiRootKey,
+  DidResponse,
+  ETHRootKey,
+  NearRootKey,
+  Network,
+} from '../api/dataSource/NodeDataSource';
 import { getAppEndpointKey } from './storage';
 
 export interface UrlParams {
@@ -43,14 +49,6 @@ export const submitRootKeyRequest = async (
   }
 };
 
-enum Network {
-  NEAR = 'NEAR',
-  ETH = 'ETH',
-  BNB = 'BNB',
-  ARB = 'ARB',
-  ZK = 'ZK',
-}
-
 const getMetamaskType = (chainId: number): Network => {
   switch (chainId) {
     case 1:
@@ -73,17 +71,40 @@ export interface RootKeyObject {
 }
 
 export function mapApiResponseToObjects(
-  didList: (ETHRootKey | NearRootKey)[],
+  didResponse: DidResponse,
 ): RootKeyObject[] {
-  return didList.map((item) => ({
-    type:
-      item.type === Network.NEAR
-        ? Network.NEAR
-        : getMetamaskType(item.chainId ?? 1),
-    createdAt: item.createdAt,
-    publicKey:
-      item.type === 'NEAR'
-        ? item.signingKey.split(':')[1]!.trim()
-        : item.signingKey,
-  }));
+  if (didResponse?.did?.root_keys) {
+    const rootKeys: (ETHRootKey | NearRootKey)[] =
+      didResponse?.did?.root_keys?.map((obj: ApiRootKey) => {
+        if (obj.wallet.type === Network.NEAR) {
+          const nearObject: NearRootKey = {
+            signingKey: obj.signing_key,
+            createdAt: obj.created_at,
+            type: Network.NEAR,
+          };
+          return nearObject;
+        } else {
+          const ethObject: ETHRootKey = {
+            signingKey: obj.signing_key,
+            type: Network.ETH,
+            createdAt: obj.created_at,
+            chainId: obj.wallet.chainId ?? 1,
+          };
+          return ethObject;
+        }
+      });
+    return rootKeys.map((item) => ({
+      type:
+        item.type === Network.NEAR
+          ? Network.NEAR
+          : getMetamaskType(item.chainId ?? 1),
+      createdAt: item.createdAt,
+      publicKey:
+        item.type === 'NEAR'
+          ? item.signingKey.split(':')[1]!.trim()
+          : item.signingKey,
+    }));
+  } else {
+    return [];
+  }
 }
