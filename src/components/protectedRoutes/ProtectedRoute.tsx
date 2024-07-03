@@ -1,23 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { getClientKey } from '../../utils/storage';
+import { isNodeAuthorized } from '../../utils/storage';
 import { getPathname } from '../../utils/protectedRoute';
 
 export default function ProtectedRoute() {
   const navigate = useNavigate();
-  const clientKey = getClientKey();
+  const isAuthorized = isNodeAuthorized();
   const pathname = getPathname();
 
   useEffect(() => {
     const isAuthPath = pathname.startsWith('/auth');
-    if (clientKey) {
+    if (isAuthorized) {
       if (isAuthPath) {
         navigate('/identity');
       }
     } else {
       navigate('/auth');
     }
-  }, [clientKey]);
+  }, [isAuthorized]);
 
   return <Outlet />;
 }
