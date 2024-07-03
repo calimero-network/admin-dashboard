@@ -17,6 +17,7 @@ export default function ProtectedRoute() {
     } else {
       navigate('/auth');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientKey]);
 
   return <Outlet />;

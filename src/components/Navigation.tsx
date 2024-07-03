@@ -124,6 +124,7 @@ export function Navigation() {
           <img
             src={CalimeroLogo as unknown as string}
             className="calimero-logo"
+            alt="Calimero Logo"
           />
           <h4 className="dashboard-text">{t.logoDashboardText}</h4>
         </div>

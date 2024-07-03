@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
@@ -67,17 +67,20 @@ export default function ContextDetails() {
     useState<TableOptions[]>(initialOptions);
   const { getPackage, getLatestRelease } = useRPC();
 
-  const generateContextObjects = async (context: Context) => {
-    const packageData = await getPackage(context.applicationId);
-    const versionData = await getLatestRelease(context.applicationId);
+  const generateContextObjects = useCallback(
+    async (context: Context) => {
+      const packageData = await getPackage(context.applicationId);
+      const versionData = await getLatestRelease(context.applicationId);
 
-    return {
-      ...packageData,
-      ...versionData,
-      contextId: id,
-      applicationId: context.applicationId,
-    } as ContextObject;
-  };
+      return {
+        ...packageData,
+        ...versionData,
+        contextId: id,
+        applicationId: context.applicationId,
+      } as ContextObject;
+    },
+    [getLatestRelease, getPackage, id],
+  );
 
   useEffect(() => {
     const fetchNodeContexts = async () => {
@@ -141,7 +144,7 @@ export default function ContextDetails() {
       }
     };
     fetchNodeContexts();
-  }, []);
+  }, [generateContextObjects, id]);
 
   return (
     <FlexLayout>

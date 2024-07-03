@@ -72,7 +72,7 @@ export default function PublishApplication() {
     (async () => {
       setPackages(await getPackages());
     })();
-  }, [ipfsPath]);
+  }, [getPackages, ipfsPath]);
 
   useEffect(() => {
     setReleaseInfo((prevState) => ({
