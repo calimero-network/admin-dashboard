@@ -78,7 +78,8 @@ export default function ApplicationsPage() {
         setPackages(await getPackages());
       })();
     }
-  }, [getPackages, packages?.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const setApps = async () => {
@@ -106,7 +107,8 @@ export default function ApplicationsPage() {
     };
 
     setApps();
-  }, [getPackage, selectedTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab]);
 
   return (
     <FlexLayout>
