@@ -11,12 +11,16 @@ export default function ProtectedRoute() {
 
   useEffect(() => {
     const isAuthPath = pathname.startsWith('/auth');
-    if (isAuthorized && clientKey) {
-      if (isAuthPath) {
+    if (isAuthPath) {
+      if (isAuthorized && clientKey) {
+        //navigate to home page after auth is successfull
         navigate('/identity');
       }
     } else {
-      navigate('/auth');
+      if (!(isAuthorized && clientKey)) {
+        //show auth if not authorized
+        navigate('/auth');
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthorized, clientKey]);

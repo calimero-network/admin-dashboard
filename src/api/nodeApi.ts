@@ -17,7 +17,6 @@ export interface NodeApi {
   getInstalledApplications(): ApiResponse<ListApplicationsResponse>;
   getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
-  getContext(contextId: string): ApiResponse<Context>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
   getContextUsers(contextId: string): ApiResponse<ContextUsersList>;
   deleteContext(contextId: string): ApiResponse<DeleteContextResponse>;
