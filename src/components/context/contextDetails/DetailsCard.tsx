@@ -2,9 +2,9 @@ import React from 'react';
 import styled from 'styled-components';
 import LoaderSpinner from '../../common/LoaderSpinner';
 import translations from '../../../constants/en.global.json';
-import { ApiResponse, ContextObject } from '../../../pages/ContextDetails';
 import { convertBytes } from '../../../utils/displayFunctions';
 import { ContextStorage } from '../../../api/dataSource/NodeDataSource';
+import { ContextDetails } from '../../../types/context';
 
 const DetailsCardWrapper = styled.div`
   padding-left: 1rem;
@@ -51,66 +51,71 @@ const DetailsCardWrapper = styled.div`
 `;
 
 interface DetailsCardProps {
-  details: ApiResponse<ContextObject>;
-  contextStorage: ApiResponse<ContextStorage>;
+  details: ContextDetails;
+  detailsErrror: string | null;
+  contextStorage: ContextStorage;
+  contextStorageError: string | null;
 }
 
-export default function DetailsCard({
-  details,
-  contextStorage,
-}: DetailsCardProps) {
+export default function DetailsCard(props: DetailsCardProps) {
   const t = translations.contextPage.contextDetails;
 
-  if (!details) {
+  if (!props.details) {
     return <LoaderSpinner />;
   }
 
   return (
     <DetailsCardWrapper>
-      {details.data ? (
+      {props.details ? (
         <div className="container">
           <div className="context-id">
             {t.labelIdText}
-            {details.data.contextId}
+            {props.details.contextId}
           </div>
           <div className="highlight title inter-mid">{t.titleApps}</div>
           <div className="item">
             {t.labelNameText}
-            <span className="highlight">{details.data.name}</span>
+            <span className="highlight">
+              {props.details.package?.name ?? '-'}
+            </span>
           </div>
           <div className="item">
             {t.labelOwnerText}
-            <span className="highlight">{details.data.owner}</span>
+            <span className="highlight">
+              {props.details.package?.owner ?? '-'}
+            </span>
           </div>
           <div className="item">
             {t.labelDescriptionText}
-            {details.data.description}
+            {props.details.package?.description ?? '-'}
           </div>
           <div className="item">
             {t.labelRepositoryText}
-            {details.data.repository}
+            {props.details.package?.repository ?? '-'}
           </div>
           <div className="item">
             {t.lableVersionText}
-            <span className="highlight">{details.data.version}</span>
+            <span className="highlight">
+              {props.details.release?.version ?? '-'}
+            </span>
           </div>
           <div className="item">
             {t.labelAppId}
-            {details.data.applicationId}
+            {props.details.applicationId}
           </div>
           <div className="highlight title">{t.titleStorage}</div>
           <div className="item">
             {t.labelStorageText}
             <span className="highlight">
-              {contextStorage.data
-                ? convertBytes(contextStorage.data.sizeInBytes)
-                : contextStorage.error}
+              {props.contextStorage
+                ? convertBytes(props.contextStorage.sizeInBytes)
+                : props.contextStorageError}
             </span>
           </div>
         </div>
       ) : (
         <div className="container-full">
-          <div className="item">{details.error}</div>
+          <div className="item">{props.details}</div>
         </div>
       )}
     </DetailsCardWrapper>

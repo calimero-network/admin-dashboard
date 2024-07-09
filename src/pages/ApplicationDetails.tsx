@@ -13,7 +13,7 @@ export interface AppDetails {
   releases: Release[];
 }
 
-export default function ApplicationDetails() {
+export default function ApplicationDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getPackage, getReleases } = useRPC();

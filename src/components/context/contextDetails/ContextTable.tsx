@@ -8,75 +8,72 @@ import clientKeyRowItem from './ClientKeyRowItem';
 import userRowItem from './UserRowItem';
 import { DetailsOptions } from '../../../constants/ContextConstants';
 import DetailsCard from './DetailsCard';
-import { ApiResponse, ContextObject } from '../../../pages/ContextDetails';
 import {
   ClientKey,
   ContextStorage,
   User,
 } from '../../../api/dataSource/NodeDataSource';
+import { ContextDetails } from '../../../types/context';
 
 const FlexWrapper = styled.div`
   flex: 1;
 `;
 
 interface ContextTableProps {
-  contextDetails: ApiResponse<ContextObject>;
-  contextClientKeys: ApiResponse<ClientKey[]>;
-  contextUsers: ApiResponse<User[]>;
-  contextStorage: ApiResponse<ContextStorage>;
+  contextDetails: ContextDetails;
+  contextDetailsError: string | null;
+  contextClientKeys: ClientKey[];
+  contextClientKeysError: string | null;
+  contextUsers: User[];
+  contextUsersError: string | null;
+  contextStorage: ContextStorage;
+  contextStorageError: string | null;
   navigateToContextList: () => void;
   currentOption: string;
   setCurrentOption: (option: string) => void;
   tableOptions: TableOptions[];
 }
 
-export default function ContextTable({
-  contextDetails,
-  contextClientKeys,
-  contextUsers,
-  contextStorage,
-  navigateToContextList,
-  currentOption,
-  setCurrentOption,
-  tableOptions,
-}: ContextTableProps) {
+export default function ContextTable(props: ContextTableProps) {
   const t = translations.contextPage.contextDetails;
 
   return (
     <ContentCard
       headerBackText={t.title}
-      headerOnBackClick={navigateToContextList}
+      headerOnBackClick={props.navigateToContextList}
     >
       <FlexWrapper>
         <OptionsHeader
-          tableOptions={tableOptions}
+          tableOptions={props.tableOptions}
           showOptionsCount={true}
-          currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
+          currentOption={props.currentOption}
+          setCurrentOption={props.setCurrentOption}
         />
-        {currentOption === DetailsOptions.DETAILS && (
+        {props.currentOption === DetailsOptions.DETAILS && (
           <DetailsCard
-            details={contextDetails}
-            contextStorage={contextStorage}
+            details={props.contextDetails}
+            detailsErrror={props.contextDetailsError}
+            contextStorage={props.contextStorage}
+            contextStorageError={props.contextStorageError}
           />
         )}
-        {currentOption === DetailsOptions.CLIENT_KEYS && (
+        {props.currentOption === DetailsOptions.CLIENT_KEYS && (
           <ListTable<ClientKey>
             listDescription={t.clientKeysListDescription}
             numOfColumns={3}
             listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
-            listItems={contextClientKeys.data || []}
-            error={contextClientKeys.error ?? ''}
+            listItems={props.contextClientKeys || []}
+            error={props.contextClientKeysError ?? ''}
             rowItem={clientKeyRowItem}
             roundTopItem={true}
             noItemsText={t.noClientKeysText}
           />
         )}
-        {currentOption === DetailsOptions.USERS && (
+        {props.currentOption === DetailsOptions.USERS && (
           <ListTable<User>
             numOfColumns={2}
-            listItems={contextUsers.data || []}
-            error={contextUsers.error ?? ''}
+            listItems={props.contextUsers || []}
+            error={props.contextUsersError ?? ''}
             listHeaderItems={['USER ID', 'JOINED']}
             rowItem={userRowItem}
             roundTopItem={true}

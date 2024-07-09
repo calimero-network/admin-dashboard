@@ -8,8 +8,8 @@ importers:
   .:
     dependencies:
       '@calimero-is-near/calimero-p2p-sdk':
-        specifier: 0.0.26
-        version: 0.0.26(@near-wallet-selector/modal-ui@8.9.8(near-api-js@3.0.4))(@types/react@18.3.3)(bufferutil@4.0.8)(react-i18next@13.5.0(i18next@22.5.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(rollup@4.13.0)(typescript@5.4.5)
+        specifier: 0.0.27
+        version: 0.0.27(@near-wallet-selector/modal-ui@8.9.8(near-api-js@3.0.4))(@types/react@18.3.3)(bufferutil@4.0.8)(react-i18next@13.5.0(i18next@22.5.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(rollup@4.13.0)(typescript@5.4.5)
       '@floating-ui/react-native':
         specifier: ^0.10.4
         version: 0.10.4(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1)
@@ -1531,10 +1531,10 @@ packages:
       }
     engines: { node: '>=6.9.0' }
 
-  '@calimero-is-near/calimero-p2p-sdk@0.0.26':
+  '@calimero-is-near/calimero-p2p-sdk@0.0.27':
     resolution:
       {
-        integrity: sha512-z6NzRtlQK21lLfT+QBSbVW8oSIlQp93iiuy2e5hbNbnx38AxD9DHvHz6M/CyFT5hCUd2Tg7nczIkUxd8HoPkjA==,
+        integrity: sha512-2K7pVsFl4o+Mq3bm6MG4zaEGGiYfhS5BQ3Kjrj5fBxNLw1PmWcY6/bGcgsKHMokJe6oXhf+vTIMeoUKOQKBE9A==,
       }
     peerDependencies:
       '@near-wallet-selector/modal-ui': ^8.9.7
@@ -12446,7 +12446,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.7
       to-fast-properties: 2.0.0
 
-  '@calimero-is-near/calimero-p2p-sdk@0.0.26(@near-wallet-selector/modal-ui@8.9.8(near-api-js@3.0.4))(@types/react@18.3.3)(bufferutil@4.0.8)(react-i18next@13.5.0(i18next@22.5.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(rollup@4.13.0)(typescript@5.4.5)':
+  '@calimero-is-near/calimero-p2p-sdk@0.0.27(@near-wallet-selector/modal-ui@8.9.8(near-api-js@3.0.4))(@types/react@18.3.3)(bufferutil@4.0.8)(react-i18next@13.5.0(i18next@22.5.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1))(react-native@0.73.6(@babel/core@7.24.3)(@babel/preset-env@7.24.3(@babel/core@7.24.3))(bufferutil@4.0.8)(react@18.3.1))(rollup@4.13.0)(typescript@5.4.5)':
     dependencies:
       '@libp2p/crypto': 4.1.2
       '@libp2p/interface': 1.4.0

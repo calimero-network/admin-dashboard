@@ -40,7 +40,7 @@ export interface DeployStatus {
   error: boolean;
 }
 
-export default function PublishApplication() {
+export default function PublishApplicationPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { getPackages } = useRPC();

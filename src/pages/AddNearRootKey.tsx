@@ -7,7 +7,7 @@ import ContentWrapper from '../components/login/ContentWrapper';
 import '@near-wallet-selector/modal-ui/styles.css';
 import { getNearEnvironment, getNodeUrl } from '../utils/node';
 
-export default function AddNearRootKey() {
+export default function AddNearRootKeyPage() {
   const navigate = useNavigate();
 
   return (

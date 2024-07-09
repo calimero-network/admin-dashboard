@@ -14,7 +14,7 @@ export interface ContextApplication {
   version: string;
 }
 
-export default function StartContext() {
+export default function StartContextPage() {
   const t = translations.startContextPage;
   const navigate = useNavigate();
   const [application, setApplication] = useState<ContextApplication>({

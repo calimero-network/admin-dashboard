@@ -3,7 +3,7 @@ export enum Content {
   START_NEW_CONTEXT = 'START_NEW_CONTEXT',
 }
 
-export enum Options {
+export enum ContextOptions {
   JOINED = 'JOINED',
   INVITED = 'INVITED',
 }

@@ -11,7 +11,7 @@ export interface RootKey {
   signingKey: string;
 }
 
-export default function Identity() {
+export default function IdentityPage() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
   const [rootKeys, setRootKeys] = useState<RootKeyObject[]>([]);

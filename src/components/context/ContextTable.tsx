@@ -6,11 +6,11 @@ import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
 import ListTable from '../common/ListTable';
 import rowItem from './RowItem';
 import invitationRowItem from './InvitationRowItem';
-import { Options } from '../../constants/ContextConstants';
+import { ContextOptions } from '../../constants/ContextConstants';
 import StatusModal, { ModalContent } from '../common/StatusModal';
 import ActionDialog from '../common/ActionDialog';
 import { ContextsList } from '../../api/dataSource/NodeDataSource';
-import { ContextObject, Invitation } from '../../pages/Contexts';
+import { ContextObject, Invitation } from '../../types/context';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -77,7 +77,7 @@ export default function ContextTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption === Options.JOINED ? (
+        {currentOption === ContextOptions.JOINED ? (
           <ListTable<ContextObject>
             listHeaderItems={['ID', 'INSTALLED APPLICATION']}
             numOfColumns={2}
