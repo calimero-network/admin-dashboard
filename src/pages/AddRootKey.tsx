@@ -3,7 +3,7 @@ import { LoginSelector } from '@calimero-is-near/calimero-p2p-sdk';
 import { useNavigate } from 'react-router-dom';
 import ContentWrapper from '../components/login/ContentWrapper';
 
-export default function AddRootKey() {
+export default function AddRootKeyPage() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>

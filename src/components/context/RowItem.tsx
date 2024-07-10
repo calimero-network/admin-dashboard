@@ -68,7 +68,9 @@ export default function rowItem(
       <a href={`contexts/${item.id}`} className="row-item id">
         {item.id}
       </a>
-      <div className="row-item name">{item.name}</div>
+      <div className="row-item name">
+        {item.name ?? 'Development application'}
+      </div>
       <div className="menu-dropdown">
         <MenuIconDropdown
           options={[

@@ -14,52 +14,45 @@ import {
   ContextStorage,
   User,
 } from '../api/dataSource/NodeDataSource';
+import { ContextDetails } from '../types/context';
 
 const initialOptions = [
   {
     name: 'Details',
     id: DetailsOptions.DETAILS,
     count: -1,
-  },
+  } as TableOptions,
   {
     name: 'Client Keys',
     id: DetailsOptions.CLIENT_KEYS,
     count: 0,
-  },
+  } as TableOptions,
   {
     name: 'Users',
     id: DetailsOptions.USERS,
     count: 0,
-  },
+  } as TableOptions,
 ];
 
-export interface ContextObject {
-  id: string;
-  applicationId: string;
-  name: string;
-  description: string;
-  repository: string;
-  path: string;
-  version: string;
-  owner: string;
-  contextId: string;
-}
-
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
-
-export default function ContextDetails() {
+export default function ContextDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [contextDetails, setContextDetails] =
-    useState<ApiResponse<ContextObject>>();
-  const [contextClientKeys, setContextClientKeys] =
-    useState<ApiResponse<ClientKey[]>>();
-  const [contextUsers, setContextUsers] = useState<ApiResponse<User[]>>();
-  const [contextStorage, setContextStorage] =
-    useState<ApiResponse<ContextStorage>>();
+  const [contextDetails, setContextDetails] = useState<ContextDetails>();
+  const [contextDetailsError, setContextDetailsError] = useState<string | null>(
+    null,
+  );
+  const [contextClientKeys, setContextClientKeys] = useState<ClientKey[]>();
+  const [contextClientKeysError, setContextClientKeysError] = useState<
+    string | null
+  >(null);
+  const [contextUsers, setContextUsers] = useState<User[]>();
+  const [contextUsersError, setContextUsersError] = useState<string | null>(
+    null,
+  );
+  const [contextStorage, setContextStorage] = useState<ContextStorage>();
+  const [contextStorageError, setContextStorageError] = useState<string | null>(
+    null,
+  );
   const [currentOption, setCurrentOption] = useState<string>(
     DetailsOptions.DETAILS,
   );
@@ -68,18 +61,21 @@ export default function ContextDetails() {
   const { getPackage, getLatestRelease } = useRPC();
 
   const generateContextObjects = useCallback(
-    async (context: Context) => {
+    async (context: Context, id: string) => {
       const packageData = await getPackage(context.applicationId);
       const versionData = await getLatestRelease(context.applicationId);
 
-      return {
-        ...packageData,
-        ...versionData,
-        contextId: id,
+      const contextDetails: ContextDetails = {
         applicationId: context.applicationId,
-      } as ContextObject;
+        contextId: id,
+        package: packageData,
+        release: versionData,
+      };
+
+      return contextDetails;
     },
-    [getLatestRelease, getPackage, id],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id],
   );
 
   useEffect(() => {
@@ -100,28 +96,29 @@ export default function ContextDetails() {
         if (nodeContext.data) {
           const contextObject = await generateContextObjects(
             nodeContext.data.context,
+            id,
           );
-          setContextDetails({ data: contextObject });
+          setContextDetails(contextObject);
         } else {
-          setContextDetails({ error: nodeContext.error?.message });
+          setContextDetailsError(nodeContext.error?.message);
         }
 
         if (contextClientKeys.data) {
-          setContextClientKeys({ data: contextClientKeys.data.clientKeys });
+          setContextClientKeys(contextClientKeys.data.clientKeys);
         } else {
-          setContextClientKeys({ error: contextClientKeys.error?.message });
+          setContextClientKeysError(contextClientKeys.error?.message);
         }
 
         if (contextClientUsers.data) {
-          setContextUsers({ data: contextClientUsers.data.contextUsers });
+          setContextUsers(contextClientUsers.data.contextUsers);
         } else {
-          setContextUsers({ error: contextClientUsers.error?.message });
+          setContextUsersError(contextClientUsers.error?.message);
         }
 
         if (contextStorage.data) {
-          setContextStorage({ data: contextStorage.data });
+          setContextStorage(contextStorage.data);
         } else {
-          setContextStorage({ error: contextStorage.error?.message });
+          setContextStorageError(contextStorage.error?.message);
         }
 
         setTableOptions([
@@ -156,9 +153,13 @@ export default function ContextDetails() {
           contextStorage && (
             <ContextTable
               contextDetails={contextDetails}
+              contextDetailsError={contextDetailsError}
               contextClientKeys={contextClientKeys}
+              contextClientKeysError={contextClientKeysError}
               contextUsers={contextUsers}
+              contextUsersError={contextUsersError}
               contextStorage={contextStorage}
+              contextStorageError={contextStorageError}
               navigateToContextList={() => navigate('/contexts')}
               currentOption={currentOption}
               setCurrentOption={setCurrentOption}

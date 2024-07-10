@@ -3,45 +3,39 @@ import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
 import ContextTable from '../components/context/ContextTable';
-import { Options } from '../constants/ContextConstants';
+import { ContextOptions } from '../constants/ContextConstants';
 import { useNavigate } from 'react-router-dom';
 import { useRPC } from '../hooks/useNear';
 import apiClient from '../api/index';
-import { Context, ContextsList } from '../api/dataSource/NodeDataSource';
+import {
+  Context,
+  ContextList,
+  ContextsList,
+} from '../api/dataSource/NodeDataSource';
 import { ModalContent } from '../components/common/StatusModal';
 import { TableOptions } from '../components/common/OptionsHeader';
-
-export interface Invitation {
-  id: string;
-  invitedOn: string;
-}
-
-export interface ContextObject {
-  id: string;
-  applicationId: string;
-  name: string;
-  description: string;
-  repository: string;
-  owner: string;
-}
+import { ResponseData } from '../api/response';
+import { ContextObject } from '../types/context';
 
 const initialOptions = [
   {
     name: 'Joined',
-    id: Options.JOINED,
+    id: ContextOptions.JOINED,
     count: 0,
-  },
+  } as TableOptions,
   {
     name: 'Invited',
-    id: Options.INVITED,
+    id: ContextOptions.INVITED,
     count: 0,
-  },
+  } as TableOptions,
 ];
 
-export default function Contexts() {
+export default function ContextsPage() {
   const navigate = useNavigate();
   const { getPackage } = useRPC();
-  const [currentOption, setCurrentOption] = useState<string>(Options.JOINED);
+  const [currentOption, setCurrentOption] = useState<string>(
+    ContextOptions.JOINED,
+  );
   const [tableOptions, setTableOptions] =
     useState<TableOptions[]>(initialOptions);
   const [errorMessage, setErrorMessage] = useState('');
@@ -65,14 +59,14 @@ export default function Contexts() {
   const generateContextObjects = useCallback(
     async (contexts: Context[]): Promise<ContextObject[]> => {
       try {
-        const tempContextObjects = await Promise.all(
+        const tempContextObjects: ContextObject[] = await Promise.all(
           contexts.map(async (app: Context) => {
             const packageData = await getPackage(app.applicationId);
-            return {
-              ...packageData,
+            const contextObject: ContextObject = {
               id: app.id,
-              applicationId: packageData.id,
+              package: packageData,
             };
+            return contextObject;
           }),
         );
         return tempContextObjects;
@@ -86,7 +80,9 @@ export default function Contexts() {
 
   const fetchNodeContexts = useCallback(async () => {
     setErrorMessage('');
-    const fetchContextsResponse = await apiClient.node().getContexts();
+    const fetchContextsResponse: ResponseData<ContextList> = await apiClient
+      .node()
+      .getContexts();
     // TODO - fetch invitations
     if (fetchContextsResponse.error) {
       setErrorMessage(fetchContextsResponse.error.message);
@@ -105,13 +101,13 @@ export default function Contexts() {
       setTableOptions([
         {
           name: 'Joined',
-          id: Options.JOINED,
+          id: ContextOptions.JOINED,
           count: nodeContexts.contexts?.length ?? 0,
         },
         {
           name: 'Invited',
           // TODO - invitation count when api is ready
-          id: Options.INVITED,
+          id: ContextOptions.INVITED,
           count: 0,
         },
       ]);

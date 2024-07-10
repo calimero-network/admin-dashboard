@@ -4,7 +4,7 @@ import { MetamaskWrapper } from '@calimero-is-near/calimero-p2p-sdk';
 import ContentWrapper from '../components/login/ContentWrapper';
 import { getNodeUrl } from '../utils/node';
 
-export default function AddMetamaskRootKey() {
+export default function AddMetamaskRootKeyPage() {
   const navigate = useNavigate();
   return (
     <ContentWrapper>

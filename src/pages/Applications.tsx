@@ -9,6 +9,8 @@ import PageContentWrapper from '../components/common/PageContentWrapper';
 import ApplicationsTable from '../components/applications/ApplicationsTable';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
+import { ListApplicationsResponse } from '../api/dataSource/NodeDataSource';
+import { ApiResponse } from '@calimero-is-near/calimero-p2p-sdk';
 
 export enum Tabs {
   INSTALL_APPLICATION,
@@ -30,7 +32,7 @@ export interface Release {
   hash: string;
 }
 
-export interface NodeApp {
+export interface InstalledApplication {
   id: string;
   version: string;
 }
@@ -84,24 +86,43 @@ export default function ApplicationsPage() {
   useEffect(() => {
     const setApps = async () => {
       setErrorMessage('');
-      const fetchApplicationResponse = await apiClient
-        .node()
-        .getInstalledApplications();
+      const fetchApplicationResponse: ApiResponse<ListApplicationsResponse> =
+        await apiClient.node().getInstalledApplications();
+
       if (fetchApplicationResponse.error) {
         setErrorMessage(fetchApplicationResponse.error.message);
         return;
       }
+
       let installedApplications = fetchApplicationResponse.data?.apps;
       if (installedApplications.length !== 0) {
-        const tempApplications = await Promise.all(
-          installedApplications.map(async (app: NodeApp) => {
-            const packageData = await getPackage(app.id);
-            return { ...packageData, id: app.id, version: app.version };
-          }),
+        var tempApplications: (Application | null)[] = await Promise.all(
+          installedApplications.map(
+            async (app: InstalledApplication): Promise<Application | null> => {
+              const packageData: Package | null = await getPackage(app.id);
+              if (!packageData) {
+                return null;
+              }
+
+              const application: Application = {
+                version: app.version,
+                id: app.id,
+                name: packageData?.name ?? '',
+                description: packageData?.description,
+                repository: packageData?.repository,
+                owner: packageData?.owner,
+              };
+              return application;
+            },
+          ),
         );
+        var available: Application[] = tempApplications.filter(
+          (app): app is Application => app !== null,
+        );
+
         setApplications((prevState: Applications) => ({
           ...prevState,
-          available: tempApplications,
+          available: available,
         }));
       }
     };

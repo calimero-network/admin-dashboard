@@ -26,24 +26,30 @@ export function useRPC() {
     return JSON.parse(Buffer.from(rawResult.result).toString());
   };
 
-  const getPackage = async (id: string): Promise<Package> => {
-    const provider = new nearAPI.providers.JsonRpcProvider({
-      url: JSON_RPC_ENDPOINT,
-    });
+  const getPackage = async (id: string): Promise<Package | null> => {
+    try {
+      const provider = new nearAPI.providers.JsonRpcProvider({
+        url: JSON_RPC_ENDPOINT,
+      });
 
-    const rawResult = await provider.query({
-      request_type: 'call_function',
-      account_id: 'calimero-package-manager.testnet',
-      method_name: 'get_package',
-      args_base64: btoa(
-        JSON.stringify({
-          id,
-        }),
-      ),
-      finality: 'final',
-    });
-    // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
-    return JSON.parse(Buffer.from(rawResult.result).toString());
+      const rawResult = await provider.query({
+        request_type: 'call_function',
+        account_id: 'calimero-package-manager.testnet',
+        method_name: 'get_package',
+        args_base64: btoa(
+          JSON.stringify({
+            id,
+          }),
+        ),
+        finality: 'final',
+      });
+      // @ts-expect-error: Property 'result' does not exist on type 'QueryResponseKind'
+      return JSON.parse(Buffer.from(rawResult.result).toString());
+    } catch (e) {
+      //If there is no package available, there is high possibility that context contains local wasm for development
+      console.log('Error getting package', e);
+      return null;
+    }
   };
 
   const getReleases = async (id: string): Promise<Release[]> => {

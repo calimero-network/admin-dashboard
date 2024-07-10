@@ -20,7 +20,7 @@ const ExportWrapper = styled.div`
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
 `;
-export default function Export() {
+export default function ExportPage() {
   const t = translations.exportIdentityPage;
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ModalContentItem>({
