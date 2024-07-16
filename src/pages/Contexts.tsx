@@ -23,11 +23,6 @@ const initialOptions = [
     id: ContextOptions.JOINED,
     count: 0,
   } as TableOptions,
-  {
-    name: 'Invited',
-    id: ContextOptions.INVITED,
-    count: 0,
-  } as TableOptions,
 ];
 
 export default function ContextsPage() {
@@ -53,7 +48,6 @@ export default function ContextsPage() {
     ContextsList<ContextObject>
   >({
     joined: [],
-    invited: [],
   });
 
   const generateContextObjects = useCallback(
@@ -103,12 +97,6 @@ export default function ContextsPage() {
           name: 'Joined',
           id: ContextOptions.JOINED,
           count: nodeContexts.contexts?.length ?? 0,
-        },
-        {
-          name: 'Invited',
-          // TODO - invitation count when api is ready
-          id: ContextOptions.INVITED,
-          count: 0,
         },
       ]);
     }

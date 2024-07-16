@@ -5,12 +5,10 @@ import { ContentCard } from '../common/ContentCard';
 import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
 import ListTable from '../common/ListTable';
 import rowItem from './RowItem';
-import invitationRowItem from './InvitationRowItem';
-import { ContextOptions } from '../../constants/ContextConstants';
 import StatusModal, { ModalContent } from '../common/StatusModal';
 import ActionDialog from '../common/ActionDialog';
 import { ContextsList } from '../../api/dataSource/NodeDataSource';
-import { ContextObject, Invitation } from '../../types/context';
+import { ContextObject } from '../../types/context';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -46,7 +44,6 @@ export default function ContextTable({
   showActionDialog,
   setShowActionDialog,
   showModal,
-  handleInvitation,
   errorMessage,
 }: ContextTableProps) {
   const t = translations.contextPage;
@@ -77,28 +74,16 @@ export default function ContextTable({
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
         />
-        {currentOption === ContextOptions.JOINED ? (
-          <ListTable<ContextObject>
-            listHeaderItems={['ID', 'INSTALLED APPLICATION']}
-            numOfColumns={2}
-            listItems={nodeContextList.joined}
-            rowItem={rowItem}
-            roundTopItem={true}
-            noItemsText={t.noJoinedAppsListText}
-            onRowItemClick={showModal}
-            error={errorMessage}
-          />
-        ) : (
-          <ListTable<Invitation>
-            listDescription={t.invitedListDescription}
-            numOfColumns={2}
-            listItems={[]}
-            rowItem={invitationRowItem}
-            roundTopItem={true}
-            noItemsText={t.noInviedAppsListText}
-            onRowItemClick={handleInvitation}
-          />
-        )}
+        <ListTable<ContextObject>
+          listHeaderItems={['ID', 'INSTALLED APPLICATION']}
+          numOfColumns={2}
+          listItems={nodeContextList.joined}
+          rowItem={rowItem}
+          roundTopItem={true}
+          noItemsText={t.noJoinedAppsListText}
+          onRowItemClick={showModal}
+          error={errorMessage}
+        />
       </FlexWrapper>
     </ContentCard>
   );

@@ -47,7 +47,6 @@ export interface ContextList {
 
 export interface ContextsList<T> {
   joined: T[];
-  invited: T[];
 }
 
 export interface RootKey {
