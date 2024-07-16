@@ -27,7 +27,6 @@ interface ContextTableProps {
   showActionDialog: boolean;
   setShowActionDialog: (show: boolean) => void;
   showModal: (id: string) => void;
-  handleInvitation: (id: string, isAccepted?: boolean) => Promise<void>;
   errorMessage: string;
 }
 

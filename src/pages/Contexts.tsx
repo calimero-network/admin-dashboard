@@ -147,15 +147,6 @@ export default function ContextsPage() {
     setShowActionDialog(true);
   };
 
-  const handleInvitation = async (_id: string, isAccepted?: boolean) => {
-    // TODO: when api for handling invitations is ready
-    if (isAccepted) {
-      // TODO: handle invitation acceptance
-    } else {
-      // TODO: handle invitation rejection
-    }
-  };
-
   return (
     <FlexLayout>
       <Navigation />
@@ -173,7 +164,6 @@ export default function ContextsPage() {
           showActionDialog={showActionDialog}
           setShowActionDialog={setShowActionDialog}
           showModal={showModal}
-          handleInvitation={handleInvitation}
           errorMessage={errorMessage}
         />
       </PageContentWrapper>
