@@ -23,11 +23,6 @@ const initialOptions = [
     id: ContextOptions.JOINED,
     count: 0,
   } as TableOptions,
-  {
-    name: 'Invited',
-    id: ContextOptions.INVITED,
-    count: 0,
-  } as TableOptions,
 ];
 
 export default function ContextsPage() {
@@ -53,7 +48,6 @@ export default function ContextsPage() {
     ContextsList<ContextObject>
   >({
     joined: [],
-    invited: [],
   });
 
   const generateContextObjects = useCallback(
@@ -104,12 +98,6 @@ export default function ContextsPage() {
           id: ContextOptions.JOINED,
           count: nodeContexts.contexts?.length ?? 0,
         },
-        {
-          name: 'Invited',
-          // TODO - invitation count when api is ready
-          id: ContextOptions.INVITED,
-          count: 0,
-        },
       ]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,15 +147,6 @@ export default function ContextsPage() {
     setShowActionDialog(true);
   };
 
-  const handleInvitation = async (_id: string, isAccepted?: boolean) => {
-    // TODO: when api for handling invitations is ready
-    if (isAccepted) {
-      // TODO: handle invitation acceptance
-    } else {
-      // TODO: handle invitation rejection
-    }
-  };
-
   return (
     <FlexLayout>
       <Navigation />
@@ -185,7 +164,6 @@ export default function ContextsPage() {
           showActionDialog={showActionDialog}
           setShowActionDialog={setShowActionDialog}
           showModal={showModal}
-          handleInvitation={handleInvitation}
           errorMessage={errorMessage}
         />
       </PageContentWrapper>
