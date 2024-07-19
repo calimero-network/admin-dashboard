@@ -11,6 +11,7 @@ import {
   ContextList,
   DidResponse,
   DeleteContextResponse,
+  JoinContextResponse,
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
@@ -32,4 +33,5 @@ export interface NodeApi {
     selectedPackage: string,
     selectedVersion: string,
   ): ApiResponse<boolean>;
+  joinContext(contextId: string): ApiResponse<JoinContextResponse>;
 }
