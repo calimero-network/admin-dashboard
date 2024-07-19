@@ -153,8 +153,8 @@ export default function ContextsPage() {
       <PageContentWrapper>
         <ContextTable
           nodeContextList={nodeContextList}
-          naviageToStartContext={() => navigate('/contexts/start-context')}
-          naviageToJoinContext={() => navigate('/contexts/join-context')}
+          navigateToStartContext={() => navigate('/contexts/start-context')}
+          navigateToJoinContext={() => navigate('/contexts/join-context')}
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
           tableOptions={tableOptions}
