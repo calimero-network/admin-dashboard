@@ -62,12 +62,15 @@ export default function JoinContextPage() {
 
   const closeModal = () => {
     setShowModal(false);
-    setContextId('');
-    setModalContent({
-      title: '',
-      message: '',
-      error: false,
-    });
+    if (!modalContent.error) {
+      setContextId('');
+      setModalContent({
+        title: '',
+        message: '',
+        error: false,
+      });
+      navigate('/contexts');
+    }
   };
 
   return (
