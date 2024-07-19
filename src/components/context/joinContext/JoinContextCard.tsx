@@ -26,7 +26,7 @@ const CardWrapper = styled.div`
       text-align: left;
       color: #fff;
     }
-    
+
     .arrow-icon-left {
       height: 1.5rem;
       width: 1.75rem;

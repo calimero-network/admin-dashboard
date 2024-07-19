@@ -41,9 +41,8 @@ export default function JoinContextPage() {
   });
 
   const handleJoinContext = async () => {
-    const fetchApplicationResponse: ResponseData<JoinContextResponse> = await apiClient
-      .node()
-      .joinContext(contextId);
+    const fetchApplicationResponse: ResponseData<JoinContextResponse> =
+      await apiClient.node().joinContext(contextId);
     if (fetchApplicationResponse.error) {
       setModalContent({
         title: t.joinErrorTitle,
@@ -51,6 +50,7 @@ export default function JoinContextPage() {
         error: true,
       });
       setShowModal(true);
+      return;
     }
     setModalContent({
       title: t.joinSuccessTitle,
