@@ -102,7 +102,7 @@ export default function JoinContextCard({
       <Button
         text={t.buttonJoinText}
         onClick={handleJoinContext}
-        width={'182px'}
+        width={'11.375rem'}
         isDisabled={!contextId}
       />
     </CardWrapper>
