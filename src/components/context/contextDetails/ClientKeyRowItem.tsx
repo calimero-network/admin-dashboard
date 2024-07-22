@@ -46,12 +46,12 @@ export default function clientKeyRowItem(
   count: number,
 ): JSX.Element {
   return (
-    <RowItem key={item.signing_key} $hasBorders={id === count}>
+    <RowItem key={item.signingKey} $hasBorders={id === count}>
       <div className="row-item type">{item.wallet.type}</div>
       <div className="row-item read">
-        {formatTimestampToDate(item.created_at)}
+        {formatTimestampToDate(item.createdAt)}
       </div>
-      <div className="row-item pk">{truncateText(item.signing_key)}</div>
+      <div className="row-item pk">{truncateText(item.signingKey)}</div>
     </RowItem>
   );
 }

@@ -76,7 +76,7 @@ export interface ApiRootKey {
 
 export interface ClientKey {
   signingKey: string;
-  walletType: NetworkType;
+  wallet: NetworkType;
   createdAt: number;
   applicationId: string;
 }
