@@ -124,6 +124,7 @@
   "contextPage": {
     "contextPageTitle": "Contexts",
     "startNewContextText": "Start new context",
+    "joinContextText": "Join existing context",
     "noContextsText": "No contexts found in the node.",
     "contextPageDescription": "Contexts are the core of the Calimero ecosystem. These are application specific networks designed to enable direct communication between users, eliminating the need for intermediaries.",
     "invitedListDescription": "Contexts you have been invited to",
@@ -178,6 +179,14 @@
     "versionLabelText": "Version: ",
     "successInstallTitle": "Application installed successfully",
     "failInstallTitle": "Error installing application"
+  },
+  "joinContextPage": {
+    "title": "Join existing Context",
+    "buttonJoinText": "Join Context",
+    "joinErrorTitle": "Failed to join context",
+    "joinSuccessTitle": "Context joined",
+    "joinSuccessMessage": "Context joined successfully",
+    "contextIdLabel": "Context ID"
   },
   "exportIdentityPage": {
     "title": "Export",

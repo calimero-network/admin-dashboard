@@ -6,6 +6,7 @@ import Identity from './pages/Identity';
 import ApplicationsPage from './pages/Applications';
 import Contexts from './pages/Contexts';
 import StartContext from './pages/StartContext';
+import JoinContext from './pages/JoinContext';
 import ContextDetails from './pages/ContextDetails';
 import Export from './pages/Export';
 import ApplicationDetails from './pages/ApplicationDetails';
@@ -58,6 +59,7 @@ export default function App() {
             />
             <Route path="/contexts" element={<Contexts />} />
             <Route path="/contexts/start-context" element={<StartContext />} />
+            <Route path="/contexts/join-context" element={<JoinContext />} />
             <Route path="/contexts/:id" element={<ContextDetails />} />
             <Route path="/export" element={<Export />} />
           </Route>

@@ -115,6 +115,10 @@ export interface DeleteContextResponse {
   isDeleted: boolean;
 }
 
+export interface JoinContextResponse {
+  data: null;
+}
+
 export class NodeDataSource implements NodeApi {
   private client: HttpClient;
 
@@ -314,6 +318,21 @@ export class NodeDataSource implements NodeApi {
       return {
         error: { code: 500, message: 'Failed to install application.' },
       };
+    }
+  }
+
+  async joinContext(contextId: string): ApiResponse<JoinContextResponse> {
+    try {
+      const headers: Header | null = await createAuthHeader(contextId);
+      const response = await this.client.post<JoinContextResponse>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/join`,
+        {},
+        headers ?? {},
+      );
+      return response;
+    } catch (error) {
+      console.error('Error joining context:', error);
+      return { error: { code: 500, message: 'Failed to join context.' } };
     }
   }
 }
