@@ -118,15 +118,22 @@ export class AxiosHttpClient implements HttpClient {
         if (typeof errorResponse === 'string') {
           return {
             error: {
-              code: 500,
+              code: e.request.status,
               message: errorResponse,
             },
           };
         }
-
+        if (typeof error === 'string') {
+          return {
+            error: {
+              code: e.request.status,
+              message: error,
+            },
+          };
+        }
         return {
           error: {
-            code: error?.code!,
+            code: error?.code || e.request.status,
             message: error?.message!,
           },
         };
