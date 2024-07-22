@@ -90,6 +90,7 @@ export default function ApplicationsPopup({
       name: application?.name ?? '',
       version: release?.version ?? '',
       path: release?.path ?? '',
+      hash: release?.hash ?? '',
     });
     closeModal();
   };

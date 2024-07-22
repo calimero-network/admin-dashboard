@@ -32,5 +32,6 @@ export interface NodeApi {
     selectedPackage: string,
     selectedVersion: string,
     ipfsPath: string,
+    hash: string,
   ): ApiResponse<boolean>;
 }

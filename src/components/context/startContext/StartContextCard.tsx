@@ -223,6 +223,7 @@ export default function StartContextCard({
                   name: '',
                   version: '',
                   path: '',
+                  hash: '',
                 })
               }
             />

@@ -13,6 +13,7 @@ export interface ContextApplication {
   name: string;
   version: string;
   path: string;
+  hash: string;
 }
 
 export default function StartContextPage() {
@@ -23,6 +24,7 @@ export default function StartContextPage() {
     name: '',
     version: '',
     path: '',
+    hash: '',
   });
   const [isArgsChecked, setIsArgsChecked] = useState(false);
   const [methodName, setMethodName] = useState('');
@@ -78,6 +80,7 @@ export default function StartContextPage() {
         application.appId,
         application.version,
         application.path,
+        application.hash,
       );
     if (response.error) {
       setStartContextStatus({
