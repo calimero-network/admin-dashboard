@@ -74,7 +74,11 @@ export default function StartContextPage() {
 
     const response = await apiClient
       .node()
-      .installApplication(application.appId, application.version, application.path);
+      .installApplication(
+        application.appId,
+        application.version,
+        application.path,
+      );
     if (response.error) {
       setStartContextStatus({
         title: t.failInstallTitle,
