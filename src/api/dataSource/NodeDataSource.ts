@@ -292,6 +292,7 @@ export class NodeDataSource implements NodeApi {
   async installApplication(
     selectedPackage: string,
     selectedVersion: string,
+    ipfsPath: string,
   ): ApiResponse<boolean> {
     try {
       const headers: Header | null = await createAuthHeader(
@@ -305,6 +306,7 @@ export class NodeDataSource implements NodeApi {
         {
           application: selectedPackage,
           version: selectedVersion,
+          ipfsPath,
         },
         headers ?? {},
       );

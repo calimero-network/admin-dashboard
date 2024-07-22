@@ -87,8 +87,9 @@ export default function ApplicationsPopup({
     const release = await getLatestRelease(applicationId);
     setApplication({
       appId: applicationId,
-      name: application.name,
+      name: application?.name ?? '',
       version: release?.version ?? '',
+      path: release?.path ?? '',
     });
     closeModal();
   };

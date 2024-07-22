@@ -31,5 +31,6 @@ export interface NodeApi {
   installApplication(
     selectedPackage: string,
     selectedVersion: string,
+    ipfsPath: string,
   ): ApiResponse<boolean>;
 }
