@@ -306,7 +306,7 @@ export class NodeDataSource implements NodeApi {
         {
           application: selectedPackage,
           version: selectedVersion,
-          ipfsPath,
+          path: ipfsPath,
         },
         headers ?? {},
       );
