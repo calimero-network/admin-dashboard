@@ -12,6 +12,8 @@ export interface ContextApplication {
   appId: string;
   name: string;
   version: string;
+  path: string;
+  hash: string;
 }
 
 export default function StartContextPage() {
@@ -21,6 +23,8 @@ export default function StartContextPage() {
     appId: '',
     name: '',
     version: '',
+    path: '',
+    hash: '',
   });
   const [isArgsChecked, setIsArgsChecked] = useState(false);
   const [methodName, setMethodName] = useState('');
@@ -69,9 +73,15 @@ export default function StartContextPage() {
     if (!application.appId || !application.version) {
       return false;
     }
+
     const response = await apiClient
       .node()
-      .installApplication(application.appId, application.version);
+      .installApplication(
+        application.appId,
+        application.version,
+        application.path,
+        application.hash,
+      );
     if (response.error) {
       setStartContextStatus({
         title: t.failInstallTitle,

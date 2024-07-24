@@ -32,6 +32,8 @@ export interface NodeApi {
   installApplication(
     selectedPackage: string,
     selectedVersion: string,
+    ipfsPath: string,
+    hash: string,
   ): ApiResponse<boolean>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
 }

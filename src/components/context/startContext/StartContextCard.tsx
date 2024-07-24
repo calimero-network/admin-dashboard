@@ -222,6 +222,8 @@ export default function StartContextCard({
                   appId: '',
                   name: '',
                   version: '',
+                  path: '',
+                  hash: '',
                 })
               }
             />
