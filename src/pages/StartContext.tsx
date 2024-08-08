@@ -38,7 +38,7 @@ export default function StartContextPage() {
     error: false,
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     navigate('/contexts');
   });
 

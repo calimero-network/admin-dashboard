@@ -73,7 +73,7 @@ export default function JoinContextPage() {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     navigate('/contexts');
   });
 
