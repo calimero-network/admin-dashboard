@@ -31,6 +31,14 @@ export interface Application {
   version: string;
 }
 
+export interface BlobApplication {
+  id: string;
+  blob: string;
+  version: string;
+  source: string;
+  contract_app_id: string;
+}
+
 export interface SigningKey {
   signingKey: string;
 }
@@ -99,6 +107,10 @@ export interface ListApplicationsResponse {
   apps: Application[];
 }
 
+export interface ListBlobApplicationResponse {
+  apps: BlobApplication[];
+}
+
 export interface HealthRequest {
   url: String;
 }
@@ -119,6 +131,10 @@ export interface JoinContextResponse {
   data: null;
 }
 
+export interface InstallApplicationResponse {
+  application_id: string;
+}
+
 export class NodeDataSource implements NodeApi {
   private client: HttpClient;
 
@@ -126,13 +142,13 @@ export class NodeDataSource implements NodeApi {
     this.client = client;
   }
 
-  async getInstalledApplications(): ApiResponse<ListApplicationsResponse> {
+  async getInstalledApplications(): ApiResponse<ListBlobApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
-      const response: ResponseData<ListApplicationsResponse> =
-        await this.client.get<ListApplicationsResponse>(
+      const response: ResponseData<ListBlobApplicationResponse> =
+        await this.client.get<ListBlobApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
           headers ?? {},
         );
@@ -298,21 +314,21 @@ export class NodeDataSource implements NodeApi {
     selectedVersion: string,
     ipfsPath: string,
     hash: string,
-  ): ApiResponse<boolean> {
+  ): ApiResponse<InstallApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
           selectedPackage,
           selectedVersion,
+          hash
         }),
       );
-      const response: ResponseData<boolean> = await this.client.post<boolean>(
+      const response: ResponseData<InstallApplicationResponse> = await this.client.post<InstallApplicationResponse>(
         `${getAppEndpointKey()}/admin-api/install-application`,
         {
-          application: selectedPackage,
+          contract_app_id: selectedPackage,
           version: selectedVersion,
           url: ipfsPath,
-          hash,
         },
         headers ?? {},
       );

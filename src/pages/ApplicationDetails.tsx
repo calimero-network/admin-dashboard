@@ -26,7 +26,7 @@ export default function ApplicationDetailsPage() {
         const packageData = await getPackage(id);
         const versionData = await getReleases(id);
         setApplicationInformation({
-          package: packageData,
+          package: packageData as Package,
           releases: versionData,
         });
       }

@@ -9,8 +9,8 @@ import PageContentWrapper from '../components/common/PageContentWrapper';
 import ApplicationsTable from '../components/applications/ApplicationsTable';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
-import { ListApplicationsResponse } from '../api/dataSource/NodeDataSource';
-import { ApiResponse } from '@calimero-is-near/calimero-p2p-sdk';
+import { BlobApplication, ListBlobApplicationResponse } from '../api/dataSource/NodeDataSource';
+import { ResponseData } from '../api/response';
 
 export enum Tabs {
   INSTALL_APPLICATION,
@@ -39,6 +39,7 @@ export interface InstalledApplication {
 
 export interface Application extends Package {
   version: string;
+  contract_app_id: string;
 }
 
 const initialOptions = [
@@ -86,7 +87,7 @@ export default function ApplicationsPage() {
   useEffect(() => {
     const setApps = async () => {
       setErrorMessage('');
-      const fetchApplicationResponse: ApiResponse<ListApplicationsResponse> =
+      const fetchApplicationResponse: ResponseData<ListBlobApplicationResponse> =
         await apiClient.node().getInstalledApplications();
 
       if (fetchApplicationResponse.error) {
@@ -98,13 +99,14 @@ export default function ApplicationsPage() {
       if (installedApplications.length !== 0) {
         var tempApplications: (Application | null)[] = await Promise.all(
           installedApplications.map(
-            async (app: InstalledApplication): Promise<Application | null> => {
-              const packageData: Package | null = await getPackage(app.id);
+            async (app: BlobApplication): Promise<Application | null> => {
+              const packageData: Package | null = await getPackage(app.contract_app_id);
               if (!packageData) {
                 return null;
               }
 
               const application: Application = {
+                contract_app_id: app.contract_app_id,
                 version: app.version,
                 id: app.id,
                 name: packageData?.name ?? '',

@@ -6,16 +6,17 @@ import {
   HealthStatus,
   ContextClientKeysList,
   ContextUsersList,
-  ListApplicationsResponse,
+  ListBlobApplicationResponse,
   ApiContext,
   ContextList,
   DidResponse,
   DeleteContextResponse,
   JoinContextResponse,
+  InstallApplicationResponse,
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
-  getInstalledApplications(): ApiResponse<ListApplicationsResponse>;
+  getInstalledApplications(): ApiResponse<ListBlobApplicationResponse>;
   getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
@@ -34,6 +35,6 @@ export interface NodeApi {
     selectedVersion: string,
     ipfsPath: string,
     hash: string,
-  ): ApiResponse<boolean>;
+  ): ApiResponse<InstallApplicationResponse>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
 }
