@@ -320,18 +320,19 @@ export class NodeDataSource implements NodeApi {
         JSON.stringify({
           selectedPackage,
           selectedVersion,
-          hash
+          hash,
         }),
       );
-      const response: ResponseData<InstallApplicationResponse> = await this.client.post<InstallApplicationResponse>(
-        `${getAppEndpointKey()}/admin-api/install-application`,
-        {
-          contract_app_id: selectedPackage,
-          version: selectedVersion,
-          url: ipfsPath,
-        },
-        headers ?? {},
-      );
+      const response: ResponseData<InstallApplicationResponse> =
+        await this.client.post<InstallApplicationResponse>(
+          `${getAppEndpointKey()}/admin-api/install-application`,
+          {
+            contract_app_id: selectedPackage,
+            version: selectedVersion,
+            url: ipfsPath,
+          },
+          headers ?? {},
+        );
       return response;
     } catch (error) {
       console.error('Error installing application:', error);

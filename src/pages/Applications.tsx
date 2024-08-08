@@ -9,7 +9,10 @@ import PageContentWrapper from '../components/common/PageContentWrapper';
 import ApplicationsTable from '../components/applications/ApplicationsTable';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
-import { BlobApplication, ListBlobApplicationResponse } from '../api/dataSource/NodeDataSource';
+import {
+  BlobApplication,
+  ListBlobApplicationResponse,
+} from '../api/dataSource/NodeDataSource';
 import { ResponseData } from '../api/response';
 
 export enum Tabs {
@@ -100,7 +103,9 @@ export default function ApplicationsPage() {
         var tempApplications: (Application | null)[] = await Promise.all(
           installedApplications.map(
             async (app: BlobApplication): Promise<Application | null> => {
-              const packageData: Package | null = await getPackage(app.contract_app_id);
+              const packageData: Package | null = await getPackage(
+                app.contract_app_id,
+              );
               if (!packageData) {
                 return null;
               }

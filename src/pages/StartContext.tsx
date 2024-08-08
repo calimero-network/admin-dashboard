@@ -46,8 +46,8 @@ export default function StartContextPage() {
       setShowStatusModal(true);
       return;
     }
-    console.log("apppliation id: ", application.appId);
-    console.log("app id", appId);
+    console.log('apppliation id: ', application.appId);
+    console.log('app id', appId);
     const startContextResponse = await apiClient
       .node()
       .startContexts(appId, methodName, argumentsJson);
@@ -70,7 +70,7 @@ export default function StartContextPage() {
 
   const installApplicationHandler = async (): Promise<string> => {
     if (!application.appId || !application.version) {
-      return "";
+      return '';
     }
 
     const response = await apiClient
@@ -87,7 +87,7 @@ export default function StartContextPage() {
         message: response.error.message,
         error: true,
       });
-      return "";
+      return '';
     } else {
       setStartContextStatus({
         title: t.successInstallTitle,
