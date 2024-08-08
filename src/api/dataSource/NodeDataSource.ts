@@ -103,10 +103,6 @@ export interface DidResponse {
   did: Did;
 }
 
-export interface ListApplicationsResponse {
-  apps: Application[];
-}
-
 export interface ListBlobApplicationResponse {
   apps: BlobApplication[];
 }
