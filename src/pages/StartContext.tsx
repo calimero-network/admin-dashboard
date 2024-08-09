@@ -40,18 +40,15 @@ export default function StartContextPage() {
 
   const startContext = async () => {
     setIsLoading(true);
-    const response = await installApplicationHandler();
-    if (!response) {
+    const appId = await installApplicationHandler();
+    if (!appId) {
       setIsLoading(false);
       setShowStatusModal(true);
       return;
     }
-    if (!application.appId) {
-      return;
-    }
     const startContextResponse = await apiClient
       .node()
-      .startContexts(application.appId, methodName, argumentsJson);
+      .startContexts(appId, methodName, argumentsJson);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
@@ -69,9 +66,9 @@ export default function StartContextPage() {
     setShowStatusModal(true);
   };
 
-  const installApplicationHandler = async (): Promise<boolean> => {
+  const installApplicationHandler = async (): Promise<string | null> => {
     if (!application.appId || !application.version) {
-      return false;
+      return null;
     }
 
     const response = await apiClient
@@ -88,14 +85,14 @@ export default function StartContextPage() {
         message: response.error.message,
         error: true,
       });
-      return false;
+      return null;
     } else {
       setStartContextStatus({
         title: t.successInstallTitle,
         message: `Installed application ${application.name}, version ${application.version}.`,
         error: false,
       });
-      return true;
+      return response.data.application_id;
     }
   };
 

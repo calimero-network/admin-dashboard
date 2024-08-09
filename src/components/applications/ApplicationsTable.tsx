@@ -6,7 +6,8 @@ import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
 import ListTable from '../common/ListTable';
 import applicationRowItem from './ApplicationRowItem';
 import { Options } from '../../constants/ApplicationsConstants';
-import { Application, Applications } from '../../pages/Applications';
+import { Applications } from '../../pages/Applications';
+import { Application } from '../../api/dataSource/NodeDataSource';
 
 const FlexWrapper = styled.div`
   flex: 1;
