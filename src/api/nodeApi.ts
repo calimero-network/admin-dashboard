@@ -31,7 +31,7 @@ export interface NodeApi {
   health(request: HealthRequest): ApiResponse<HealthStatus>;
   getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
   installApplication(
-    selectedPackage: string,
+    selectedPackageId: string,
     selectedVersion: string,
     ipfsPath: string,
     hash: string,

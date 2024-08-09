@@ -305,7 +305,7 @@ export class NodeDataSource implements NodeApi {
   }
 
   async installApplication(
-    selectedPackage: string,
+    selectedPackageId: string,
     selectedVersion: string,
     ipfsPath: string,
     hash: string,
@@ -313,7 +313,7 @@ export class NodeDataSource implements NodeApi {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
-          selectedPackage,
+          selectedPackageId,
           selectedVersion,
           hash,
         }),
@@ -322,7 +322,7 @@ export class NodeDataSource implements NodeApi {
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
           {
-            contract_app_id: selectedPackage,
+            contract_app_id: selectedPackageId,
             version: selectedVersion,
             url: ipfsPath,
           },
