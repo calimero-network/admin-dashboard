@@ -28,15 +28,14 @@ export interface User {
 
 export interface Application {
   id: string;
-  version: string;
-}
-
-export interface BlobApplication {
-  id: string;
   blob: string;
   version: string;
   source: string;
   contract_app_id: string;
+  name: string | undefined;
+  description: string | undefined;
+  repository: string | undefined;
+  owner: string | undefined;
 }
 
 export interface SigningKey {
@@ -103,8 +102,8 @@ export interface DidResponse {
   did: Did;
 }
 
-export interface ListBlobApplicationResponse {
-  apps: BlobApplication[];
+export interface ListApplicationResponse {
+  apps: Application[];
 }
 
 export interface HealthRequest {
@@ -138,13 +137,13 @@ export class NodeDataSource implements NodeApi {
     this.client = client;
   }
 
-  async getInstalledApplications(): ApiResponse<ListBlobApplicationResponse> {
+  async getInstalledApplications(): ApiResponse<ListApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
-      const response: ResponseData<ListBlobApplicationResponse> =
-        await this.client.get<ListBlobApplicationResponse>(
+      const response: ResponseData<ListApplicationResponse> =
+        await this.client.get<ListApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
           headers ?? {},
         );

@@ -10,8 +10,8 @@ import ApplicationsTable from '../components/applications/ApplicationsTable';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
 import {
-  BlobApplication,
-  ListBlobApplicationResponse,
+  Application,
+  ListApplicationResponse,
 } from '../api/dataSource/NodeDataSource';
 import { ResponseData } from '../api/response';
 
@@ -38,11 +38,6 @@ export interface Release {
 export interface InstalledApplication {
   id: string;
   version: string;
-}
-
-export interface Application extends Package {
-  version: string;
-  contract_app_id: string;
 }
 
 const initialOptions = [
@@ -90,7 +85,7 @@ export default function ApplicationsPage() {
   useEffect(() => {
     const setApps = async () => {
       setErrorMessage('');
-      const fetchApplicationResponse: ResponseData<ListBlobApplicationResponse> =
+      const fetchApplicationResponse: ResponseData<ListApplicationResponse> =
         await apiClient.node().getInstalledApplications();
 
       if (fetchApplicationResponse.error) {
@@ -102,7 +97,7 @@ export default function ApplicationsPage() {
       if (installedApplications.length !== 0) {
         var tempApplications: (Application | null)[] = await Promise.all(
           installedApplications.map(
-            async (app: BlobApplication): Promise<Application | null> => {
+            async (app: Application): Promise<Application | null> => {
               const packageData: Package | null = await getPackage(
                 app.contract_app_id,
               );
@@ -111,9 +106,7 @@ export default function ApplicationsPage() {
               }
 
               const application: Application = {
-                contract_app_id: app.contract_app_id,
-                version: app.version,
-                id: app.id,
+                ...app,
                 name: packageData?.name ?? '',
                 description: packageData?.description,
                 repository: packageData?.repository,

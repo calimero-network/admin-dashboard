@@ -6,7 +6,7 @@ import {
   HealthStatus,
   ContextClientKeysList,
   ContextUsersList,
-  ListBlobApplicationResponse,
+  ListApplicationResponse,
   ApiContext,
   ContextList,
   DidResponse,
@@ -16,7 +16,7 @@ import {
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
-  getInstalledApplications(): ApiResponse<ListBlobApplicationResponse>;
+  getInstalledApplications(): ApiResponse<ListApplicationResponse>;
   getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;

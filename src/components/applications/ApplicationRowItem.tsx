@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { truncateHash } from '../../utils/displayFunctions';
-import { Application } from '../../pages/Applications';
+import { Application } from '../../api/dataSource/NodeDataSource';
 
 interface ApplicationRowItemProps {
   $hasBorders: boolean;
