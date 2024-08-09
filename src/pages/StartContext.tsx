@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
@@ -36,6 +36,10 @@ export default function StartContextPage() {
     title: '',
     message: '',
     error: false,
+  });
+
+  useEffect(() => {
+    navigate('/contexts');
   });
 
   const startContext = async () => {
