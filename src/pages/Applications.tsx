@@ -11,7 +11,7 @@ import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
 import {
   Application,
-  ListApplicationResponse,
+  GetInstalledApplicationsResponse,
 } from '../api/dataSource/NodeDataSource';
 import { ResponseData } from '../api/response';
 
@@ -85,7 +85,7 @@ export default function ApplicationsPage() {
   useEffect(() => {
     const setApps = async () => {
       setErrorMessage('');
-      const fetchApplicationResponse: ResponseData<ListApplicationResponse> =
+      const fetchApplicationResponse: ResponseData<GetInstalledApplicationsResponse> =
         await apiClient.node().getInstalledApplications();
 
       if (fetchApplicationResponse.error) {

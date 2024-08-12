@@ -32,10 +32,10 @@ export interface Application {
   version: string;
   source: string;
   contract_app_id: string;
-  name: string | undefined;
-  description: string | undefined;
-  repository: string | undefined;
-  owner: string | undefined;
+  name: string | null;
+  description: string | null;
+  repository: string | null;
+  owner: string | null;
 }
 
 export interface SigningKey {
@@ -102,7 +102,7 @@ export interface DidResponse {
   did: Did;
 }
 
-export interface ListApplicationResponse {
+export interface GetInstalledApplicationsResponse {
   apps: Application[];
 }
 
@@ -137,13 +137,13 @@ export class NodeDataSource implements NodeApi {
     this.client = client;
   }
 
-  async getInstalledApplications(): ApiResponse<ListApplicationResponse> {
+  async getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
-      const response: ResponseData<ListApplicationResponse> =
-        await this.client.get<ListApplicationResponse>(
+      const response: ResponseData<GetInstalledApplicationsResponse> =
+        await this.client.get<GetInstalledApplicationsResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
           headers ?? {},
         );

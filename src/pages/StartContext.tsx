@@ -40,7 +40,7 @@ export default function StartContextPage() {
 
   const startContext = async () => {
     setIsLoading(true);
-    const appId = await installApplicationHandler();
+    const appId: string | null = await installApplicationHandler();
     if (!appId) {
       setIsLoading(false);
       setShowStatusModal(true);
