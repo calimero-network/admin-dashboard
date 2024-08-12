@@ -163,7 +163,10 @@ export default function NearLogin() {
   const t = translations.loginPage.nearLogin;
   const navigate = useNavigate();
   const { selector, accounts, modal, accountId } = useWalletSelector();
-  const { getAccount, verifyMessageBrowserWallet } = useVerifyNear({ accountId, selector });
+  const { getAccount, verifyMessageBrowserWallet } = useVerifyNear({
+    accountId,
+    selector,
+  });
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -247,7 +250,12 @@ export default function NearLogin() {
             {t.authButtonText}
           </button>
           {accounts.length > 1 && (
-            <button className="action-button" onClick={() => handleSwitchAccount({accounts, accountId, selector})}>
+            <button
+              className="action-button"
+              onClick={() =>
+                handleSwitchAccount({ accounts, accountId, selector })
+              }
+            >
               {t.switchAccountButtonText}
             </button>
           )}
