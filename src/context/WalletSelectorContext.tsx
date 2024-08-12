@@ -26,21 +26,15 @@ export interface WalletSelectorContextValue {
   accountId: string | null;
 }
 
-declare global {
-  export interface Window {
-    // @ts-expect-error: Property 'selector' must be of type 'WalletSelector', but here has type 'WalletSelector'.
-    selector: WalletSelector;
-    modal: WalletSelectorModal;
-  }
-}
-
 const WalletSelectorContext =
   React.createContext<WalletSelectorContextValue | null>(null);
 
-export const WalletSelectorContextProvider: React.FC<{
-  network: string;
-  children: ReactNode;
-}> = ({ network, children }) => {
+interface WalletSelectorContextProviderProps {
+    network: string;
+    children: ReactNode;
+}
+
+export function WalletSelectorContextProvider({network, children}: WalletSelectorContextProviderProps) {
   const [selector, setSelector] = useState<WalletSelector | null>(null);
   const [modal, setModal] = useState<WalletSelectorModal | null>(null);
   const [accounts, setAccounts] = useState<Array<AccountState>>([]);

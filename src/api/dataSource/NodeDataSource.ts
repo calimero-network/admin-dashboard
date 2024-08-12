@@ -147,6 +147,7 @@ interface NEARWalletType extends WalletTypeBase<'NEAR'> {
 
 export type WalletType = ETHWalletType | NEARWalletType;
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export namespace WalletType {
   export function NEAR({
     networkId = 'mainnet',
