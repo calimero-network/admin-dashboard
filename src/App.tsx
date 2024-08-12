@@ -22,8 +22,6 @@ import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { WalletSelectorContextProvider } from './context/WalletSelectorContext';
-import { getNearEnvironment } from './utils/node';
 
 export default function App() {
   useEffect(() => {
@@ -37,14 +35,7 @@ export default function App() {
           <Route path="/" element={<SetupPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/auth" element={<Authenticate />} />
-            <Route
-              path="/auth/near"
-              element={
-                <WalletSelectorContextProvider network={getNearEnvironment()}>
-                  <Near />
-                </WalletSelectorContextProvider>
-              }
-            />
+            <Route path="/auth/near" element={<Near />} />
             <Route path="/auth/metamask" element={<Metamask />} />
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />

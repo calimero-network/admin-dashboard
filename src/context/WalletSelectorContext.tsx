@@ -17,7 +17,14 @@ import type { WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { setupModal } from '@near-wallet-selector/modal-ui';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
 import Loading from '../components/common/Loading';
-import ContentWrapper from '../components/login/ContentWrapper';
+
+declare global {
+  export interface Window {
+    // @ts-expect-error
+    selector: WalletSelector;
+    modal: WalletSelectorModal;
+  }
+}
 
 export interface WalletSelectorContextValue {
   selector: WalletSelector;
@@ -87,7 +94,7 @@ export function WalletSelectorContextProvider({
 
   return (
     <WalletSelectorContext.Provider value={walletSelectorContextValue}>
-      <ContentWrapper>{children}</ContentWrapper>
+      {children}
     </WalletSelectorContext.Provider>
   );
 }

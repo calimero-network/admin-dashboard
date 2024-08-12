@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { Account } from '../pages/Near';
 import type { AccountView } from 'near-api-js/lib/providers/provider';
 import { WalletSelector } from '@near-wallet-selector/core';
 import { providers } from 'near-api-js';
@@ -11,7 +10,7 @@ import {
   type AccountState,
 } from '@near-wallet-selector/core';
 import {
-  LoginRequest,
+  NearRequest,
   LoginResponse,
   NearSignatureMessageMetadata,
   Payload,
@@ -33,6 +32,7 @@ import { Buffer } from 'buffer';
 import * as nearAPI from 'near-api-js';
 import { Package, Release } from '../pages/Applications';
 import { getOrCreateKeypair } from '../auth/ed25519';
+import { Account } from '../components/near/NearWallet';
 
 const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
 
@@ -219,7 +219,10 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
   );
 
   const verifyMessageBrowserWallet = useCallback(
-    async (setErrorMessage: (message: string) => void) => {
+    async (
+      isLogin: boolean,
+      setErrorMessage: (message: string) => void,
+    ) => {
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const accId = urlParams.get('accountId') as string;
       const publicKey = urlParams.get('publicKey') as string;
@@ -263,6 +266,7 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
       url.search = '';
       window.history.replaceState({}, document.title, url);
       localStorage.removeItem('message');
+
       if (isMessageVerified) {
         const signatureMetadata: NearSignatureMessageMetadata = {
           recipient: message.recipient,
@@ -283,30 +287,29 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
           }),
           signingKey: publicKey,
         };
-        const loginRequest: LoginRequest = {
+
+        const nearRequest: NearRequest = {
           walletSignature: signature,
           payload: walletSignatureData.payload!,
           walletMetadata: walletMetadata,
         };
 
-        await apiClient
-          .node()
-          .login(loginRequest)
-          .then((result: ResponseData<LoginResponse>) => {
-            console.log('result', result);
-            if (result.error) {
-              console.error('login error', result.error);
-              setErrorMessage(`Error while login: ${result.error.message}`);
-            } else {
-              setStorageNodeAuthorized();
-              navigate('/identity');
-              console.log('login success');
-            }
-          })
-          .catch(() => {
-            console.error('error while login');
-            setErrorMessage(`Error while login`);
-          });
+        const result: ResponseData<LoginResponse> = isLogin
+          ? await apiClient.node().login(nearRequest)
+          : await apiClient.node().addRootKey(nearRequest);
+
+        if (result.error) {
+          const errorMessage = isLogin
+            ? 'Error while login'
+            : 'Error while adding root key';
+          console.error(errorMessage, result.error);
+          setErrorMessage(`${errorMessage}: ${result.error.message}`);
+        } else {
+          setStorageNodeAuthorized();
+          navigate('/identity');
+          const errorMessage = isLogin ? 'Login sucess!' : 'Root key added!';
+          console.log(errorMessage);
+        }
       } else {
         console.error('Message not verified');
         setErrorMessage('Message not verified');
@@ -325,12 +328,13 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
       const challengeResponseData: ResponseData<NodeChallenge> = await apiClient
         .node()
         .requestChallenge();
-      const { publicKey } = await getOrCreateKeypair();
 
       if (challengeResponseData.error) {
         console.log('requestChallenge api error', challengeResponseData.error);
         return;
       }
+
+      const { publicKey } = await getOrCreateKeypair();
 
       const wallet = await selector.wallet('my-near-wallet');
 
@@ -392,7 +396,7 @@ interface HandleSwitchAccountProps {
 }
 
 interface HandleSignoutProps {
-  account: Account;
+  account: Account | null;
   selector: WalletSelector;
   setAccount: (account: Account | null) => void;
   setErrorMessage: (message: string) => void;

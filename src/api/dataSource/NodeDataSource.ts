@@ -172,17 +172,10 @@ export interface Payload {
   metadata: SignatureMetadata;
 }
 
-export interface LoginRequest {
+export interface NearRequest {
   walletSignature: String;
   payload: Payload;
   walletMetadata: WalletMetadata;
-}
-
-export interface RootKeyRequest {
-  walletSignature: String;
-  payload: Payload;
-  walletMetadata: WalletMetadata;
-  contextId?: String;
 }
 
 export interface LoginResponse {}
@@ -194,13 +187,6 @@ export interface NodeChallenge {
   contextId: String;
   timestamp: number;
   nodeSignature: String;
-}
-
-export interface RootKeyRequest {
-  walletSignature: String;
-  payload: Payload;
-  walletMetadata: WalletMetadata;
-  contextId?: String;
 }
 
 export interface NearSignatureMessageMetadata extends SignatureMetadata {
@@ -434,8 +420,8 @@ export class NodeDataSource implements NodeApi {
       return { error: { code: 500, message: 'Failed to join context.' } };
     }
   }
-  async login(loginRequest: LoginRequest): ApiResponse<LoginResponse> {
-    return await this.client.post<LoginRequest>(
+  async login(loginRequest: NearRequest): ApiResponse<LoginResponse> {
+    return await this.client.post<NearRequest>(
       `${getAppEndpointKey()}/admin-api/add-client-key`,
       {
         ...loginRequest,
@@ -448,19 +434,15 @@ export class NodeDataSource implements NodeApi {
       {},
     );
   }
-  async addRootKey(
-    rootKeyRequest: RootKeyRequest,
-    contextId: string,
-  ): ApiResponse<RootKeyResponse> {
+  async addRootKey(rootKeyRequest: NearRequest): ApiResponse<RootKeyResponse> {
     const headers: Header | null = await createAuthHeader(
       JSON.stringify(rootKeyRequest),
-      contextId,
     );
     if (!headers) {
       return { error: { code: 401, message: 'Unauthorized' } };
     }
 
-    return await this.client.post<LoginRequest>(
+    return await this.client.post<NearRequest>(
       `${getAppEndpointKey()}/admin-api/root-key`,
       {
         ...rootKeyRequest,

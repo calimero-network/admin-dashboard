@@ -12,10 +12,9 @@ import {
   DidResponse,
   DeleteContextResponse,
   JoinContextResponse,
-  LoginRequest,
+  NearRequest,
   LoginResponse,
   NodeChallenge,
-  RootKeyRequest,
   RootKeyResponse,
 } from './dataSource/NodeDataSource';
 
@@ -41,10 +40,7 @@ export interface NodeApi {
     hash: string,
   ): ApiResponse<boolean>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
-  login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;
+  login(loginRequest: NearRequest): ApiResponse<LoginResponse>;
   requestChallenge(): ApiResponse<NodeChallenge>;
-  addRootKey(
-    rootKeyRequest: RootKeyRequest,
-    contextId: string,
-  ): ApiResponse<RootKeyResponse>;
+  addRootKey(rootKeyRequest: NearRequest): ApiResponse<RootKeyResponse>;
 }

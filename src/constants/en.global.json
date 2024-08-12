@@ -20,6 +20,18 @@
       "backButtonText": "Back to wallet selector"
     }
   },
+  "addRootKeyPage": {
+    "nearRootKey": {
+      "title": "Add NEAR root key",
+      "subtitle": "Choose which account from your wallet you want to add a node root key for. Each key, and therefore each account, can only be added once",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "switchWalletButtonText": "Switch Wallet",
+      "authButtonText": "Add root key",
+      "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector"
+    }
+  },
   "footer": {
     "title": "Calimero Network"
   },
