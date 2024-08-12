@@ -59,22 +59,28 @@ export default function AddNearRootKey() {
 
   return (
     <ContentWrapper>
-      <NearWallet 
+      <NearWallet
         isLogin={false}
         navigateBack={() => navigate('/identity/root-key')}
         account={account}
         accounts={accounts}
         accountId={accountId}
         errorMessage={errorMessage}
-        handleSignout={() => handleSignOut({
-          account,
-          selector,
-          setAccount,
-          setErrorMessage,
-        })}
+        handleSignout={() =>
+          handleSignOut({
+            account,
+            selector,
+            setAccount,
+            setErrorMessage,
+          })
+        }
         handleSwitchWallet={() => handleSwitchWallet(modal)}
-        handleSignMessage={() => handleSignMessage({ selector, appName, setErrorMessage })}
-        handleSwitchAccount={() => handleSwitchAccount({ accounts, accountId, selector })}
+        handleSignMessage={() =>
+          handleSignMessage({ selector, appName, setErrorMessage })
+        }
+        handleSwitchAccount={() =>
+          handleSwitchAccount({ accounts, accountId, selector })
+        }
       />
     </ContentWrapper>
   );

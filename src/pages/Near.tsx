@@ -59,22 +59,28 @@ export default function NearLogin() {
 
   return (
     <ContentWrapper>
-      <NearWallet 
+      <NearWallet
         isLogin={true}
         navigateBack={() => navigate('/auth')}
         account={account}
         accounts={accounts}
         accountId={accountId}
         errorMessage={errorMessage}
-        handleSignout={() => handleSignOut({
-          account,
-          selector,
-          setAccount,
-          setErrorMessage,
-        })}
+        handleSignout={() =>
+          handleSignOut({
+            account,
+            selector,
+            setAccount,
+            setErrorMessage,
+          })
+        }
         handleSwitchWallet={() => handleSwitchWallet(modal)}
-        handleSignMessage={() => handleSignMessage({ selector, appName, setErrorMessage })}
-        handleSwitchAccount={() => handleSwitchAccount({ accounts, accountId, selector })}
+        handleSignMessage={() =>
+          handleSignMessage({ selector, appName, setErrorMessage })
+        }
+        handleSwitchAccount={() =>
+          handleSwitchAccount({ accounts, accountId, selector })
+        }
       />
     </ContentWrapper>
   );

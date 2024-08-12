@@ -219,10 +219,7 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
   );
 
   const verifyMessageBrowserWallet = useCallback(
-    async (
-      isLogin: boolean,
-      setErrorMessage: (message: string) => void,
-    ) => {
+    async (isLogin: boolean, setErrorMessage: (message: string) => void) => {
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const accId = urlParams.get('accountId') as string;
       const publicKey = urlParams.get('publicKey') as string;
