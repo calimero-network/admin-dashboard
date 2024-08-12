@@ -433,9 +433,7 @@ export class NodeDataSource implements NodeApi {
       return { error: { code: 500, message: 'Failed to join context.' } };
     }
   }
-  async login(
-    loginRequest: LoginRequest,
-  ): ApiResponse<LoginResponse> {
+  async login(loginRequest: LoginRequest): ApiResponse<LoginResponse> {
     return await this.client.post<LoginRequest>(
       `${getAppEndpointKey()}/admin-api/add-client-key`,
       {

@@ -41,11 +41,8 @@ export interface NodeApi {
     hash: string,
   ): ApiResponse<boolean>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
-  login(
-    loginRequest: LoginRequest,
-  ): ApiResponse<LoginResponse>;
-  requestChallenge(
-  ): ApiResponse<NodeChallenge>;
+  login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;
+  requestChallenge(): ApiResponse<NodeChallenge>;
   addRootKey(
     rootKeyRequest: RootKeyRequest,
     contextId: string,

@@ -1,5 +1,4 @@
 export interface ClientKey {
-    privateKey: string;
-    publicKey: string;
-  }
-  
+  privateKey: string;
+  publicKey: string;
+}
