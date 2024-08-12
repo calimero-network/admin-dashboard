@@ -159,11 +159,14 @@ export default function NearLogin() {
   const t = translations.loginPage.nearLogin;
   const navigate = useNavigate();
   const { selector, accounts, modal, accountId } = useWalletSelector();
-  const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear({
-    accountId,
-    selector,
-  });
-  const { handleSwitchWallet, handleSwitchAccount, handleSignOut } = useWallet();
+  const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear(
+    {
+      accountId,
+      selector,
+    },
+  );
+  const { handleSwitchWallet, handleSwitchAccount, handleSignOut } =
+    useWallet();
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState('');
