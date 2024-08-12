@@ -30,11 +30,14 @@ const WalletSelectorContext =
   React.createContext<WalletSelectorContextValue | null>(null);
 
 interface WalletSelectorContextProviderProps {
-    network: string;
-    children: ReactNode;
+  network: string;
+  children: ReactNode;
 }
 
-export function WalletSelectorContextProvider({network, children}: WalletSelectorContextProviderProps) {
+export function WalletSelectorContextProvider({
+  network,
+  children,
+}: WalletSelectorContextProviderProps) {
   const [selector, setSelector] = useState<WalletSelector | null>(null);
   const [modal, setModal] = useState<WalletSelectorModal | null>(null);
   const [accounts, setAccounts] = useState<Array<AccountState>>([]);
@@ -87,7 +90,7 @@ export function WalletSelectorContextProvider({network, children}: WalletSelecto
       <ContentWrapper>{children}</ContentWrapper>
     </WalletSelectorContext.Provider>
   );
-};
+}
 
 export function useWalletSelector() {
   const context = useContext(WalletSelectorContext);
