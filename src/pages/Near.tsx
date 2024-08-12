@@ -2,17 +2,13 @@ import React, { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AccountView } from 'near-api-js/lib/providers/provider';
 import styled from 'styled-components';
-import { useWalletSelector } from '../context/WalletSelectorContext';
+
 import Loading from '../components/common/Loading';
 import LoginIcon from '../components/common/LoginIcon';
+import { useWalletSelector } from '../context/WalletSelectorContext';
+import { useNear, useWallet } from '../hooks/useNear';
+
 import translations from '../constants/en.global.json';
-import {
-  handleSignMessage,
-  handleSignOut,
-  handleSwitchAccount,
-  handleSwitchWallet,
-} from '../auth/nearLogin';
-import { useVerifyNear } from '../hooks/loginNear';
 
 export interface Message {
   premium: boolean;
@@ -163,10 +159,11 @@ export default function NearLogin() {
   const t = translations.loginPage.nearLogin;
   const navigate = useNavigate();
   const { selector, accounts, modal, accountId } = useWalletSelector();
-  const { getAccount, verifyMessageBrowserWallet } = useVerifyNear({
+  const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear({
     accountId,
     selector,
   });
+  const { handleSwitchWallet, handleSwitchAccount, handleSignOut } = useWallet();
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState('');
