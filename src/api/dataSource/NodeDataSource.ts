@@ -119,6 +119,100 @@ export interface JoinContextResponse {
   data: null;
 }
 
+export interface SignatureMessage {
+  nodeSignature: String;
+  publicKey: String;
+}
+
+export interface SignatureMessageMetadata {
+  publicKey: String;
+  nodeSignature: String;
+  nonce: String;
+  contextId: String;
+  timestamp: number;
+  message: string; //signed message by wallet
+}
+
+interface WalletTypeBase<T extends Uppercase<string>> {
+  type: T;
+}
+
+interface ETHWalletType extends WalletTypeBase<'ETH'> {
+  chainId: number;
+}
+
+interface NEARWalletType extends WalletTypeBase<'NEAR'> {
+  networkId: string;
+}
+
+export type WalletType = ETHWalletType | NEARWalletType;
+
+export namespace WalletType {
+  export function NEAR({
+    networkId = 'mainnet',
+  }: {
+    networkId?: string;
+  }): WalletType {
+    return { type: 'NEAR', networkId } as NEARWalletType;
+  }
+
+  export function ETH({ chainId = 1 }: { chainId?: number }): WalletType {
+    return { type: 'ETH', chainId } as ETHWalletType;
+  }
+}
+
+export interface WalletMetadata {
+  wallet: WalletType;
+  signingKey: String;
+}
+
+export interface Payload {
+  message: SignatureMessageMetadata;
+  metadata: SignatureMetadata;
+}
+
+export interface LoginRequest {
+  walletSignature: String;
+  payload: Payload;
+  walletMetadata: WalletMetadata;
+}
+
+export interface RootKeyRequest {
+  walletSignature: String;
+  payload: Payload;
+  walletMetadata: WalletMetadata;
+  contextId?: String;
+}
+
+export interface LoginResponse {}
+export interface RootKeyResponse {}
+export interface SignatureMetadata {}
+
+export interface NodeChallenge {
+  nonce: String;
+  contextId: String;
+  timestamp: number;
+  nodeSignature: String;
+}
+
+export interface RootKeyRequest {
+  walletSignature: String;
+  payload: Payload;
+  walletMetadata: WalletMetadata;
+  contextId?: String;
+}
+
+export interface NearSignatureMessageMetadata extends SignatureMetadata {
+  recipient: String;
+  callbackUrl: String;
+  nonce: String;
+}
+
+export interface WalletSignatureData {
+  payload: Payload | undefined;
+  publicKey: String | undefined;
+}
+
 export class NodeDataSource implements NodeApi {
   private client: HttpClient;
 
@@ -338,5 +432,41 @@ export class NodeDataSource implements NodeApi {
       console.error('Error joining context:', error);
       return { error: { code: 500, message: 'Failed to join context.' } };
     }
+  }
+  async login(
+    loginRequest: LoginRequest,
+  ): ApiResponse<LoginResponse> {
+    return await this.client.post<LoginRequest>(
+      `${getAppEndpointKey()}/admin-api/add-client-key`,
+      {
+        ...loginRequest,
+      },
+    );
+  }
+  async requestChallenge(): ApiResponse<NodeChallenge> {
+    return await this.client.post<NodeChallenge>(
+      `${getAppEndpointKey()}/admin-api/request-challenge`,
+      {},
+    );
+  }
+  async addRootKey(
+    rootKeyRequest: RootKeyRequest,
+    contextId: string,
+  ): ApiResponse<RootKeyResponse> {
+    const headers: Header | null = await createAuthHeader(
+      JSON.stringify(rootKeyRequest),
+      contextId,
+    );
+    if (!headers) {
+      return { error: { code: 401, message: 'Unauthorized' } };
+    }
+
+    return await this.client.post<LoginRequest>(
+      `${getAppEndpointKey()}/admin-api/root-key`,
+      {
+        ...rootKeyRequest,
+      },
+      headers,
+    );
   }
 }

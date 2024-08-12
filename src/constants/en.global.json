@@ -8,6 +8,16 @@
       "title": "Continue with wallet",
       "metamaskButtonText": "Metamask wallet",
       "nearButtonText": "Near wallet"
+    },
+    "nearLogin": {
+      "title": "Login with NEAR",
+      "subtitle": "Choose which account from your wallet you want to log in with",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "switchWalletButtonText": "Switch Wallet",
+      "authButtonText": "Authenticate",
+      "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector"
     }
   },
   "footer": {
