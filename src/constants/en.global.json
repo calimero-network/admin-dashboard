@@ -3,7 +3,12 @@
     "logoDashboardText": "Admin Dashboard",
     "title": "Calimero Node Admin Dashboard",
     "subtitle": "Start using Calimero by selecting your wallet.",
-    "buttonConnectText": "Connect Wallet"
+    "buttonConnectText": "Connect Wallet",
+    "loginSelector": {
+      "title": "Continue with wallet",
+      "metamaskButtonText": "Metamask wallet",
+      "nearButtonText": "Near wallet"
+    }
   },
   "footer": {
     "title": "Calimero Network"
