@@ -22,6 +22,7 @@ import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import NearRoute from './components/protectedRoutes/NearRoute';
 
 export default function App() {
   useEffect(() => {
@@ -35,14 +36,16 @@ export default function App() {
           <Route path="/" element={<SetupPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/auth" element={<Authenticate />} />
-            <Route path="/auth/near" element={<Near />} />
+            <Route element={<NearRoute />}>
+              <Route path="/auth/near" element={<Near />} />
+              <Route
+                path="/identity/root-key/near"
+                element={<AddNearRootKey />}
+              />
+            </Route>
             <Route path="/auth/metamask" element={<Metamask />} />
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />
-            <Route
-              path="/identity/root-key/near"
-              element={<AddNearRootKey />}
-            />
             <Route
               path="/identity/root-key/metamask"
               element={<AddMetamaskRootKey />}
