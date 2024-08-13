@@ -74,7 +74,9 @@ export function useMetamask(): useMetamaskReturn {
 
       if (challengeResponseData.error) {
         console.error('requestNodeData error', challengeResponseData.error);
-        setErrorMessage(`requestNodeData error: ${challengeResponseData.error}`);
+        setErrorMessage(
+          `requestNodeData error: ${challengeResponseData.error}`,
+        );
         return;
       }
 
@@ -161,6 +163,6 @@ export function useMetamask(): useMetamaskReturn {
     isSignError,
     requestNodeData,
     login,
-    signData
+    signData,
   };
 }

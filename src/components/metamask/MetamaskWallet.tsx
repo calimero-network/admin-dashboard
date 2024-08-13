@@ -135,36 +135,36 @@ export function MetamaskWallet({
   return (
     <Fragment>
       <Wrapper>
-          <span className="title">{t.title}</span>
-          <div className="subtitle">
-            <span>{t.subtitle}</span>
-          </div>
-          <header className="header">
-            <MetaMaskButton
-              theme="dark"
-              color={isConnected && walletSignatureData ? 'blue' : 'white'}
-              buttonStyle={
-                isConnected && walletSignatureData
-                  ? connectedButtonStyle
-                  : disconnectedButtonStyle
-              }
-            />
-            {isConnected && walletSignatureData && (
-              <div className="options-wrapper">
-                <button
-                  className="button-sign"
-                  disabled={isSignLoading}
-                  onClick={() => signMessage()}
-                >
-                  {t.authButtonText}
-                </button>
-                {isSignError && (
-                  <div className="error-title">{t.errorTitleText}</div>
-                )}
-                <div className="error-message">{errorMessage}</div>
-              </div>
-            )}
-          </header>
+        <span className="title">{t.title}</span>
+        <div className="subtitle">
+          <span>{t.subtitle}</span>
+        </div>
+        <header className="header">
+          <MetaMaskButton
+            theme="dark"
+            color={isConnected && walletSignatureData ? 'blue' : 'white'}
+            buttonStyle={
+              isConnected && walletSignatureData
+                ? connectedButtonStyle
+                : disconnectedButtonStyle
+            }
+          />
+          {isConnected && walletSignatureData && (
+            <div className="options-wrapper">
+              <button
+                className="button-sign"
+                disabled={isSignLoading}
+                onClick={() => signMessage()}
+              >
+                {t.authButtonText}
+              </button>
+              {isSignError && (
+                <div className="error-title">{t.errorTitleText}</div>
+              )}
+              <div className="error-message">{errorMessage}</div>
+            </div>
+          )}
+        </header>
         <div className="button-back" onClick={navigateBack}>
           {t.backButtonText}
         </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import ContentWrapper from '../components/login/ContentWrapper';
-import styled from 'styled-components';
 import { useMetamask } from '../hooks/useMetamask';
 import { MetamaskWallet } from '../components/metamask/MetamaskWallet';
 import { useNavigate } from 'react-router-dom';
@@ -8,17 +7,6 @@ import { useNavigate } from 'react-router-dom';
 interface MetamaskLoginProps {
   isLogin: boolean;
 }
-
-const CardContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #1c1c1c;
-  padding: 2rem;
-  gap: 1rem;
-  border-radius: 0.5rem;
-  width: fit-content;
-`;
 
 export default function MetamaskLogin({ isLogin }: MetamaskLoginProps) {
   const navigate = useNavigate();
