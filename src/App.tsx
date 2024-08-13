@@ -19,7 +19,7 @@ import AddRootKey from './pages/AddRootKey';
 import SetupPage from './pages/setup';
 import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
-import NearRoute from './components/protectedRoutes/NearRoute';
+import NearRoute from './components/near/NearRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
