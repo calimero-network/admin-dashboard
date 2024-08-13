@@ -19,9 +19,9 @@ import AddRootKey from './pages/AddRootKey';
 import SetupPage from './pages/setup';
 import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
+import NearRoute from './components/protectedRoutes/NearRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import NearRoute from './components/protectedRoutes/NearRoute';
 
 export default function App() {
   useEffect(() => {
