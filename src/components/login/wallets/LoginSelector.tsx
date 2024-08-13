@@ -1,9 +1,8 @@
 import React from 'react';
-import { MetamaskIcon } from '../../common/MetamaskIcon';
-import { NearIcon } from '../../common/NearIcon';
 import { styled } from 'styled-components';
 import translations from '../../../constants/en.global.json';
-
+import MetamaskIcon from "../../../assets/metamask-icon.svg";
+import NearIcon from "../../../assets/near-icon.svg";
 export interface LoginSelectorProps {
   navigateMetamaskLogin: () => void | undefined;
   navigateNearLogin: () => void | undefined;
@@ -92,11 +91,11 @@ export default function LoginSelector({
         <div className="center-container">{t.title}</div>
         <div className="flex-container">
           <button className="button-metamask" onClick={navigateMetamaskLogin}>
-            <MetamaskIcon />
+            <img src={MetamaskIcon as unknown as string} alt="metamask-icon"/>
             <span>{t.metamaskButtonText}</span>
           </button>
           <button className="button-near" onClick={navigateNearLogin}>
-            <NearIcon />
+          <img src={NearIcon as unknown as string} alt="near-icon"/>
             <span>{t.nearButtonText}</span>
           </button>
         </div>
