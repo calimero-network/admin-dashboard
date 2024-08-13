@@ -13,7 +13,6 @@ import ApplicationDetails from './pages/ApplicationDetails';
 import PublishApplication from './pages/PublishApplication';
 import AddRelease from './pages/AddRelease';
 import Metamask from './pages/Metamask';
-import AddMetamaskRootKey from './pages/AddMetamaskRootKey';
 import Authenticate from './pages/Authenticate';
 import AddRootKey from './pages/AddRootKey';
 import SetupPage from './pages/setup';
@@ -22,6 +21,7 @@ import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 import NearRoute from './components/near/NearRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import MetamaskRoute from './components/metamask/MetamaskRoute';
 
 export default function App() {
   useEffect(() => {
@@ -42,13 +42,18 @@ export default function App() {
                 element={<Near isLogin={false} />}
               />
             </Route>
-            <Route path="/auth/metamask" element={<Metamask />} />
+            <Route element={<MetamaskRoute />}>
+              <Route
+                path="/auth/metamask"
+                element={<Metamask isLogin={true} />}
+              />
+              <Route
+                path="/identity/root-key/metamask"
+                element={<Metamask isLogin={false} />}
+              />
+            </Route>
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />
-            <Route
-              path="/identity/root-key/metamask"
-              element={<AddMetamaskRootKey />}
-            />
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/applications/:id" element={<ApplicationDetails />} />
             <Route
