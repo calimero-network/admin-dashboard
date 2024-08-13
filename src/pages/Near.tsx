@@ -58,7 +58,11 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
   }, [accountId, getAccount]);
 
   if (loading) {
-    return <ContentWrapper><Loading /></ContentWrapper>;
+    return (
+      <ContentWrapper>
+        <Loading />
+      </ContentWrapper>
+    );
   }
 
   return (
