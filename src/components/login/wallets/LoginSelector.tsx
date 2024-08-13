@@ -3,6 +3,7 @@ import { styled } from 'styled-components';
 import translations from '../../../constants/en.global.json';
 import MetamaskIcon from '../../../assets/metamask-icon.svg';
 import NearIcon from '../../../assets/near-icon.svg';
+
 export interface LoginSelectorProps {
   navigateMetamaskLogin: () => void | undefined;
   navigateNearLogin: () => void | undefined;
