@@ -128,7 +128,6 @@ export interface SignatureMessageMetadata {
   publicKey: String;
   nodeSignature: String;
   nonce: String;
-  contextId: String;
   timestamp: number;
   message: string; //signed message by wallet
 }
@@ -172,7 +171,7 @@ export interface Payload {
   metadata: SignatureMetadata;
 }
 
-export interface NearRequest {
+export interface LoginRequest {
   walletSignature: String;
   payload: Payload;
   walletMetadata: WalletMetadata;
@@ -194,6 +193,8 @@ export interface NearSignatureMessageMetadata extends SignatureMetadata {
   callbackUrl: String;
   nonce: String;
 }
+
+export interface EthSignatureMessageMetadata extends SignatureMetadata {}
 
 export interface WalletSignatureData {
   payload: Payload | undefined;
@@ -420,8 +421,8 @@ export class NodeDataSource implements NodeApi {
       return { error: { code: 500, message: 'Failed to join context.' } };
     }
   }
-  async login(loginRequest: NearRequest): ApiResponse<LoginResponse> {
-    return await this.client.post<NearRequest>(
+  async login(loginRequest: LoginRequest): ApiResponse<LoginResponse> {
+    return await this.client.post<LoginRequest>(
       `${getAppEndpointKey()}/admin-api/add-client-key`,
       {
         ...loginRequest,
@@ -434,7 +435,7 @@ export class NodeDataSource implements NodeApi {
       {},
     );
   }
-  async addRootKey(rootKeyRequest: NearRequest): ApiResponse<RootKeyResponse> {
+  async addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse> {
     const headers: Header | null = await createAuthHeader(
       JSON.stringify(rootKeyRequest),
     );
@@ -442,7 +443,7 @@ export class NodeDataSource implements NodeApi {
       return { error: { code: 401, message: 'Unauthorized' } };
     }
 
-    return await this.client.post<NearRequest>(
+    return await this.client.post<LoginRequest>(
       `${getAppEndpointKey()}/admin-api/root-key`,
       {
         ...rootKeyRequest,
