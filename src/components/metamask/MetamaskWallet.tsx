@@ -139,7 +139,7 @@ export function LoginWithMetamask({
     useState<WalletSignatureData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const t = translations.loginPage.metamaskLogin;
-  
+
   const signatureMessage = useCallback((): string | undefined => {
     return walletSignatureData
       ? walletSignatureData?.payload?.message.message
@@ -259,9 +259,7 @@ export function LoginWithMetamask({
       <div className="content-card">
         <span className="title">{t.title}</span>
         <div className="subtitle">
-          <span>
-            {t.subtitle}
-          </span>
+          <span>{t.subtitle}</span>
         </div>
         <header className="header">
           <MetaMaskButton

@@ -8,7 +8,7 @@ export default function MetamaskRoute() {
     <MetaMaskUIProvider
       sdkOptions={{
         dappMetadata: {
-          name: "admin-dashboard",
+          name: 'admin-dashboard',
         },
         checkInstallationOnAllCalls: true,
       }}

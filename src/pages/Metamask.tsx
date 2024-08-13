@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import ContentWrapper from '../components/login/ContentWrapper';
 import styled from 'styled-components';
 
@@ -19,8 +18,7 @@ const CardContainer = styled.div`
 `;
 
 export default function MetamaskLogin({ isLogin }: MetamaskLoginProps) {
-  const navigate = useNavigate();
-
+  console.log(isLogin);
   return (
     <ContentWrapper>
       <CardContainer>
