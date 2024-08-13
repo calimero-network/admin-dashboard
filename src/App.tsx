@@ -13,7 +13,6 @@ import ApplicationDetails from './pages/ApplicationDetails';
 import PublishApplication from './pages/PublishApplication';
 import AddRelease from './pages/AddRelease';
 import Metamask from './pages/Metamask';
-import AddNearRootKey from './pages/AddNearRootKey';
 import AddMetamaskRootKey from './pages/AddMetamaskRootKey';
 import Authenticate from './pages/Authenticate';
 import AddRootKey from './pages/AddRootKey';
@@ -37,10 +36,10 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/auth" element={<Authenticate />} />
             <Route element={<NearRoute />}>
-              <Route path="/auth/near" element={<Near />} />
+              <Route path="/auth/near" element={<Near isLogin={true} />} />
               <Route
                 path="/identity/root-key/near"
-                element={<AddNearRootKey />}
+                element={<Near isLogin={false} />}
               />
             </Route>
             <Route path="/auth/metamask" element={<Metamask />} />

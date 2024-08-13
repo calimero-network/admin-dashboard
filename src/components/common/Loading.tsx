@@ -1,8 +1,7 @@
 import React from 'react';
+import { styled } from 'styled-components';
 
-export default function Loading() {
-  const css = `
-  .loader {
+const LoginIcon = styled.span`
     width: 48px;
     height: 48px;
     border: 5px solid #FFF;
@@ -20,13 +19,8 @@ export default function Loading() {
     100% {
         transform: rotate(360deg);
     }
-  }
-  `;
+`;
 
-  return (
-    <>
-      <style>{css}</style>
-      <span className="loader"></span>
-    </>
-  );
+export default function Loading() {
+  return <LoginIcon className="loader"></LoginIcon>;
 }

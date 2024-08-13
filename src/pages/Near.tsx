@@ -15,7 +15,11 @@ export interface Message {
   text: string;
 }
 
-export default function NearLogin() {
+interface NearLoginProps {
+  isLogin: boolean;
+}
+
+export default function NearLogin({ isLogin }: NearLoginProps) {
   const navigate = useNavigate();
   const { selector, accounts, modal, accountId } = useWalletSelector();
   const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear(
@@ -33,7 +37,7 @@ export default function NearLogin() {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      verifyMessageBrowserWallet(true, setErrorMessage);
+      verifyMessageBrowserWallet(isLogin, setErrorMessage);
     }, 500);
 
     return () => {
@@ -54,13 +58,13 @@ export default function NearLogin() {
   }, [accountId, getAccount]);
 
   if (loading) {
-    return <Loading />;
+    return <ContentWrapper><Loading /></ContentWrapper>;
   }
 
   return (
     <ContentWrapper>
       <NearWallet
-        isLogin={true}
+        isLogin={isLogin}
         navigateBack={() => navigate('/auth')}
         account={account}
         accounts={accounts}

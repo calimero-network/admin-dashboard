@@ -1,8 +1,4 @@
-import React from 'react';
-
-export default function LoginIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" height="30" width="30">
+<svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" height="30" width="30">
       <rect
         x="0"
         y="0"
@@ -43,6 +39,4 @@ export default function LoginIcon() {
         transform="translate(-13.721802107758117 35.84394280404586) rotate(187.7 15 15)"
         fill="#c71450"
       ></rect>
-    </svg>
-  );
-}
+</svg>

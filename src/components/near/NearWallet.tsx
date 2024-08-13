@@ -1,9 +1,9 @@
 import React, { Fragment } from 'react';
 import styled from 'styled-components';
-import LoginIcon from '../common/LoginIcon';
 import translations from '../../constants/en.global.json';
 import type { AccountView } from 'near-api-js/lib/providers/provider';
 import { AccountState } from '@near-wallet-selector/core/src/lib/store.types';
+import LoginIcon from '../../assets/login-icon.svg';
 
 export const Wrapper = styled.div`
   display: flex;
@@ -183,7 +183,7 @@ export default function NearWallet({
           <div className="user-account-container">
             <div className="center-container">
               <div className="user-account-icon-wrapper">
-                <LoginIcon />
+                <img src={LoginIcon as unknown as string} alt="login-icon" />
               </div>
               <div className="flex-column-container">
                 <span className="account-id-title ">{t.accountIdText}</span>
