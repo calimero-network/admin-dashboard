@@ -142,8 +142,6 @@ export function useMetamask(): useMetamaskReturn {
           } else {
             setStorageNodeAuthorized();
             navigate('/identity');
-            const errorMessage = isLogin ? 'Login sucess!' : 'Root key added!';
-            console.log(errorMessage);
           }
         }
       }

@@ -34,8 +34,6 @@ export default function MetamaskLogin({ isLogin }: MetamaskLoginProps) {
 
   useEffect(() => {
     if (isSignSuccess && walletSignatureData) {
-      console.log('signature', signData);
-      console.log('address', address);
       login({ isLogin, setErrorMessage });
     }
   }, [address, isSignSuccess, isLogin, login, signData, walletSignatureData]);
