@@ -288,9 +288,7 @@ export function useNear({ accountId, selector }: UseNearProps) {
           : await apiClient.node().addRootKey(nearRequest);
 
         if (result.error) {
-          const errorMessage = isLogin
-            ? t.loginError
-            : t.rootkeyError;
+          const errorMessage = isLogin ? t.loginError : t.rootkeyError;
           console.error(errorMessage, result.error);
           setErrorMessage(`${errorMessage}: ${result.error.message}`);
         } else {
@@ -425,7 +423,6 @@ export const useWallet = () => {
     const nextAccountId = accounts[nextIndex]?.accountId;
 
     selector.setActiveAccount(nextAccountId ?? '');
-
   }
 
   return { handleSwitchWallet, handleSwitchAccount, handleSignOut };
