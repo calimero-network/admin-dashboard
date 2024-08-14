@@ -1,7 +1,7 @@
 import React from 'react';
 import { styled } from 'styled-components';
 
-const LoginIcon = styled.span`
+const Loader = styled.span`
     width: 48px;
     height: 48px;
     border: 5px solid #FFF;
@@ -22,5 +22,5 @@ const LoginIcon = styled.span`
 `;
 
 export default function Loading() {
-  return <LoginIcon className="loader"></LoginIcon>;
+  return <Loader></Loader>;
 }
