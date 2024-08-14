@@ -139,9 +139,7 @@ export function useMetamask(): useMetamaskReturn {
             : await apiClient.node().addRootKey(metamaskRequest);
 
           if (result.error) {
-            const errorMessage = isLogin
-              ? t.loginError
-              : t.rootkeyError;
+            const errorMessage = isLogin ? t.loginError : t.rootkeyError;
             console.error(errorMessage, result.error);
             setErrorMessage(`${errorMessage}: ${result.error.message}`);
           } else {
