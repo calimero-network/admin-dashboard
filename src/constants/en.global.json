@@ -29,7 +29,8 @@
       "backButtonText": "Back to wallet selector"
     },
     "metamaskLogin": {
-      "title": "Login with Metamask",
+      "titleLogin": "Login with Metamask",
+      "titleRootKey": "Add Metamask root key",
       "subtitle": "Choose which account from your wallet you want to log in with",
       "authButtonText": "Sign authentication transaction",
       "errorTitleText": "Error signing message",

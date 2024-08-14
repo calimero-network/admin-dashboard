@@ -53,6 +53,7 @@ export default function MetamaskLogin({ isLogin }: MetamaskLoginProps) {
         signMessage={signMessage}
         isSignError={isSignError}
         errorMessage={errorMessage}
+        isLogin={isLogin}
       />
     </ContentWrapper>
   );

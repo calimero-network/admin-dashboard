@@ -114,6 +114,7 @@ interface LoginWithMetamaskProps {
   signMessage: () => void;
   isSignError: boolean;
   errorMessage: string;
+  isLogin: boolean;
 }
 
 export function MetamaskWallet({
@@ -125,6 +126,7 @@ export function MetamaskWallet({
   signMessage,
   isSignError,
   errorMessage,
+  isLogin
 }: LoginWithMetamaskProps) {
   const t = translations.loginPage.metamaskLogin;
 
@@ -135,7 +137,7 @@ export function MetamaskWallet({
   return (
     <Fragment>
       <Wrapper>
-        <span className="title">{t.title}</span>
+        <span className="title">{isLogin ? t.titleLogin: t.titleRootKey}</span>
         <div className="subtitle">
           <span>{t.subtitle}</span>
         </div>
