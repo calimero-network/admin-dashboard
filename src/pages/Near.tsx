@@ -69,7 +69,9 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
     <ContentWrapper>
       <NearWallet
         isLogin={isLogin}
-        navigateBack={() => isLogin ? navigate('/auth') : navigate('/identity/root-key')}
+        navigateBack={() =>
+          isLogin ? navigate('/auth') : navigate('/identity/root-key')
+        }
         account={account}
         accounts={accounts}
         accountId={accountId}
