@@ -289,7 +289,7 @@ export function useNear({ accountId, selector }: UseNearProps) {
 
         if (result.error) {
           const errorMessage = isLogin ? t.loginError : t.rootkeyError;
-          console.error(errorMessage, result.error);
+          console.error(`${errorMessage}: ${result.error.message}`);
           setErrorMessage(`${errorMessage}: ${result.error.message}`);
         } else {
           setStorageNodeAuthorized();
