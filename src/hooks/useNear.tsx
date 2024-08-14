@@ -33,8 +33,12 @@ import * as nearAPI from 'near-api-js';
 import { Package, Release } from '../pages/Applications';
 import { getOrCreateKeypair } from '../auth/ed25519';
 import { Account } from '../components/near/NearWallet';
+import translation from '../constants/en.global.json';
 
 const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
+// @ts-ignore
+
+const t = translation.useNear;
 
 export function useRPC() {
   const getPackages = async (): Promise<Package[]> => {
@@ -139,7 +143,7 @@ export function useRPC() {
   return { getPackages, getReleases, getPackage, getLatestRelease };
 }
 
-interface UseVerifyProps {
+interface UseNearProps {
   accountId: string | null;
   selector: WalletSelector;
 }
@@ -150,7 +154,7 @@ interface HandleSignMessageProps {
   setErrorMessage: (message: string) => void;
 }
 
-export function useNear({ accountId, selector }: UseVerifyProps) {
+export function useNear({ accountId, selector }: UseNearProps) {
   const navigate = useNavigate();
 
   const getAccount = useCallback(async (): Promise<Account | null> => {
@@ -179,7 +183,6 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
       signedMessage: SignedMessage,
       setErrorMessage: (message: string) => void,
     ): Promise<boolean> => {
-      console.log('verifyMessage', { message, signedMessage });
       try {
         const verifiedSignature = verifySignature({
           publicKey: signedMessage.publicKey,
@@ -198,20 +201,10 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
         const isMessageVerified =
           verifiedFullKeyBelongsToUser && verifiedSignature;
 
-        const resultMessage = isMessageVerified
-          ? 'Successfully verified'
-          : 'Failed to verify';
-
-        console.log(
-          `${resultMessage} signed message: '${
-            message.message
-          }': \n ${JSON.stringify(signedMessage)}`,
-        );
-
         return isMessageVerified;
       } catch (error) {
-        console.error('Error while verifying message', error);
-        setErrorMessage('Error while verifying message');
+        console.error(`${t.verifyMessageError}: ${error}`);
+        setErrorMessage(t.verifyMessageError);
         return false;
       }
     },
@@ -224,9 +217,8 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
       const accId = urlParams.get('accountId') as string;
       const publicKey = urlParams.get('publicKey') as string;
       const signature = urlParams.get('signature') as string;
-
       if (!accId && !publicKey && !signature) {
-        console.error('Missing params in url.');
+        console.error(t.missingUrlParamsError);
         return;
       }
 
@@ -297,19 +289,17 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
 
         if (result.error) {
           const errorMessage = isLogin
-            ? 'Error while login'
-            : 'Error while adding root key';
+            ? t.loginError
+            : t.rootkeyError;
           console.error(errorMessage, result.error);
           setErrorMessage(`${errorMessage}: ${result.error.message}`);
         } else {
           setStorageNodeAuthorized();
           navigate('/identity');
-          const errorMessage = isLogin ? 'Login sucess!' : 'Root key added!';
-          console.log(errorMessage);
         }
       } else {
-        console.error('Message not verified');
-        setErrorMessage('Message not verified');
+        console.error(t.messageNotVerifiedError);
+        setErrorMessage(t.messageNotVerifiedError);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -327,10 +317,8 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
         .requestChallenge();
 
       if (challengeResponseData.error) {
-        console.log('requestChallenge api error', challengeResponseData.error);
         return;
       }
-
       const { publicKey } = await getOrCreateKeypair();
 
       const wallet = await selector.wallet('my-near-wallet');
@@ -362,8 +350,6 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
       };
 
       if (wallet.type === 'browser') {
-        console.log('browser');
-
         localStorage.setItem(
           'message',
           JSON.stringify({
@@ -378,8 +364,8 @@ export function useNear({ accountId, selector }: UseVerifyProps) {
 
       await wallet.signMessage({ message, nonce, recipient, callbackUrl });
     } catch (error) {
-      console.error('Error while signing message', error);
-      setErrorMessage('Error while signing message.');
+      console.error(`${t.signMessageError}: ${error}`);
+      setErrorMessage(t.signMessageError);
     }
   }
 
@@ -421,8 +407,7 @@ export const useWallet = () => {
         setAccount(null);
       })
       .catch((err: any) => {
-        console.log('Failed to sign out');
-        setErrorMessage('Failed to sign out');
+        setErrorMessage(t.signOutError);
         console.error(err);
       });
   }
@@ -441,7 +426,6 @@ export const useWallet = () => {
 
     selector.setActiveAccount(nextAccountId ?? '');
 
-    alert('Switched account to ' + nextAccountId);
   }
 
   return { handleSwitchWallet, handleSwitchAccount, handleSignOut };

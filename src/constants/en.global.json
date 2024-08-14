@@ -1,4 +1,13 @@
 {
+  "useNear": {
+    "verifyMessageError": "Error while verifying message",
+    "missingUrlParamsError": "Missing url parameters",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "messageNotVerifiedError": "Message not verified",
+    "signMessageError": "Error while signing message",
+    "signOutError": "Failed to signing out"
+  },
   "loginPage": {
     "logoDashboardText": "Admin Dashboard",
     "title": "Calimero Node Admin Dashboard",
