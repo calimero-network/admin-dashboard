@@ -20,6 +20,7 @@ import {
   WalletSignatureData,
 } from '../api/dataSource/NodeDataSource';
 import { useNavigate } from 'react-router-dom';
+import translation from '../constants/en.global.json';
 
 interface LoginProps {
   setErrorMessage: (msg: string) => void;
@@ -43,6 +44,8 @@ interface useMetamaskReturn {
   requestNodeData: ({ setErrorMessage }: RequestNodeDataProps) => Promise<void>;
   login: ({ isLogin, setErrorMessage }: LoginProps) => Promise<void>;
 }
+
+const t = translation.useMetamask;
 
 export function useMetamask(): useMetamaskReturn {
   const navigate = useNavigate();
@@ -73,9 +76,11 @@ export function useMetamask(): useMetamaskReturn {
       const { publicKey } = await getOrCreateKeypair();
 
       if (challengeResponseData.error) {
-        console.error('requestNodeData error', challengeResponseData.error);
+        console.error(
+          `${t.requestNodeDataError}: ${challengeResponseData.error}`,
+        );
         setErrorMessage(
-          `requestNodeData error: ${challengeResponseData.error}`,
+          `${t.requestNodeDataError}: ${challengeResponseData.error}`,
         );
         return;
       }
@@ -112,11 +117,11 @@ export function useMetamask(): useMetamaskReturn {
     async ({ isLogin, setErrorMessage }: LoginProps) => {
       setErrorMessage('');
       if (!signData) {
-        console.error('signature is empty');
-        setErrorMessage('signature is empty');
+        console.error(t.noSignatureError);
+        setErrorMessage(t.noSignatureError);
       } else if (!address) {
-        console.error('address is empty');
-        setErrorMessage('address is empty');
+        console.error(t.noAddressError);
+        setErrorMessage(t.noAddressError);
       } else {
         const walletMetadata: WalletMetadata = {
           wallet: getNetworkType(chainId ?? ''),
@@ -135,8 +140,8 @@ export function useMetamask(): useMetamaskReturn {
 
           if (result.error) {
             const errorMessage = isLogin
-              ? 'Error while login'
-              : 'Error while adding root key';
+              ? t.loginError
+              : t.rootkeyError;
             console.error(errorMessage, result.error);
             setErrorMessage(`${errorMessage}: ${result.error.message}`);
           } else {

@@ -1,4 +1,11 @@
 {
+  "useMetamask": {
+    "requestNodeDataError": "Error while requesting node data",
+    "noSignatureError": "Signature is empty",
+    "noAddressError": "Address is empty",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key"
+  },
   "useNear": {
     "verifyMessageError": "Error while verifying message",
     "missingUrlParamsError": "Missing url parameters",
