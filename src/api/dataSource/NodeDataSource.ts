@@ -3,7 +3,7 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 import { NodeApi } from '../nodeApi';
-import translations from "../../constants/en.global.json";
+import translations from '../../constants/en.global.json';
 
 const t = translations.nodeDataSource;
 
