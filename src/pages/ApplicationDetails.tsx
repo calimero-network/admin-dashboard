@@ -25,10 +25,12 @@ export default function ApplicationDetailsPage() {
       if (id) {
         const packageData = await getPackage(id);
         const versionData = await getReleases(id);
-        setApplicationInformation({
-          package: packageData,
-          releases: versionData,
-        });
+        if (packageData && versionData) {
+          setApplicationInformation({
+            package: packageData,
+            releases: versionData,
+          });
+        }
       }
     };
     fetchApplicationData();

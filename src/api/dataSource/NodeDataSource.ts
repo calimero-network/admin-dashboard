@@ -31,7 +31,14 @@ export interface User {
 
 export interface Application {
   id: string;
+  blob: string;
   version: string;
+  source: string;
+  contract_app_id: string;
+  name: string | null;
+  description: string | null;
+  repository: string | null;
+  owner: string | null;
 }
 
 export interface SigningKey {
@@ -98,7 +105,7 @@ export interface DidResponse {
   did: Did;
 }
 
-export interface ListApplicationsResponse {
+export interface GetInstalledApplicationsResponse {
   apps: Application[];
 }
 
@@ -204,6 +211,10 @@ export interface WalletSignatureData {
   publicKey: String | undefined;
 }
 
+export interface InstallApplicationResponse {
+  application_id: string;
+}
+
 export class NodeDataSource implements NodeApi {
   private client: HttpClient;
 
@@ -211,13 +222,13 @@ export class NodeDataSource implements NodeApi {
     this.client = client;
   }
 
-  async getInstalledApplications(): ApiResponse<ListApplicationsResponse> {
+  async getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
       );
-      const response: ResponseData<ListApplicationsResponse> =
-        await this.client.get<ListApplicationsResponse>(
+      const response: ResponseData<GetInstalledApplicationsResponse> =
+        await this.client.get<GetInstalledApplicationsResponse>(
           `${getAppEndpointKey()}/admin-api/applications`,
           headers ?? {},
         );
@@ -379,28 +390,29 @@ export class NodeDataSource implements NodeApi {
   }
 
   async installApplication(
-    selectedPackage: string,
+    selectedPackageId: string,
     selectedVersion: string,
     ipfsPath: string,
     hash: string,
-  ): ApiResponse<boolean> {
+  ): ApiResponse<InstallApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
-          selectedPackage,
+          selectedPackageId,
           selectedVersion,
+          hash,
         }),
       );
-      const response: ResponseData<boolean> = await this.client.post<boolean>(
-        `${getAppEndpointKey()}/admin-api/install-application`,
-        {
-          application: selectedPackage,
-          version: selectedVersion,
-          url: ipfsPath,
-          hash,
-        },
-        headers ?? {},
-      );
+      const response: ResponseData<InstallApplicationResponse> =
+        await this.client.post<InstallApplicationResponse>(
+          `${getAppEndpointKey()}/admin-api/install-application`,
+          {
+            contract_app_id: selectedPackageId,
+            version: selectedVersion,
+            url: ipfsPath,
+          },
+          headers ?? {},
+        );
       return response;
     } catch (error) {
       console.error('Error installing application:', error);

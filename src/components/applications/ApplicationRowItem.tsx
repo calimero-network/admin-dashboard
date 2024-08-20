@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { truncateHash } from '../../utils/displayFunctions';
-import { Application } from '../../pages/Applications';
+import { Application } from '../../api/dataSource/NodeDataSource';
 
 interface ApplicationRowItemProps {
   $hasBorders: boolean;
@@ -59,7 +59,7 @@ export default function applicationRowItem(
     <RowItem key={item.id} $hasBorders={id === count}>
       <div
         className="row-item name"
-        onClick={() => onRowItemClick && onRowItemClick(item.id)}
+        onClick={() => onRowItemClick && onRowItemClick(item.contract_app_id)}
       >
         {item.name}
       </div>
