@@ -1,9 +1,61 @@
 {
+  "useMetamask": {
+    "requestNodeDataError": "Error while requesting node data",
+    "noSignatureError": "Signature is empty",
+    "noAddressError": "Address is empty",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "applicationNameText": "admin-dashboard"
+  },
+  "useNear": {
+    "verifyMessageError": "Error while verifying message",
+    "missingUrlParamsError": "Missing url parameters",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "messageNotVerifiedError": "Message not verified",
+    "signMessageError": "Error while signing message",
+    "signOutError": "Failed to signing out"
+  },
   "loginPage": {
     "logoDashboardText": "Admin Dashboard",
     "title": "Calimero Node Admin Dashboard",
     "subtitle": "Start using Calimero by selecting your wallet.",
-    "buttonConnectText": "Connect Wallet"
+    "buttonConnectText": "Connect Wallet",
+    "loginSelector": {
+      "title": "Continue with wallet",
+      "metamaskButtonText": "Metamask wallet",
+      "nearButtonText": "Near wallet"
+    },
+    "nearLogin": {
+      "title": "Login with NEAR",
+      "subtitle": "Choose which account from your wallet you want to log in with",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "switchWalletButtonText": "Switch Wallet",
+      "authButtonText": "Authenticate",
+      "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector"
+    },
+    "metamaskLogin": {
+      "titleLogin": "Login with Metamask",
+      "titleRootKey": "Add Metamask root key",
+      "subtitle": "Choose which account from your wallet you want to log in with",
+      "authButtonText": "Sign authentication transaction",
+      "errorTitleText": "Error signing message",
+      "backButtonText": "Back to wallet selector"
+    }
+  },
+  "addRootKeyPage": {
+    "nearRootKey": {
+      "title": "Add NEAR root key",
+      "subtitle": "Choose which account from your wallet you want to add a node root key for. Each key, and therefore each account, can only be added once",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "switchWalletButtonText": "Switch Wallet",
+      "authButtonText": "Add root key",
+      "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector"
+    }
   },
   "footer": {
     "title": "Calimero Network"
@@ -200,5 +252,16 @@
     "addRootKeyText": "Add new root key",
     "loggedInLabel": "Logged in with: ",
     "noRootKeysText": "No root keys found in the node."
+  },
+  "nodeDataSource": {
+    "joinContextErrorTitle": "Error joining context",
+    "joinContextErrorMessage": "Failed to join context"
+  },
+  "authHeaders": {
+    "errorText": "Error extracting private key"
+  },
+  "walletSelectorContext": {
+    "alertErrorText": "Failed to initialise wallet selector",
+    "componentErrorText": "useWalletSelector must be used within a WalletSelectorContextProvider"
   }
 }
