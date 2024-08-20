@@ -22,7 +22,7 @@ const ExportWrapper = styled.div`
 `;
 export default function ExportPage() {
   const t = translations.exportIdentityPage;
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ModalContentItem>({
     title: '',

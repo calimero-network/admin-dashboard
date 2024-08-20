@@ -33,7 +33,7 @@ const Wrapper = styled.div`
 export default function JoinContextPage() {
   const t = translations.joinContextPage;
   const navigate = useNavigate();
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const [contextId, setContextId] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent>({

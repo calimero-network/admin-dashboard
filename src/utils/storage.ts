@@ -51,10 +51,15 @@ export const setNodeUrlFromQuery = async (showServerDownPopup: () => void) => {
   }
 };
 
-const verifyNodeUrl = async (url: string, showServerDownPopup: () => void): Promise<boolean> => {
+const verifyNodeUrl = async (
+  url: string,
+  showServerDownPopup: () => void,
+): Promise<boolean> => {
   try {
     new URL(url);
-    const response: ResponseData<HealthStatus> = await apiClient(showServerDownPopup)
+    const response: ResponseData<HealthStatus> = await apiClient(
+      showServerDownPopup,
+    )
       .node()
       .health({ url: url });
     if (response.data) {

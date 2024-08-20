@@ -28,7 +28,7 @@ const initialOptions = [
 
 export default function ContextsPage() {
   const navigate = useNavigate();
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const { getPackage } = useRPC();
   const [currentOption, setCurrentOption] = useState<string>(
     ContextOptions.JOINED,
@@ -76,7 +76,9 @@ export default function ContextsPage() {
 
   const fetchNodeContexts = useCallback(async () => {
     setErrorMessage('');
-    const fetchContextsResponse: ResponseData<ContextList> = await apiClient(showServerDownPopup)
+    const fetchContextsResponse: ResponseData<ContextList> = await apiClient(
+      showServerDownPopup,
+    )
       .node()
       .getContexts();
     // TODO - fetch invitations

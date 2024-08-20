@@ -61,7 +61,7 @@ export interface Applications {
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
   const [errorMessage, setErrorMessage] = useState('');

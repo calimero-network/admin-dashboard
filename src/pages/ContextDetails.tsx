@@ -37,7 +37,7 @@ const initialOptions = [
 
 export default function ContextDetailsPage() {
   const { id } = useParams();
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
   const [contextDetails, setContextDetails] = useState<ContextDetails>();
   const [contextDetailsError, setContextDetailsError] = useState<string | null>(

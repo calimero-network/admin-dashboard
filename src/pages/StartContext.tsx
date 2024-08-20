@@ -20,7 +20,7 @@ export interface ContextApplication {
 export default function StartContextPage() {
   const t = translations.startContextPage;
   const navigate = useNavigate();
-  const {showServerDownPopup } = useServerDown();
+  const { showServerDownPopup } = useServerDown();
   const [application, setApplication] = useState<ContextApplication>({
     appId: '',
     name: '',

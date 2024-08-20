@@ -1,6 +1,5 @@
 import { Axios, AxiosError, AxiosResponse } from 'axios';
 import { ErrorResponse, ResponseData } from './response';
-import { useServerDown } from '../context/ServerDownContext';
 
 export interface Header {
   [key: string]: string;
@@ -46,7 +45,7 @@ export class AxiosHttpClient implements HttpClient {
           this.showServerDownPopup();
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
