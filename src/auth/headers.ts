@@ -3,6 +3,9 @@ import { PrivateKey } from '@libp2p/interface';
 import bs58 from 'bs58';
 import { getStorageClientKey } from './storage';
 import { ClientKey } from './types';
+import translations from '../constants/en.global.json';
+
+const t = translations.authHeaders;
 
 export interface Header {
   [key: string]: string;
@@ -46,7 +49,7 @@ export async function getPrivateKey(): Promise<PrivateKey | null> {
     }
     return await unmarshalPrivateKey(bs58.decode(clientKey.privateKey));
   } catch (error) {
-    console.error('Error extracting private key:', error);
+    console.error(`${t.errorText}: ${error}`);
     return null;
   }
 }
