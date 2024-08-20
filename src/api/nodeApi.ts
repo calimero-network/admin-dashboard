@@ -12,6 +12,10 @@ import {
   DidResponse,
   DeleteContextResponse,
   JoinContextResponse,
+  LoginRequest,
+  LoginResponse,
+  NodeChallenge,
+  RootKeyResponse,
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
@@ -36,4 +40,7 @@ export interface NodeApi {
     hash: string,
   ): ApiResponse<boolean>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
+  login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;
+  requestChallenge(): ApiResponse<NodeChallenge>;
+  addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse>;
 }
