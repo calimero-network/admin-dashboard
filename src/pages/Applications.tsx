@@ -14,6 +14,7 @@ import {
   GetInstalledApplicationsResponse,
 } from '../api/dataSource/NodeDataSource';
 import { ResponseData } from '../api/response';
+import { useServerDown } from '../context/ServerDownContext';
 
 export enum Tabs {
   INSTALL_APPLICATION,
@@ -60,6 +61,7 @@ export interface Applications {
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
+  const {showServerDownPopup } = useServerDown();
   const { getPackages, getPackage } = useRPC();
   const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
   const [errorMessage, setErrorMessage] = useState('');
@@ -86,7 +88,7 @@ export default function ApplicationsPage() {
     const setApps = async () => {
       setErrorMessage('');
       const fetchApplicationResponse: ResponseData<GetInstalledApplicationsResponse> =
-        await apiClient.node().getInstalledApplications();
+        await apiClient(showServerDownPopup).node().getInstalledApplications();
 
       if (fetchApplicationResponse.error) {
         setErrorMessage(fetchApplicationResponse.error.message);

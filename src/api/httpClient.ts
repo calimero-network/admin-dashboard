@@ -1,5 +1,6 @@
 import { Axios, AxiosError, AxiosResponse } from 'axios';
 import { ErrorResponse, ResponseData } from './response';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface Header {
   [key: string]: string;
@@ -32,9 +33,21 @@ export interface HttpClient {
 
 export class AxiosHttpClient implements HttpClient {
   private axios: Axios;
+  private showServerDownPopup: () => void;
 
-  constructor(axios: Axios) {
+  constructor(axios: Axios, showServerDownPopup: () => void) {
     this.axios = axios;
+    this.showServerDownPopup = showServerDownPopup;
+
+    this.axios.interceptors.response.use(
+      (response: AxiosResponse) => response,
+      (error: AxiosError) => {
+        if (!error.response) {
+          this.showServerDownPopup();
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   async get<T>(url: string, headers: Header = {}): Promise<ResponseData<T>> {

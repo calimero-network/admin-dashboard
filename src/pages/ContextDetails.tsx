@@ -15,6 +15,7 @@ import {
   User,
 } from '../api/dataSource/NodeDataSource';
 import { ContextDetails } from '../types/context';
+import { useServerDown } from '../context/ServerDownContext';
 
 const initialOptions = [
   {
@@ -36,6 +37,7 @@ const initialOptions = [
 
 export default function ContextDetailsPage() {
   const { id } = useParams();
+  const {showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
   const [contextDetails, setContextDetails] = useState<ContextDetails>();
   const [contextDetailsError, setContextDetailsError] = useState<string | null>(
@@ -87,10 +89,10 @@ export default function ContextDetailsPage() {
           contextClientUsers,
           contextStorage,
         ] = await Promise.all([
-          apiClient.node().getContext(id),
-          apiClient.node().getContextClientKeys(id),
-          apiClient.node().getContextUsers(id),
-          apiClient.node().getContextStorageUsage(id),
+          apiClient(showServerDownPopup).node().getContext(id),
+          apiClient(showServerDownPopup).node().getContextClientKeys(id),
+          apiClient(showServerDownPopup).node().getContextUsers(id),
+          apiClient(showServerDownPopup).node().getContextStorageUsage(id),
         ]);
 
         if (nodeContext.data) {

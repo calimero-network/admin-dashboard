@@ -22,10 +22,13 @@ import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useServerDown } from './context/ServerDownContext';
 
 export default function App() {
+  const {showServerDownPopup } = useServerDown();
+
   useEffect(() => {
-    setNodeUrlFromQuery();
+    setNodeUrlFromQuery(showServerDownPopup);
   }, []);
 
   return (

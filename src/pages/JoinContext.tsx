@@ -9,6 +9,7 @@ import { ModalContent } from '../components/common/StatusModal';
 import { ResponseData } from '../api/response';
 import { JoinContextResponse } from '../api/dataSource/NodeDataSource';
 import apiClient from '../api';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface ContextApplication {
   appId: string;
@@ -32,6 +33,7 @@ const Wrapper = styled.div`
 export default function JoinContextPage() {
   const t = translations.joinContextPage;
   const navigate = useNavigate();
+  const {showServerDownPopup } = useServerDown();
   const [contextId, setContextId] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent>({
@@ -42,7 +44,7 @@ export default function JoinContextPage() {
 
   const handleJoinContext = async () => {
     const fetchApplicationResponse: ResponseData<JoinContextResponse> =
-      await apiClient.node().joinContext(contextId);
+      await apiClient(showServerDownPopup).node().joinContext(contextId);
     if (fetchApplicationResponse.error) {
       setModalContent({
         title: t.joinErrorTitle,
