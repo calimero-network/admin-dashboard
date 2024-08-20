@@ -3,7 +3,7 @@ import { PrivateKey } from '@libp2p/interface';
 import bs58 from 'bs58';
 import { getStorageClientKey } from './storage';
 import { ClientKey } from './types';
-import translations from "../constants/en.global.json";
+import translations from '../constants/en.global.json';
 
 const t = translations.authHeaders;
 
