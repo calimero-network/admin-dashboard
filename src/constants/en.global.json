@@ -1,4 +1,12 @@
 {
+  "useMetamask": {
+    "requestNodeDataError": "Error while requesting node data",
+    "noSignatureError": "Signature is empty",
+    "noAddressError": "Address is empty",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "applicationNameText": "admin-dashboard"
+  },
   "useNear": {
     "verifyMessageError": "Error while verifying message",
     "missingUrlParamsError": "Missing url parameters",
@@ -26,6 +34,14 @@
       "switchWalletButtonText": "Switch Wallet",
       "authButtonText": "Authenticate",
       "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector"
+    },
+    "metamaskLogin": {
+      "titleLogin": "Login with Metamask",
+      "titleRootKey": "Add Metamask root key",
+      "subtitle": "Choose which account from your wallet you want to log in with",
+      "authButtonText": "Sign authentication transaction",
+      "errorTitleText": "Error signing message",
       "backButtonText": "Back to wallet selector"
     }
   },
@@ -236,6 +252,10 @@
     "addRootKeyText": "Add new root key",
     "loggedInLabel": "Logged in with: ",
     "noRootKeysText": "No root keys found in the node."
+  },
+  "nodeDataSource": {
+    "joinContextErrorTitle": "Error joining context",
+    "joinContextErrorMessage": "Failed to join context"
   },
   "authHeaders": {
     "errorText": "Error extracting private key"

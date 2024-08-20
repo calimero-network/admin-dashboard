@@ -10,7 +10,7 @@ import {
   type AccountState,
 } from '@near-wallet-selector/core';
 import {
-  NearRequest,
+  LoginRequest,
   LoginResponse,
   NearSignatureMessageMetadata,
   Payload,
@@ -277,7 +277,7 @@ export function useNear({ accountId, selector }: UseNearProps) {
           signingKey: publicKey,
         };
 
-        const nearRequest: NearRequest = {
+        const nearRequest: LoginRequest = {
           walletSignature: signature,
           payload: walletSignatureData.payload!,
           walletMetadata: walletMetadata,
@@ -327,7 +327,6 @@ export function useNear({ accountId, selector }: UseNearProps) {
       const nonce: Buffer = Buffer.from(challengeNonce, 'base64');
       const recipient = appName;
       const callbackUrl = window.location.href;
-      const challengeContextId = challengeResponseData.data?.contextId ?? null;
       const nodeSignature = challengeResponseData.data?.nodeSignature ?? '';
       const timestamp =
         challengeResponseData.data?.timestamp ?? new Date().getTime();
@@ -342,7 +341,6 @@ export function useNear({ accountId, selector }: UseNearProps) {
         publicKey: publicKey,
         nodeSignature,
         nonce: nonce.toString('base64'),
-        contextId: challengeContextId,
         timestamp,
         message,
       };
