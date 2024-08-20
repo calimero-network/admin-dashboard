@@ -74,7 +74,6 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
         }
         account={account}
         accounts={accounts}
-        accountId={accountId}
         errorMessage={errorMessage}
         handleSignout={() =>
           handleSignOut({

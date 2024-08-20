@@ -149,7 +149,6 @@ interface NearWalletProps {
   navigateBack: () => void;
   account: Account | null;
   accounts: AccountState[];
-  accountId: string | null;
   errorMessage: string;
   handleSignout: () => void;
   handleSwitchWallet: () => void;
@@ -162,7 +161,6 @@ export default function NearWallet({
   navigateBack,
   account,
   accounts,
-  accountId,
   errorMessage,
   handleSignout,
   handleSwitchWallet,
@@ -187,7 +185,7 @@ export default function NearWallet({
               </div>
               <div className="flex-column-container">
                 <span className="account-id-title ">{t.accountIdText}</span>
-                <span className="account-id-value">{accountId}</span>
+                <span className="account-id-value">{account.account_id}</span>
               </div>
             </div>
             <div className="logout-button" onClick={handleSignout}>
