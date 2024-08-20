@@ -17,6 +17,9 @@ import type { WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { setupModal } from '@near-wallet-selector/modal-ui';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
 import Loading from '../components/common/Loading';
+import translations from '../constants/en.global.json';
+
+const t = translations.walletSelectorContext;
 
 declare global {
   export interface Window {
@@ -74,7 +77,7 @@ export function WalletSelectorContextProvider({
   useEffect(() => {
     init().catch((err) => {
       console.error(err);
-      alert('Failed to initialise wallet selector');
+      alert(t.alertErrorText);
     });
   }, [init]);
 
@@ -103,9 +106,7 @@ export function useWalletSelector() {
   const context = useContext(WalletSelectorContext);
 
   if (!context) {
-    throw new Error(
-      'useWalletSelector must be used within a WalletSelectorContextProvider',
-    );
+    throw new Error(t.componentErrorText);
   }
 
   return context;
