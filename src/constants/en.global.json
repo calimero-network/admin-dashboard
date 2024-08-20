@@ -4,7 +4,8 @@
     "noSignatureError": "Signature is empty",
     "noAddressError": "Address is empty",
     "loginError": "Error while login",
-    "rootkeyError": "Error while adding root key"
+    "rootkeyError": "Error while adding root key",
+    "applicationNameText": "admin-dashboard"
   },
   "useNear": {
     "verifyMessageError": "Error while verifying message",
