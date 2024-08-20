@@ -252,5 +252,9 @@
     "addRootKeyText": "Add new root key",
     "loggedInLabel": "Logged in with: ",
     "noRootKeysText": "No root keys found in the node."
+  },
+  "nodeDataSource": {
+    "joinContextErrorTitle": "Error joining context",
+    "joinContextErrorMessage": "Failed to join context"
   }
 }
