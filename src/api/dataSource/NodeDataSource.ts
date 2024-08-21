@@ -407,9 +407,10 @@ export class NodeDataSource implements NodeApi {
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
           {
-            contract_app_id: selectedPackageId,
-            version: selectedVersion,
             url: ipfsPath,
+            version: selectedVersion,
+            // TODO: parse hash to format
+            metadata: Array.from(new TextEncoder().encode(selectedPackageId))
           },
           headers ?? {},
         );

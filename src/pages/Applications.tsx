@@ -142,6 +142,7 @@ export default function ApplicationsPage() {
           tableOptions={tableOptions}
           navigateToAppDetails={(id: string) => navigate(`/applications/${id}`)}
           navigateToPublishApp={() => navigate('/publish-application')}
+          navigatreToInstallApp={() => navigate('/applications/install')}
           changeSelectedTab={() => setSelectedTab(Tabs.INSTALL_APPLICATION)}
           errorMessage={errorMessage}
         />

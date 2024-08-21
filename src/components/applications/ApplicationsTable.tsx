@@ -36,6 +36,7 @@ interface ApplicationsTableProps {
   navigateToAppDetails: (applicationId: string) => void;
   navigateToPublishApp: () => void;
   changeSelectedTab: () => void;
+  navigatreToInstallApp: () => void;
   errorMessage: string;
 }
 
@@ -46,6 +47,7 @@ export default function ApplicationsTable({
   tableOptions,
   navigateToAppDetails,
   navigateToPublishApp,
+  navigatreToInstallApp,
   changeSelectedTab,
   errorMessage,
 }: ApplicationsTableProps) {
@@ -57,6 +59,8 @@ export default function ApplicationsTable({
       headerTitle={t.title}
       headerOptionText={t.publishNewAppText}
       headerOnOptionClick={navigateToPublishApp}
+      headerSecondOptionText={t.installNewAppText}
+      headerOnSecondOptionClick={navigatreToInstallApp}
     >
       <FlexWrapper>
         <OptionsHeader
