@@ -56,7 +56,10 @@ export default function App() {
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />
             <Route path="/applications" element={<ApplicationsPage />} />
-            <Route path="/applications/install" element={<InstallApplication />} />
+            <Route
+              path="/applications/install"
+              element={<InstallApplication />}
+            />
             <Route path="/applications/:id" element={<ApplicationDetails />} />
             <Route
               path="/publish-application"

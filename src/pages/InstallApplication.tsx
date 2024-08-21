@@ -61,14 +61,14 @@ export default function InstallApplication() {
         application.hash,
       );
     if (response.error) {
-        setInstallAppStatus({
+      setInstallAppStatus({
         title: t.failInstallTitle,
         message: response.error.message,
         error: true,
       });
       return null;
     } else {
-        setInstallAppStatus({
+      setInstallAppStatus({
         title: t.successInstallTitle,
         message: `Installed application ${application.name}, version ${application.version}.`,
         error: false,

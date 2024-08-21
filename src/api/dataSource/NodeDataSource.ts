@@ -410,7 +410,7 @@ export class NodeDataSource implements NodeApi {
             url: ipfsPath,
             version: selectedVersion,
             // TODO: parse hash to format
-            metadata: Array.from(new TextEncoder().encode(selectedPackageId))
+            metadata: Array.from(new TextEncoder().encode(selectedPackageId)),
           },
           headers ?? {},
         );

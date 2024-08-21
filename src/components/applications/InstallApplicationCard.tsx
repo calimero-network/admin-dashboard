@@ -6,7 +6,7 @@ import { Application } from '../../pages/InstallApplication';
 import Button from '../common/Button';
 import ApplicationsPopup from '../context/startContext/ApplicationsPopup';
 import StatusModal, { ModalContent } from '../common/StatusModal';
-import translations from "../../constants/en.global.json";
+import translations from '../../constants/en.global.json';
 
 const Wrapper = styled.div`
   display: flex;
@@ -164,14 +164,13 @@ export default function InstallApplicationCard({
   closeModal,
   installAppStatus,
 }: InstallApplicationCardProps) {
-    const t = translations.applicationsPage.installApplication;
+  const t = translations.applicationsPage.installApplication;
   const onStartContextClick = async () => {
     if (!application.appId) {
       return;
     }
     installApplication();
   };
-
 
   return (
     <Wrapper>
