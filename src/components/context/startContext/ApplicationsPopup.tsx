@@ -57,8 +57,8 @@ export default function ApplicationsPopup({
       if (packages.length !== 0) {
         const tempApplications = await Promise.all(
           packages.map(async (appPackage: Package) => {
-            const releseData = await getLatestRelease(appPackage.id);
-            return { ...appPackage, version: releseData?.version! };
+            const releaseData = await getLatestRelease(appPackage.id);
+            return { ...appPackage, version: releaseData?.version! };
           }),
         );
         setApplicationsList((prevState) => ({

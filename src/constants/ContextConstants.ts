@@ -17,4 +17,5 @@ export enum DetailsOptions {
 export enum ApplicationOptions {
   AVAILABLE = 'AVAILABLE',
   OWNED = 'OWNED',
+  INSTALLED = 'INSTALLED',
 }
