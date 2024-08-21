@@ -6,7 +6,7 @@ import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
 import ListTable from '../common/ListTable';
 import applicationRowItem from './ApplicationRowItem';
 import { Options } from '../../constants/ApplicationsConstants';
-import { Applications, Tabs } from '../../pages/Applications';
+import { Applications } from '../../pages/Applications';
 import { Application } from '../../api/dataSource/NodeDataSource';
 
 const FlexWrapper = styled.div`
@@ -35,6 +35,7 @@ interface ApplicationsTableProps {
   tableOptions: TableOptions[];
   navigateToAppDetails: (app: Application | undefined) => void;
   navigateToPublishApp: () => void;
+  navigateToInstallApp: () => void;
   changeSelectedTab: (option: string) => void;
   errorMessage: string;
 }
@@ -48,6 +49,8 @@ export default function ApplicationsTable(props: ApplicationsTableProps) {
       headerTitle={t.title}
       headerOptionText={t.publishNewAppText}
       headerOnOptionClick={props.navigateToPublishApp}
+      headerSecondOptionText={t.installNewAppText}
+      headerOnSecondOptionClick={props.navigateToInstallApp}
     >
       <FlexWrapper>
         <OptionsHeader

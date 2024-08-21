@@ -198,6 +198,7 @@ export default function ApplicationsPage() {
             }
           }}
           navigateToPublishApp={() => navigate('/publish-application')}
+          navigateToInstallApp={() => navigate('/applications/install')}
           changeSelectedTab={(option: string) =>
             setSelectedTab(mapStringToTab(option))
           }
