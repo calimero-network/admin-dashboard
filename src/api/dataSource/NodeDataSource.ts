@@ -4,6 +4,7 @@ import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 import { NodeApi } from '../nodeApi';
 import translations from '../../constants/en.global.json';
+import { createAppMetadata } from '../../utils/metadata';
 
 const t = translations.nodeDataSource;
 
@@ -32,13 +33,21 @@ export interface User {
 export interface Application {
   id: string;
   blob: string;
-  version: string;
+  version: string | null;
   source: string;
-  contract_app_id: string;
+  contract_app_id: string | null;
   name: string | null;
   description: string | null;
   repository: string | null;
   owner: string | null;
+}
+
+export interface InstalledApplication {
+  id: string;
+  blob: string;
+  version: string | null;
+  source: string;
+  metadata: number[];
 }
 
 export interface SigningKey {
@@ -106,7 +115,7 @@ export interface DidResponse {
 }
 
 export interface GetInstalledApplicationsResponse {
-  apps: Application[];
+  apps: InstalledApplication[];
 }
 
 export interface HealthRequest {
@@ -239,6 +248,30 @@ export class NodeDataSource implements NodeApi {
         error: {
           code: 500,
           message: 'Failed to fetch installed applications.',
+        },
+      };
+    }
+  }
+
+  async getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication> {
+    try {
+      const headers: Header | null = await createAuthHeader(
+        getAppEndpointKey() as string,
+      );
+      const response: ResponseData<InstalledApplication> =
+        await this.client.get<InstalledApplication>(
+          `${getAppEndpointKey()}/admin-api/applications/${appId}`,
+          headers ?? {},
+        );
+      return response;
+    } catch (error) {
+      console.error('Error fetching installed application:', error);
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch installed application.',
         },
       };
     }
@@ -403,6 +436,7 @@ export class NodeDataSource implements NodeApi {
           hash,
         }),
       );
+
       const response: ResponseData<InstallApplicationResponse> =
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
@@ -410,7 +444,7 @@ export class NodeDataSource implements NodeApi {
             url: ipfsPath,
             version: selectedVersion,
             // TODO: parse hash to format
-            metadata: Array.from(new TextEncoder().encode(selectedPackageId)),
+            metadata: createAppMetadata(selectedPackageId),
           },
           headers ?? {},
         );

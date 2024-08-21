@@ -12,8 +12,10 @@ import { ApplicationOptions } from '../constants/ContextConstants';
 import {
   Application,
   GetInstalledApplicationsResponse,
+  InstalledApplication,
 } from '../api/dataSource/NodeDataSource';
 import { ResponseData } from '../api/response';
+import { AppMetadata, parseAppMetadata } from '../utils/metadata';
 
 export enum Tabs {
   AVAILABLE,
@@ -35,7 +37,7 @@ function mapStringToTab(tabName: string): Tabs {
 }
 
 export interface Package {
-  id: string;
+  id: string; // this is contract app id
   name: string;
   description: string;
   repository: string;
@@ -47,11 +49,6 @@ export interface Release {
   notes: string;
   path: string;
   hash: string;
-}
-
-export interface InstalledApplication {
-  id: string;
-  version: string;
 }
 
 const initialOptions = [
@@ -141,29 +138,43 @@ export default function ApplicationsPage() {
       }
       let installedApplications = fetchApplicationResponse.data?.apps;
       if (installedApplications.length !== 0) {
-        var tempApplications: Application[] = await Promise.all(
+        var tempApplications: (Application | null)[] = await Promise.all(
           installedApplications.map(
-            async (app: Application): Promise<Application> => {
-              const packageData: Package | null = await getPackage(app.id);
+            async (app: InstalledApplication): Promise<Application | null> => {
+              var appMetadata: AppMetadata | null = parseAppMetadata(
+                app.metadata,
+              );
 
               let application: Application | null = null;
-              if (!packageData) {
+              if (!appMetadata) {
                 application = {
-                  ...app,
+                  id: app.id,
+                  version: app.version,
+                  source: app.source,
+                  blob: app.blob,
+                  contract_app_id: null,
                   name: 'local app',
                   description: null,
                   repository: null,
                   owner: null,
                 };
               } else {
-                application = {
-                  ...app,
-                  name: packageData?.name ?? '',
-                  description: packageData?.description,
-                  repository: packageData?.repository,
-                  owner: packageData?.owner,
-                };
+                const packageData: Package | null = await getPackage(
+                  appMetadata.contractAppId,
+                );
+
+                if (packageData) {
+                  application = {
+                    ...app,
+                    contract_app_id: appMetadata.contractAppId,
+                    name: packageData?.name ?? '',
+                    description: packageData?.description,
+                    repository: packageData?.repository,
+                    owner: packageData?.owner,
+                  };
+                }
               }
+
               return application;
             },
           ),
@@ -193,7 +204,7 @@ export default function ApplicationsPage() {
           setCurrentOption={setCurrentOption}
           tableOptions={tableOptions}
           navigateToAppDetails={(app: Application | undefined) => {
-            if (app && app.version) {
+            if (app) {
               navigate(`/applications/${app.id}`);
             }
           }}

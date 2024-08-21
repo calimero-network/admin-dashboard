@@ -59,7 +59,7 @@ export default function applicationRowItem(
     <RowItem key={item.id} $hasBorders={id === count}>
       <div
         className="row-item name"
-        onClick={() => onRowItemClick && onRowItemClick(item.contract_app_id)}
+        onClick={() => onRowItemClick && onRowItemClick(item.id)}
       >
         {item.name}
       </div>
