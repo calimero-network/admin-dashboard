@@ -54,7 +54,7 @@ export const RowItem = styled.div<RowItemProps>`
     cursor: pointer;
   }
   .copy-icon:hover {
-  color: #fff;
+    color: #fff;
   }
 `;
 
@@ -63,26 +63,34 @@ export default function releaseRowItem(
   id: number,
   count: number,
 ): JSX.Element {
-
   const copyToClippboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      console.log('Text copied to clipboard');
-    }).catch(err => {
-      console.error('Failed to copy text to clipboard: ', err);
-    });
-  }
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        console.log('Text copied to clipboard');
+      })
+      .catch((err) => {
+        console.error('Failed to copy text to clipboard: ', err);
+      });
+  };
 
   return (
     <RowItem key={item.hash} $hasBorders={id === count}>
       <div className="row-item name">{item.version}</div>
       <div className="row-item read">
-        <ClipboardDocumentIcon className="copy-icon" onClick={() => copyToClippboard(item.path)}/>
+        <ClipboardDocumentIcon
+          className="copy-icon"
+          onClick={() => copyToClippboard(item.path)}
+        />
         <span className="long-text">{item.path.substring(0, 20)}...</span>
       </div>
       <div className="row-item read">
         <span className="long-text">{item.notes}</span>
       </div>
-      <ClipboardDocumentIcon className="copy-icon" onClick={() => copyToClippboard(item.hash)}/>
+      <ClipboardDocumentIcon
+        className="copy-icon"
+        onClick={() => copyToClippboard(item.hash)}
+      />
       <div className="row-item read">{truncateHash(item.hash)}</div>
     </RowItem>
   );
