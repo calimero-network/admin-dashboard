@@ -34,7 +34,7 @@ export default function ApplicationDetailsPage() {
       }
     };
     fetchApplicationData();
-  }, [getPackage, getReleases, id]);
+  }, [id]);
 
   return (
     <FlexLayout>

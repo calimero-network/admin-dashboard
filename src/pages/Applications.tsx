@@ -16,8 +16,22 @@ import {
 import { ResponseData } from '../api/response';
 
 export enum Tabs {
-  INSTALL_APPLICATION,
-  APPLICATION_LIST,
+  AVAILABLE,
+  OWNED,
+  INSTALLED,
+}
+
+function mapStringToTab(tabName: string): Tabs {
+  switch (tabName.toUpperCase()) {
+    case 'AVAILABLE':
+      return Tabs.AVAILABLE;
+    case 'OWNED':
+      return Tabs.OWNED;
+    case 'INSTALLED':
+      return Tabs.INSTALLED;
+    default:
+      return Tabs.AVAILABLE;
+  }
 }
 
 export interface Package {
@@ -51,34 +65,67 @@ const initialOptions = [
     id: ApplicationOptions.OWNED,
     count: 0,
   },
+  {
+    name: 'Installed',
+    id: ApplicationOptions.INSTALLED,
+    count: 0,
+  },
 ];
 
 export interface Applications {
   available: Application[];
   owned: Application[];
+  installed: Application[];
 }
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
-  const { getPackages, getPackage } = useRPC();
-  const [selectedTab, setSelectedTab] = useState(Tabs.APPLICATION_LIST);
+  const { getPackages, getLatestRelease, getPackage } = useRPC();
+  const [_selectedTab, setSelectedTab] = useState(Tabs.AVAILABLE);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentOption, setCurrentOption] = useState<string>(
     ApplicationOptions.AVAILABLE,
   );
   const [tableOptions] = useState<TableOptions[]>(initialOptions);
-  const [packages, setPackages] = useState<Package[]>([]);
   const [applications, setApplications] = useState<Applications>({
     available: [],
     owned: [],
+    installed: [],
   });
 
   useEffect(() => {
-    if (!packages.length) {
-      (async () => {
-        setPackages(await getPackages());
-      })();
-    }
+    const setApplicationsList = async () => {
+      const packages = await getPackages();
+      if (packages.length !== 0) {
+        var tempApplications: Application[] = await Promise.all(
+          packages.map(async (appPackage: Package) => {
+            const releaseData = await getLatestRelease(appPackage.id);
+
+            const application: Application = {
+              id: appPackage.id,
+              name: appPackage.name,
+              description: appPackage.description,
+              repository: appPackage.repository,
+              owner: appPackage.owner,
+              version: releaseData?.version ?? '',
+              blob: '',
+              source: '',
+              contract_app_id: appPackage.id,
+            };
+            return application;
+          }),
+        );
+
+        //remove all apps without release
+        tempApplications = tempApplications.filter((app) => app.version !== '');
+
+        setApplications((prevState: Applications) => ({
+          ...prevState,
+          available: tempApplications,
+        }));
+      }
+    };
+    setApplicationsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -92,44 +139,49 @@ export default function ApplicationsPage() {
         setErrorMessage(fetchApplicationResponse.error.message);
         return;
       }
-
       let installedApplications = fetchApplicationResponse.data?.apps;
       if (installedApplications.length !== 0) {
-        var tempApplications: (Application | null)[] = await Promise.all(
+        var tempApplications: Application[] = await Promise.all(
           installedApplications.map(
-            async (app: Application): Promise<Application | null> => {
-              const packageData: Package | null = await getPackage(
-                app.contract_app_id,
-              );
-              if (!packageData) {
-                return null;
-              }
+            async (app: Application): Promise<Application> => {
+              const packageData: Package | null = await getPackage(app.id);
 
-              const application: Application = {
-                ...app,
-                name: packageData?.name ?? '',
-                description: packageData?.description,
-                repository: packageData?.repository,
-                owner: packageData?.owner,
-              };
+              let application: Application | null = null;
+              if (!packageData) {
+                application = {
+                  ...app,
+                  name: 'local app',
+                  description: null,
+                  repository: null,
+                  owner: null,
+                };
+              } else {
+                application = {
+                  ...app,
+                  name: packageData?.name ?? '',
+                  description: packageData?.description,
+                  repository: packageData?.repository,
+                  owner: packageData?.owner,
+                };
+              }
               return application;
             },
           ),
         );
-        var available: Application[] = tempApplications.filter(
+        var installed: Application[] = tempApplications.filter(
           (app): app is Application => app !== null,
         );
 
         setApplications((prevState: Applications) => ({
           ...prevState,
-          available: available,
+          installed,
         }));
       }
     };
 
     setApps();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTab]);
+  }, []);
 
   return (
     <FlexLayout>
@@ -140,9 +192,15 @@ export default function ApplicationsPage() {
           currentOption={currentOption}
           setCurrentOption={setCurrentOption}
           tableOptions={tableOptions}
-          navigateToAppDetails={(id: string) => navigate(`/applications/${id}`)}
+          navigateToAppDetails={(app: Application | undefined) => {
+            if (app && app.version) {
+              navigate(`/applications/${app.id}`);
+            }
+          }}
           navigateToPublishApp={() => navigate('/publish-application')}
-          changeSelectedTab={() => setSelectedTab(Tabs.INSTALL_APPLICATION)}
+          changeSelectedTab={(option: string) =>
+            setSelectedTab(mapStringToTab(option))
+          }
           errorMessage={errorMessage}
         />
       </PageContentWrapper>
