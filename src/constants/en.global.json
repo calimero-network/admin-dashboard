@@ -74,13 +74,20 @@
     },
     "installApplication": {
       "title": "Install Application",
-      "backbuttonText": "Back to Applications",
+      "backButtonText": "Back to Applications",
       "selectAppLabel": "Select Application to Install",
       "dropdownPlaceholder": "Applications",
       "packageDetailsLabel": "Package Details",
       "releaseSelectionLabel": "Select Application Release",
       "releaseDetailsLabel": "Release Details",
-      "installErrorTitle": "Failed to install application"
+      "installErrorTitle": "Failed to install application",
+      "selectApplicationTitle": "Select app from the marketplace or publish new application",
+      "selectedApplicationTitle": "Selected Application",
+      "idLabelText": "Application ID: ",
+      "nameLabelText": "Application Name: ",
+      "versionLabelText": "Version: ",
+      "failInstallTitle": "Error installing application",
+      "successInstallTitle": "Application installed successfully"
     },
     "publishApplication": {
       "title": "Publish new application",
