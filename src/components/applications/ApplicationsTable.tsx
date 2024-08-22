@@ -33,22 +33,14 @@ interface ApplicationsTableProps {
   currentOption: string;
   setCurrentOption: (option: string) => void;
   tableOptions: TableOptions[];
-  navigateToAppDetails: (applicationId: string) => void;
+  navigateToAppDetails: (app: Application | undefined) => void;
   navigateToPublishApp: () => void;
-  changeSelectedTab: () => void;
+  navigateToInstallApp: () => void;
+  changeSelectedTab: (option: string) => void;
   errorMessage: string;
 }
 
-export default function ApplicationsTable({
-  applicationsList,
-  currentOption,
-  setCurrentOption,
-  tableOptions,
-  navigateToAppDetails,
-  navigateToPublishApp,
-  changeSelectedTab,
-  errorMessage,
-}: ApplicationsTableProps) {
+export default function ApplicationsTable(props: ApplicationsTableProps) {
   const t = translations.applicationsPage.applicationsTable;
   const headersList = ['NAME', 'ID', 'LATEST VERSION', 'PUBLISHED'];
 
@@ -56,35 +48,65 @@ export default function ApplicationsTable({
     <ContentCard
       headerTitle={t.title}
       headerOptionText={t.publishNewAppText}
-      headerOnOptionClick={navigateToPublishApp}
+      headerOnOptionClick={props.navigateToPublishApp}
+      headerSecondOptionText={t.installNewAppText}
+      headerOnSecondOptionClick={props.navigateToInstallApp}
     >
       <FlexWrapper>
         <OptionsHeader
-          tableOptions={tableOptions}
+          tableOptions={props.tableOptions}
           showOptionsCount={false}
-          currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
+          currentOption={props.currentOption}
+          setCurrentOption={props.setCurrentOption}
         />
-        {currentOption === Options.AVAILABLE ? (
+        {props.currentOption === Options.AVAILABLE && (
           <ListTable<Application>
             listHeaderItems={headersList}
             numOfColumns={4}
-            listItems={applicationsList.available}
+            listItems={props.applicationsList.available}
             rowItem={applicationRowItem}
             roundTopItem={true}
             noItemsText={t.noAvailableAppsText}
-            onRowItemClick={navigateToAppDetails}
-            error={errorMessage}
+            onRowItemClick={(applicationId: string) => {
+              var app = props.applicationsList.available.find(
+                (app) => app.id === applicationId,
+              );
+              props.navigateToAppDetails(app);
+            }}
+            error={props.errorMessage}
           />
-        ) : (
+        )}
+        {props.currentOption === Options.OWNED && (
           <ListTable<Application>
             listHeaderItems={headersList}
             numOfColumns={4}
-            listItems={applicationsList.owned}
+            listItems={props.applicationsList.owned}
             rowItem={applicationRowItem}
             roundTopItem={true}
             noItemsText={t.noOwnedAppsText}
-            onRowItemClick={navigateToAppDetails}
+            onRowItemClick={(applicationId: string) => {
+              var app = props.applicationsList.owned.find(
+                (app) => app.id === applicationId,
+              );
+              props.navigateToAppDetails(app);
+            }}
+            error={props.errorMessage}
+          />
+        )}
+        {props.currentOption === Options.INSTALLED && (
+          <ListTable<Application>
+            listHeaderItems={headersList}
+            numOfColumns={4}
+            listItems={props.applicationsList.installed}
+            rowItem={applicationRowItem}
+            roundTopItem={true}
+            noItemsText={t.noInstalledAppsText}
+            onRowItemClick={(applicationId: string) => {
+              var app = props.applicationsList.installed.find(
+                (app) => app.id === applicationId,
+              );
+              props.navigateToAppDetails(app);
+            }}
           />
         )}
       </FlexWrapper>

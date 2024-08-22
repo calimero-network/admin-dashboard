@@ -3,6 +3,10 @@ import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 import { NodeApi } from '../nodeApi';
+import translations from '../../constants/en.global.json';
+import { createAppMetadata } from '../../utils/metadata';
+
+const t = translations.nodeDataSource;
 
 export enum Network {
   NEAR = 'NEAR',
@@ -29,13 +33,21 @@ export interface User {
 export interface Application {
   id: string;
   blob: string;
-  version: string;
+  version: string | null;
   source: string;
-  contract_app_id: string;
+  contract_app_id: string | null;
   name: string | null;
   description: string | null;
   repository: string | null;
   owner: string | null;
+}
+
+export interface InstalledApplication {
+  id: string;
+  blob: string;
+  version: string | null;
+  source: string;
+  metadata: number[];
 }
 
 export interface SigningKey {
@@ -103,7 +115,7 @@ export interface DidResponse {
 }
 
 export interface GetInstalledApplicationsResponse {
-  apps: Application[];
+  apps: InstalledApplication[];
 }
 
 export interface HealthRequest {
@@ -124,6 +136,88 @@ export interface DeleteContextResponse {
 
 export interface JoinContextResponse {
   data: null;
+}
+
+export interface SignatureMessage {
+  nodeSignature: String;
+  publicKey: String;
+}
+
+export interface SignatureMessageMetadata {
+  publicKey: String;
+  nodeSignature: String;
+  nonce: String;
+  timestamp: number;
+  message: string; //signed message by wallet
+}
+
+interface WalletTypeBase<T extends Uppercase<string>> {
+  type: T;
+}
+
+interface ETHWalletType extends WalletTypeBase<'ETH'> {
+  chainId: number;
+}
+
+interface NEARWalletType extends WalletTypeBase<'NEAR'> {
+  networkId: string;
+}
+
+export type WalletType = ETHWalletType | NEARWalletType;
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export namespace WalletType {
+  export function NEAR({
+    networkId = 'mainnet',
+  }: {
+    networkId?: string;
+  }): WalletType {
+    return { type: 'NEAR', networkId } as NEARWalletType;
+  }
+
+  export function ETH({ chainId = 1 }: { chainId?: number }): WalletType {
+    return { type: 'ETH', chainId } as ETHWalletType;
+  }
+}
+
+export interface WalletMetadata {
+  wallet: WalletType;
+  signingKey: String;
+}
+
+export interface Payload {
+  message: SignatureMessageMetadata;
+  metadata: SignatureMetadata;
+}
+
+export interface LoginRequest {
+  walletSignature: String;
+  payload: Payload;
+  walletMetadata: WalletMetadata;
+}
+
+export interface LoginResponse {}
+export interface RootKeyResponse {}
+export interface SignatureMetadata {}
+
+export interface NodeChallenge {
+  nonce: String;
+  contextId: String;
+  timestamp: number;
+  nodeSignature: String;
+}
+
+export interface NearSignatureMessageMetadata extends SignatureMetadata {
+  recipient: String;
+  callbackUrl: String;
+  nonce: String;
+}
+
+export interface EthSignatureMessageMetadata extends SignatureMetadata {}
+
+export interface WalletSignatureData {
+  payload: Payload | undefined;
+  publicKey: String | undefined;
 }
 
 export interface InstallApplicationResponse {
@@ -154,6 +248,30 @@ export class NodeDataSource implements NodeApi {
         error: {
           code: 500,
           message: 'Failed to fetch installed applications.',
+        },
+      };
+    }
+  }
+
+  async getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication> {
+    try {
+      const headers: Header | null = await createAuthHeader(
+        getAppEndpointKey() as string,
+      );
+      const response: ResponseData<InstalledApplication> =
+        await this.client.get<InstalledApplication>(
+          `${getAppEndpointKey()}/admin-api/applications/${appId}`,
+          headers ?? {},
+        );
+      return response;
+    } catch (error) {
+      console.error('Error fetching installed application:', error);
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch installed application.',
         },
       };
     }
@@ -318,13 +436,15 @@ export class NodeDataSource implements NodeApi {
           hash,
         }),
       );
+
       const response: ResponseData<InstallApplicationResponse> =
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
           {
-            contract_app_id: selectedPackageId,
-            version: selectedVersion,
             url: ipfsPath,
+            version: selectedVersion,
+            // TODO: parse hash to format
+            metadata: createAppMetadata(selectedPackageId),
           },
           headers ?? {},
         );
@@ -347,8 +467,38 @@ export class NodeDataSource implements NodeApi {
       );
       return response;
     } catch (error) {
-      console.error('Error joining context:', error);
-      return { error: { code: 500, message: 'Failed to join context.' } };
+      console.error(`${t.joinContextErrorTitle}: ${error}`);
+      return { error: { code: 500, message: t.joinContextErrorMessage } };
     }
+  }
+  async login(loginRequest: LoginRequest): ApiResponse<LoginResponse> {
+    return await this.client.post<LoginRequest>(
+      `${getAppEndpointKey()}/admin-api/add-client-key`,
+      {
+        ...loginRequest,
+      },
+    );
+  }
+  async requestChallenge(): ApiResponse<NodeChallenge> {
+    return await this.client.post<NodeChallenge>(
+      `${getAppEndpointKey()}/admin-api/request-challenge`,
+      {},
+    );
+  }
+  async addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse> {
+    const headers: Header | null = await createAuthHeader(
+      JSON.stringify(rootKeyRequest),
+    );
+    if (!headers) {
+      return { error: { code: 401, message: 'Unauthorized' } };
+    }
+
+    return await this.client.post<LoginRequest>(
+      `${getAppEndpointKey()}/admin-api/root-key`,
+      {
+        ...rootKeyRequest,
+      },
+      headers,
+    );
   }
 }

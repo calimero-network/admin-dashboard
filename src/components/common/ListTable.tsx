@@ -113,36 +113,34 @@ interface ListTableProps<T> {
   onRowItemClick?: (id: string, isAccepted?: boolean) => void;
 }
 
-export default function ListTable<T>({
-  listDescription,
-  listHeaderItems,
-  listItems,
-  error,
-  rowItem,
-  numOfColumns,
-  roundTopItem,
-  noItemsText,
-  onRowItemClick,
-}: ListTableProps<T>) {
+export default function ListTable<T>(props: ListTableProps<T>) {
   return (
-    <ListWrapper $numOfColumns={numOfColumns ?? 0} $roundTopItem={roundTopItem}>
-      {listDescription && (
-        <div className="table-description">{listDescription}</div>
+    <ListWrapper
+      $numOfColumns={props.numOfColumns ?? 0}
+      $roundTopItem={props.roundTopItem}
+    >
+      {props.listDescription && (
+        <div className="table-description">{props.listDescription}</div>
       )}
-      {listHeaderItems && listHeaderItems?.length > 0 && (
-        <TableHeader tableHeaderItems={listHeaderItems} />
+      {props.listHeaderItems && props.listHeaderItems?.length > 0 && (
+        <TableHeader tableHeaderItems={props.listHeaderItems} />
       )}
-      {error ? (
+      {props.error ? (
         <div className="container">
-          <div className="error-text">{error}</div>
+          <div className="error-text">{props.error}</div>
         </div>
       ) : (
         <div className="list-items">
-          {listItems?.map((item: T, id: number) =>
-            rowItem(item, id, listItems.length - 1, onRowItemClick),
+          {props.listItems?.map((item: T, id: number) =>
+            props.rowItem(
+              item,
+              id,
+              props.listItems.length - 1,
+              props?.onRowItemClick,
+            ),
           )}
-          {listItems?.length === 0 && (
-            <div className="no-items-text">{noItemsText}</div>
+          {props.listItems?.length === 0 && (
+            <div className="no-items-text">{props.noItemsText}</div>
           )}
         </div>
       )}

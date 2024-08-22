@@ -1,26 +1,96 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WalletSelectorContextProvider } from '@calimero-is-near/calimero-p2p-sdk';
-import { NearLogin } from '@calimero-is-near/calimero-p2p-sdk';
-import ContentWrapper from '../components/login/ContentWrapper';
+
+import Loading from '../components/common/Loading';
+import { useWalletSelector } from '../context/WalletSelectorContext';
+import { useNear, useWallet } from '../hooks/useNear';
 
 import '@near-wallet-selector/modal-ui/styles.css';
-import { getNearEnvironment, getNodeUrl } from '../utils/node';
+import ContentWrapper from '../components/login/ContentWrapper';
+import NearWallet, { Account } from '../components/near/NearWallet';
 
-export default function NearPage() {
+export interface Message {
+  premium: boolean;
+  sender: string;
+  text: string;
+}
+
+interface NearLoginProps {
+  isLogin: boolean;
+}
+
+export default function NearLogin({ isLogin }: NearLoginProps) {
   const navigate = useNavigate();
+  const { selector, accounts, modal, accountId } = useWalletSelector();
+  const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear(
+    {
+      accountId,
+      selector,
+    },
+  );
+  const { handleSwitchWallet, handleSwitchAccount, handleSignOut } =
+    useWallet();
+  const [account, setAccount] = useState<Account | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const appName = 'me';
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      verifyMessageBrowserWallet(isLogin, setErrorMessage);
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!accountId) {
+      return setAccount(null);
+    }
+    setLoading(true);
+    getAccount().then((nextAccount: any) => {
+      setAccount(nextAccount);
+      setLoading(false);
+    });
+  }, [accountId, getAccount]);
+
+  if (loading) {
+    return (
+      <ContentWrapper>
+        <Loading />
+      </ContentWrapper>
+    );
+  }
 
   return (
     <ContentWrapper>
-      <WalletSelectorContextProvider network={getNearEnvironment()}>
-        <NearLogin
-          rpcBaseUrl={getNodeUrl()}
-          successRedirect={() => navigate('/identity')}
-          navigateBack={() => navigate('/auth')}
-          cardBackgroundColor={'#1c1c1c'}
-          nearTitleColor={'white'}
-        />
-      </WalletSelectorContextProvider>
+      <NearWallet
+        isLogin={isLogin}
+        navigateBack={() =>
+          isLogin ? navigate('/auth') : navigate('/identity/root-key')
+        }
+        account={account}
+        accounts={accounts}
+        errorMessage={errorMessage}
+        handleSignout={() =>
+          handleSignOut({
+            account,
+            selector,
+            setAccount,
+            setErrorMessage,
+          })
+        }
+        handleSwitchWallet={() => handleSwitchWallet(modal)}
+        handleSignMessage={() =>
+          handleSignMessage({ selector, appName, setErrorMessage })
+        }
+        handleSwitchAccount={() =>
+          handleSwitchAccount({ accounts, accountId, selector })
+        }
+      />
     </ContentWrapper>
   );
 }

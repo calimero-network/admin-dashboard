@@ -7,10 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import { useRPC } from '../hooks/useNear';
 import { Package, Release } from './Applications';
 import ApplicationDetailsTable from '../components/applications/details/ApplicationDetailsTable';
+import apiClient from '../api';
+import { ResponseData } from '../api/response';
+import { AppMetadata, parseAppMetadata } from '../utils/metadata';
+import { InstalledApplication } from '../api/dataSource/NodeDataSource';
+import { execFileSync } from 'child_process';
 
 export interface AppDetails {
   package: Package;
-  releases: Release[];
+  releases: Release[] | null;
 }
 
 export default function ApplicationDetailsPage() {
@@ -23,18 +28,52 @@ export default function ApplicationDetailsPage() {
   useEffect(() => {
     const fetchApplicationData = async () => {
       if (id) {
-        const packageData = await getPackage(id);
-        const versionData = await getReleases(id);
-        if (packageData && versionData) {
+        const fetchApplicationDetailsResponse: ResponseData<InstalledApplication> =
+          await apiClient.node().getInstalledApplicationDetails(id);
+
+        let appMetadata: AppMetadata | null = null;
+        if (fetchApplicationDetailsResponse.error) {
+          // dangerous: contract app id has different format than our app id so it returns bad request
+          if (fetchApplicationDetailsResponse.error.code === 400) {
+            //marketplace app
+            appMetadata = {
+              contractAppId: id,
+            };
+          } else {
+            //Handle error
+            console.error(fetchApplicationDetailsResponse.error.message);
+          }
+        } else {
+          appMetadata = parseAppMetadata(
+            fetchApplicationDetailsResponse.data.metadata,
+          );
+        }
+
+        if (appMetadata) {
+          const packageData = await getPackage(appMetadata.contractAppId);
+          const versionData = await getReleases(appMetadata.contractAppId);
+          if (packageData && versionData) {
+            setApplicationInformation({
+              package: packageData,
+              releases: versionData,
+            });
+          }
+        } else {
           setApplicationInformation({
-            package: packageData,
-            releases: versionData,
+            package: {
+              id: id,
+              name: 'Local app',
+              description: '',
+              repository: '',
+              owner: '',
+            },
+            releases: null,
           });
         }
       }
     };
     fetchApplicationData();
-  }, [getPackage, getReleases, id]);
+  }, [id]);
 
   return (
     <FlexLayout>

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { setNodeUrlFromQuery } from './utils/storage';
+import { useServerDown } from './context/ServerDownContext';
 
 import Identity from './pages/Identity';
 import ApplicationsPage from './pages/Applications';
@@ -13,16 +14,16 @@ import ApplicationDetails from './pages/ApplicationDetails';
 import PublishApplication from './pages/PublishApplication';
 import AddRelease from './pages/AddRelease';
 import Metamask from './pages/Metamask';
-import AddNearRootKey from './pages/AddNearRootKey';
-import AddMetamaskRootKey from './pages/AddMetamaskRootKey';
 import Authenticate from './pages/Authenticate';
 import AddRootKey from './pages/AddRootKey';
 import SetupPage from './pages/setup';
 import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
+import NearRoute from './components/near/NearRoute';
+import MetamaskRoute from './components/metamask/MetamaskRoute';
+import InstallApplication from './pages/InstallApplication';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useServerDown } from './context/ServerDownContext';
 
 export default function App() {
   const { showServerDownPopup } = useServerDown();
@@ -38,19 +39,30 @@ export default function App() {
           <Route path="/" element={<SetupPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/auth" element={<Authenticate />} />
-            <Route path="/auth/near" element={<Near />} />
-            <Route path="/auth/metamask" element={<Metamask />} />
+            <Route element={<NearRoute />}>
+              <Route path="/auth/near" element={<Near isLogin={true} />} />
+              <Route
+                path="/identity/root-key/near"
+                element={<Near isLogin={false} />}
+              />
+            </Route>
+            <Route element={<MetamaskRoute />}>
+              <Route
+                path="/auth/metamask"
+                element={<Metamask isLogin={true} />}
+              />
+              <Route
+                path="/identity/root-key/metamask"
+                element={<Metamask isLogin={false} />}
+              />
+            </Route>
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />
-            <Route
-              path="/identity/root-key/near"
-              element={<AddNearRootKey />}
-            />
-            <Route
-              path="/identity/root-key/metamask"
-              element={<AddMetamaskRootKey />}
-            />
             <Route path="/applications" element={<ApplicationsPage />} />
+            <Route
+              path="/applications/install"
+              element={<InstallApplication />}
+            />
             <Route path="/applications/:id" element={<ApplicationDetails />} />
             <Route
               path="/publish-application"

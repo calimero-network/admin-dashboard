@@ -16,6 +16,7 @@ const FlexWrapper = styled.div`
   .button-wrapper {
     padding: 1.5rem 1rem 2.563rem;
   }
+  padding: 1rem;
 `;
 
 interface PublishApplicationTableProps {
@@ -68,38 +69,43 @@ export default function PublishApplicationTable({
         modalContent={deployStatus}
       />
       <FlexWrapper>
-        <AddPackageForm
-          packageInfo={packageInfo}
-          setPackageInfo={setPackageInfo}
-        />
-        <AddReleaseForm
-          handleFileChange={handleFileChange}
-          fileHash={fileHash}
-          releaseInfo={releaseInfo}
-          setReleaseInfo={setReleaseInfo}
-          fileInputRef={fileInputRef}
-        />
         <ConnectWalletAccountCard onClick={addWalletAccount} />
-        <div className="button-wrapper">
-          <Button
-            text={t.buttonText}
-            width="100%"
-            onClick={publishApplication}
-            isDisabled={
-              !(
-                deployerAccount &&
-                packageInfo.name &&
-                packageInfo.description &&
-                packageInfo.repository &&
-                releaseInfo.version &&
-                releaseInfo.notes &&
-                releaseInfo.path &&
-                releaseInfo.hash
-              )
-            }
-            isLoading={isLoading}
-          />
-        </div>
+
+        {deployerAccount && (
+          <>
+            <AddPackageForm
+              packageInfo={packageInfo}
+              setPackageInfo={setPackageInfo}
+            />
+            <AddReleaseForm
+              handleFileChange={handleFileChange}
+              fileHash={fileHash}
+              releaseInfo={releaseInfo}
+              setReleaseInfo={setReleaseInfo}
+              fileInputRef={fileInputRef}
+            />
+            <div className="button-wrapper">
+              <Button
+                text={t.buttonText}
+                width="100%"
+                onClick={publishApplication}
+                isDisabled={
+                  !(
+                    deployerAccount &&
+                    packageInfo.name &&
+                    packageInfo.description &&
+                    packageInfo.repository &&
+                    releaseInfo.version &&
+                    releaseInfo.notes &&
+                    releaseInfo.path &&
+                    releaseInfo.hash
+                  )
+                }
+                isLoading={isLoading}
+              />
+            </div>
+          </>
+        )}
       </FlexWrapper>
     </ContentCard>
   );

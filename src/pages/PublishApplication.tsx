@@ -4,6 +4,7 @@ import { FlexLayout } from '../components/layout/FlexLayout';
 import {
   Account,
   BrowserWallet,
+  NetworkId,
   setupWalletSelector,
 } from '@near-wallet-selector/core';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
@@ -72,7 +73,8 @@ export default function PublishApplicationPage() {
     (async () => {
       setPackages(await getPackages());
     })();
-  }, [getPackages, ipfsPath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ipfsPath]);
 
   useEffect(() => {
     setReleaseInfo((prevState) => ({
@@ -99,7 +101,7 @@ export default function PublishApplicationPage() {
 
   const addWalletAccount = async () => {
     const selector = await setupWalletSelector({
-      network: getNearEnvironment(),
+      network: getNearEnvironment() as NetworkId,
       modules: [setupMyNearWallet()],
     });
     const wallet: BrowserWallet = await selector.wallet('my-near-wallet');

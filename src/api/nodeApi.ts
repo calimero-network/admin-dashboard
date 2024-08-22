@@ -12,11 +12,19 @@ import {
   DidResponse,
   DeleteContextResponse,
   JoinContextResponse,
+  LoginRequest,
+  LoginResponse,
+  NodeChallenge,
+  RootKeyResponse,
   InstallApplicationResponse,
+  InstalledApplication,
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
+  getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication>;
   getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
@@ -37,4 +45,7 @@ export interface NodeApi {
     hash: string,
   ): ApiResponse<InstallApplicationResponse>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
+  login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;
+  requestChallenge(): ApiResponse<NodeChallenge>;
+  addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse>;
 }
