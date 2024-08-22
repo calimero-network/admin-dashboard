@@ -48,7 +48,7 @@ const RowItem = styled.div<ApplicationRowItemProps>`
   .read {
     color: #9c9da3;
   }
-  
+
   .copy-icon {
     height: 1.5rem;
     width: 1.5rem;
@@ -81,12 +81,12 @@ export default function applicationRowItem(
         {item.name}
       </div>
       <div className="row-item read">
-      <ClipboardDocumentIcon
-        className="copy-icon"
-        onClick={() => copyToClippboard(item.id)}
-      />
+        <ClipboardDocumentIcon
+          className="copy-icon"
+          onClick={() => copyToClippboard(item.id)}
+        />
         <span>{truncateHash(item.id)}</span>
-        </div>
+      </div>
       <div className="row-item read">{item.version}</div>
       <div className="row-item read">-</div>
     </RowItem>
