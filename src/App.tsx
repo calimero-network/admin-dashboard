@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { setNodeUrlFromQuery } from './utils/storage';
+import { useServerDown } from './context/ServerDownContext';
 
 import Identity from './pages/Identity';
 import ApplicationsPage from './pages/Applications';
@@ -19,14 +20,16 @@ import SetupPage from './pages/setup';
 import Near from './pages/Near';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoute';
 import NearRoute from './components/near/NearRoute';
-
-import 'bootstrap/dist/css/bootstrap.min.css';
 import MetamaskRoute from './components/metamask/MetamaskRoute';
 import InstallApplication from './pages/InstallApplication';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 export default function App() {
+  const { showServerDownPopup } = useServerDown();
+
   useEffect(() => {
-    setNodeUrlFromQuery();
+    setNodeUrlFromQuery(showServerDownPopup);
   }, []);
 
   return (

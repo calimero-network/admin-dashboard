@@ -261,6 +261,11 @@
     "loggedInLabel": "Logged in with: ",
     "noRootKeysText": "No root keys found in the node."
   },
+  "serverDown": {
+    "useHookComponentErrorText": "useServerDown must be used within a ServerDownProvider",
+    "popupTitle": "503 - Service Unavailable",
+    "popupMessage": "The Node Server at {{nodeApiEndpoint}} is unreachable. Please try again later."
+  },
   "nodeDataSource": {
     "joinContextErrorTitle": "Error joining context",
     "joinContextErrorMessage": "Failed to join context"

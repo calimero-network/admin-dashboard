@@ -16,6 +16,7 @@ import { ModalContent } from '../components/common/StatusModal';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ResponseData } from '../api/response';
 import { ContextObject } from '../types/context';
+import { useServerDown } from '../context/ServerDownContext';
 
 const initialOptions = [
   {
@@ -27,6 +28,7 @@ const initialOptions = [
 
 export default function ContextsPage() {
   const navigate = useNavigate();
+  const { showServerDownPopup } = useServerDown();
   const { getPackage } = useRPC();
   const [currentOption, setCurrentOption] = useState<string>(
     ContextOptions.JOINED,
@@ -74,7 +76,9 @@ export default function ContextsPage() {
 
   const fetchNodeContexts = useCallback(async () => {
     setErrorMessage('');
-    const fetchContextsResponse: ResponseData<ContextList> = await apiClient
+    const fetchContextsResponse: ResponseData<ContextList> = await apiClient(
+      showServerDownPopup,
+    )
       .node()
       .getContexts();
     // TODO - fetch invitations
@@ -109,7 +113,7 @@ export default function ContextsPage() {
 
   const deleteNodeContext = async () => {
     if (!selectedContextId) return;
-    const deleteContextResponse = await apiClient
+    const deleteContextResponse = await apiClient(showServerDownPopup)
       .node()
       .deleteContext(selectedContextId);
     if (deleteContextResponse.error) {

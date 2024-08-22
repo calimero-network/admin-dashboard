@@ -19,6 +19,9 @@ class ApiClient implements IApiClient {
   }
 }
 
-const apiClient = new ApiClient(new AxiosHttpClient(axios));
+const apiClient = (showServerDownPopup: () => void): ApiClient => {
+  const httpClient = new AxiosHttpClient(axios, showServerDownPopup);
+  return new ApiClient(httpClient);
+};
 
 export default apiClient;

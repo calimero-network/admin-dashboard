@@ -37,10 +37,10 @@ export const isNodeAuthorized = (): boolean => {
   return authorized ? JSON.parse(authorized) : false;
 };
 
-export const setNodeUrlFromQuery = async () => {
+export const setNodeUrlFromQuery = async (showServerDownPopup: () => void) => {
   const urlParams = new URLSearchParams(window.location.search);
   const nodeUrl = urlParams.get(NODE_URL);
-  if (nodeUrl && (await verifyNodeUrl(nodeUrl))) {
+  if (nodeUrl && (await verifyNodeUrl(nodeUrl, showServerDownPopup))) {
     setAppEndpointKey(nodeUrl);
     const newUrl = `${window.location.pathname}auth`;
     window.location.href = newUrl;
@@ -51,10 +51,15 @@ export const setNodeUrlFromQuery = async () => {
   }
 };
 
-const verifyNodeUrl = async (url: string): Promise<boolean> => {
+const verifyNodeUrl = async (
+  url: string,
+  showServerDownPopup: () => void,
+): Promise<boolean> => {
   try {
     new URL(url);
-    const response: ResponseData<HealthStatus> = await apiClient
+    const response: ResponseData<HealthStatus> = await apiClient(
+      showServerDownPopup,
+    )
       .node()
       .health({ url: url });
     if (response.data) {

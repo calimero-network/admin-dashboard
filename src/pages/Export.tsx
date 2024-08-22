@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import styled from 'styled-components';
 import ExportCard from '../components/exportIdentity/ExportCard';
 import translations from '../constants/en.global.json';
 import { ModalContentItem } from '../components/common/StatusModalItem';
-import { getAppEndpointKey } from '../utils/storage';
+import apiClient from '../api';
+import { useServerDown } from '../context/ServerDownContext';
 
 const ExportWrapper = styled.div`
   display: flex;
@@ -22,6 +22,7 @@ const ExportWrapper = styled.div`
 `;
 export default function ExportPage() {
   const t = translations.exportIdentityPage;
+  const { showServerDownPopup } = useServerDown();
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ModalContentItem>({
     title: '',
@@ -31,8 +32,8 @@ export default function ExportPage() {
 
   const exportIdentity = async () => {
     try {
-      const response = await axios.get(`${getAppEndpointKey()}/admin-api/did`);
-      const identity = JSON.stringify(response?.data?.data?.root_keys, null, 2);
+      const response = await apiClient(showServerDownPopup).node().getDidList();
+      const identity = JSON.stringify(response?.data?.did, null, 2);
       setExportStatus({
         title: t.exportSuccessTitle,
         data: identity,

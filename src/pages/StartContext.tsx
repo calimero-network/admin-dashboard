@@ -7,6 +7,7 @@ import { ContentCard } from '../components/common/ContentCard';
 import StartContextCard from '../components/context/startContext/StartContextCard';
 import translations from '../constants/en.global.json';
 import apiClient from '../api/index';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface ContextApplication {
   appId: string;
@@ -19,6 +20,7 @@ export interface ContextApplication {
 export default function StartContextPage() {
   const t = translations.startContextPage;
   const navigate = useNavigate();
+  const { showServerDownPopup } = useServerDown();
   const [application, setApplication] = useState<ContextApplication>({
     appId: '',
     name: '',
@@ -50,7 +52,7 @@ export default function StartContextPage() {
       setShowStatusModal(true);
       return;
     }
-    const startContextResponse = await apiClient
+    const startContextResponse = await apiClient(showServerDownPopup)
       .node()
       .startContexts(appId, methodName, argumentsJson);
     if (startContextResponse.error) {
@@ -75,7 +77,7 @@ export default function StartContextPage() {
       return null;
     }
 
-    const response = await apiClient
+    const response = await apiClient(showServerDownPopup)
       .node()
       .installApplication(
         application.appId,
