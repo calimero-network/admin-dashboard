@@ -18,7 +18,6 @@ import { ResponseData } from '../api/response';
 import { useServerDown } from '../context/ServerDownContext';
 import { AppMetadata, parseAppMetadata } from '../utils/metadata';
 
-
 export enum Tabs {
   AVAILABLE,
   OWNED,

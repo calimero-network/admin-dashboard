@@ -34,6 +34,7 @@ import { Package, Release } from '../pages/Applications';
 import { getOrCreateKeypair } from '../auth/ed25519';
 import { Account } from '../components/near/NearWallet';
 import translation from '../constants/en.global.json';
+import { useServerDown } from '../context/ServerDownContext';
 
 const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
 // @ts-ignore
@@ -41,6 +42,7 @@ const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
 const t = translation.useNear;
 
 export function useRPC() {
+  const { showServerDownPopup } = useServerDown();
   const getPackages = async (): Promise<Package[]> => {
     const provider = new nearAPI.providers.JsonRpcProvider({
       url: JSON_RPC_ENDPOINT,
@@ -152,6 +154,7 @@ interface HandleSignMessageProps {
   selector: WalletSelector;
   appName: string;
   setErrorMessage: (message: string) => void;
+  showServerDownPopup: () => void;
 }
 
 export function useNear({ accountId, selector }: UseNearProps) {
@@ -212,7 +215,11 @@ export function useNear({ accountId, selector }: UseNearProps) {
   );
 
   const verifyMessageBrowserWallet = useCallback(
-    async (isLogin: boolean, setErrorMessage: (message: string) => void) => {
+    async (
+      isLogin: boolean,
+      setErrorMessage: (message: string) => void,
+      showServerDownPopup: () => void,
+    ) => {
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const accId = urlParams.get('accountId') as string;
       const publicKey = urlParams.get('publicKey') as string;
@@ -284,8 +291,8 @@ export function useNear({ accountId, selector }: UseNearProps) {
         };
 
         const result: ResponseData<LoginResponse> = isLogin
-          ? await apiClient.node().login(nearRequest)
-          : await apiClient.node().addRootKey(nearRequest);
+          ? await apiClient(showServerDownPopup).node().login(nearRequest)
+          : await apiClient(showServerDownPopup).node().addRootKey(nearRequest);
 
         if (result.error) {
           const errorMessage = isLogin ? t.loginError : t.rootkeyError;
@@ -308,11 +315,11 @@ export function useNear({ accountId, selector }: UseNearProps) {
     selector,
     appName,
     setErrorMessage,
+    showServerDownPopup,
   }: HandleSignMessageProps) {
     try {
-      const challengeResponseData: ResponseData<NodeChallenge> = await apiClient
-        .node()
-        .requestChallenge();
+      const challengeResponseData: ResponseData<NodeChallenge> =
+        await apiClient(showServerDownPopup).node().requestChallenge();
 
       if (challengeResponseData.error) {
         return;

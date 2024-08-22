@@ -21,6 +21,7 @@ import {
 } from '../api/dataSource/NodeDataSource';
 import { useNavigate } from 'react-router-dom';
 import translation from '../constants/en.global.json';
+import { useServerDown } from '../context/ServerDownContext';
 
 interface LoginProps {
   setErrorMessage: (msg: string) => void;
@@ -49,6 +50,7 @@ const t = translation.useMetamask;
 
 export function useMetamask(): useMetamaskReturn {
   const navigate = useNavigate();
+  const { showServerDownPopup } = useServerDown();
   const { chainId, ready } = useSDK();
   const { isConnected, address } = useAccount();
   const [walletSignatureData, setWalletSignatureData] =
@@ -70,9 +72,8 @@ export function useMetamask(): useMetamaskReturn {
 
   const requestNodeData = useCallback(
     async ({ setErrorMessage }: RequestNodeDataProps) => {
-      const challengeResponseData: ResponseData<NodeChallenge> = await apiClient
-        .node()
-        .requestChallenge();
+      const challengeResponseData: ResponseData<NodeChallenge> =
+        await apiClient(showServerDownPopup).node().requestChallenge();
       const { publicKey } = await getOrCreateKeypair();
 
       if (challengeResponseData.error) {
@@ -135,8 +136,10 @@ export function useMetamask(): useMetamaskReturn {
           };
 
           const result: ResponseData<LoginResponse> = isLogin
-            ? await apiClient.node().login(metamaskRequest)
-            : await apiClient.node().addRootKey(metamaskRequest);
+            ? await apiClient(showServerDownPopup).node().login(metamaskRequest)
+            : await apiClient(showServerDownPopup)
+                .node()
+                .addRootKey(metamaskRequest);
 
           if (result.error) {
             const errorMessage = isLogin ? t.loginError : t.rootkeyError;
