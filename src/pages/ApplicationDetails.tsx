@@ -31,7 +31,9 @@ export default function ApplicationDetailsPage() {
     const fetchApplicationData = async () => {
       if (id) {
         const fetchApplicationDetailsResponse: ResponseData<InstalledApplication> =
-          await apiClient(showServerDownPopup).node().getInstalledApplicationDetails(id);
+          await apiClient(showServerDownPopup)
+            .node()
+            .getInstalledApplicationDetails(id);
 
         let appMetadata: AppMetadata | null = null;
         if (fetchApplicationDetailsResponse.error) {

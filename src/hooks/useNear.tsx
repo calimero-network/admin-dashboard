@@ -215,7 +215,11 @@ export function useNear({ accountId, selector }: UseNearProps) {
   );
 
   const verifyMessageBrowserWallet = useCallback(
-    async (isLogin: boolean, setErrorMessage: (message: string) => void, showServerDownPopup: () => void) => {
+    async (
+      isLogin: boolean,
+      setErrorMessage: (message: string) => void,
+      showServerDownPopup: () => void,
+    ) => {
       const urlParams = new URLSearchParams(window.location.hash.substring(1));
       const accId = urlParams.get('accountId') as string;
       const publicKey = urlParams.get('publicKey') as string;
@@ -311,12 +315,11 @@ export function useNear({ accountId, selector }: UseNearProps) {
     selector,
     appName,
     setErrorMessage,
-    showServerDownPopup
+    showServerDownPopup,
   }: HandleSignMessageProps) {
     try {
-      const challengeResponseData: ResponseData<NodeChallenge> = await apiClient(showServerDownPopup)
-        .node()
-        .requestChallenge();
+      const challengeResponseData: ResponseData<NodeChallenge> =
+        await apiClient(showServerDownPopup).node().requestChallenge();
 
       if (challengeResponseData.error) {
         return;

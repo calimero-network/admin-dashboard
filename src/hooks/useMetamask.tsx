@@ -72,10 +72,8 @@ export function useMetamask(): useMetamaskReturn {
 
   const requestNodeData = useCallback(
     async ({ setErrorMessage }: RequestNodeDataProps) => {
-      const challengeResponseData: ResponseData<NodeChallenge> = await apiClient
-      (showServerDownPopup)
-        .node()
-        .requestChallenge();
+      const challengeResponseData: ResponseData<NodeChallenge> =
+        await apiClient(showServerDownPopup).node().requestChallenge();
       const { publicKey } = await getOrCreateKeypair();
 
       if (challengeResponseData.error) {
@@ -139,7 +137,9 @@ export function useMetamask(): useMetamaskReturn {
 
           const result: ResponseData<LoginResponse> = isLogin
             ? await apiClient(showServerDownPopup).node().login(metamaskRequest)
-            : await apiClient(showServerDownPopup).node().addRootKey(metamaskRequest);
+            : await apiClient(showServerDownPopup)
+                .node()
+                .addRootKey(metamaskRequest);
 
           if (result.error) {
             const errorMessage = isLogin ? t.loginError : t.rootkeyError;

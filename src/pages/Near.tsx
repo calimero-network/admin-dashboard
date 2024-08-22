@@ -87,7 +87,12 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
         }
         handleSwitchWallet={() => handleSwitchWallet(modal)}
         handleSignMessage={() =>
-          handleSignMessage({ selector, appName, setErrorMessage, showServerDownPopup })
+          handleSignMessage({
+            selector,
+            appName,
+            setErrorMessage,
+            showServerDownPopup,
+          })
         }
         handleSwitchAccount={() =>
           handleSwitchAccount({ accounts, accountId, selector })
