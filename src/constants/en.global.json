@@ -193,7 +193,7 @@
     "contextDetails": {
       "title": "Context Details",
       "clientKeysListDescription": "Client keys are authorization keys used by the application frontend.",
-      "noClientKeysText": "No client keys found in the context.",
+      "noClientKeysText": "No data found.",
       "noUsersText": "No users found in the context.",
       "labelIdText": "Id: ",
       "labelNameText": "Name: ",

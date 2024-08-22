@@ -23,7 +23,7 @@ export default function ApplicationDetailsTable({
   navigateToApplicationList,
   navigateToAddRelease,
 }: ApplicationDetailsTableProps) {
-  const t = translations.contextPage.contextDetails;
+  const t = translations.applicationsPage.applicationsTable;
 
   return (
     <ContentCard
@@ -33,7 +33,12 @@ export default function ApplicationDetailsTable({
         <DetailsCard details={applicationInformation.package} />
       }
       headerOptionText="Add new release"
-      headerOnOptionClick={navigateToAddRelease}
+      headerOnOptionClick={() => {
+        //TODO remove button to upload release for local apps
+        if (applicationInformation.package.owner.length > 0) {
+          navigateToAddRelease();
+        }
+      }}
     >
       <FlexWrapper>
         <ListTable<Release>
@@ -42,7 +47,7 @@ export default function ApplicationDetailsTable({
           listItems={applicationInformation.releases || []}
           rowItem={releaseRowItem}
           roundTopItem={true}
-          noItemsText={t.noClientKeysText}
+          noItemsText={t.noAvailableAppsText}
         />
       </FlexWrapper>
     </ContentCard>

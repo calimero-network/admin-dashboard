@@ -17,10 +17,14 @@ import {
   NodeChallenge,
   RootKeyResponse,
   InstallApplicationResponse,
+  InstalledApplication,
 } from './dataSource/NodeDataSource';
 
 export interface NodeApi {
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
+  getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication>;
   getContexts(): ApiResponse<ContextList>;
   getContext(contextId: string): ApiResponse<ApiContext>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
