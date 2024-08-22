@@ -8,6 +8,7 @@ import { useNear, useWallet } from '../hooks/useNear';
 import '@near-wallet-selector/modal-ui/styles.css';
 import ContentWrapper from '../components/login/ContentWrapper';
 import NearWallet, { Account } from '../components/near/NearWallet';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface Message {
   premium: boolean;
@@ -21,6 +22,7 @@ interface NearLoginProps {
 
 export default function NearLogin({ isLogin }: NearLoginProps) {
   const navigate = useNavigate();
+  const { showServerDownPopup } = useServerDown();
   const { selector, accounts, modal, accountId } = useWalletSelector();
   const { getAccount, handleSignMessage, verifyMessageBrowserWallet } = useNear(
     {
@@ -37,7 +39,7 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      verifyMessageBrowserWallet(isLogin, setErrorMessage);
+      verifyMessageBrowserWallet(isLogin, setErrorMessage, showServerDownPopup);
     }, 500);
 
     return () => {
@@ -85,7 +87,7 @@ export default function NearLogin({ isLogin }: NearLoginProps) {
         }
         handleSwitchWallet={() => handleSwitchWallet(modal)}
         handleSignMessage={() =>
-          handleSignMessage({ selector, appName, setErrorMessage })
+          handleSignMessage({ selector, appName, setErrorMessage, showServerDownPopup })
         }
         handleSwitchAccount={() =>
           handleSwitchAccount({ accounts, accountId, selector })

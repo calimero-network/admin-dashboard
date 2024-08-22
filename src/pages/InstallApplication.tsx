@@ -7,6 +7,7 @@ import { ContentCard } from '../components/common/ContentCard';
 import translations from '../constants/en.global.json';
 import apiClient from '../api/index';
 import InstallApplicationCard from '../components/applications/InstallApplicationCard';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface Application {
   appId: string;
@@ -19,6 +20,7 @@ export interface Application {
 export default function InstallApplication() {
   const t = translations.applicationsPage.installApplication;
   const navigate = useNavigate();
+  const { showServerDownPopup } = useServerDown();
   const [application, setApplication] = useState<Application>({
     appId: '',
     name: '',
@@ -52,7 +54,7 @@ export default function InstallApplication() {
       return null;
     }
 
-    const response = await apiClient
+    const response = await apiClient(showServerDownPopup)
       .node()
       .installApplication(
         application.appId,

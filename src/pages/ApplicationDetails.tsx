@@ -12,6 +12,7 @@ import { ResponseData } from '../api/response';
 import { AppMetadata, parseAppMetadata } from '../utils/metadata';
 import { InstalledApplication } from '../api/dataSource/NodeDataSource';
 import { execFileSync } from 'child_process';
+import { useServerDown } from '../context/ServerDownContext';
 
 export interface AppDetails {
   package: Package;
@@ -20,6 +21,7 @@ export interface AppDetails {
 
 export default function ApplicationDetailsPage() {
   const { id } = useParams();
+  const { showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
   const { getPackage, getReleases } = useRPC();
   const [applicationInformation, setApplicationInformation] =
@@ -29,7 +31,7 @@ export default function ApplicationDetailsPage() {
     const fetchApplicationData = async () => {
       if (id) {
         const fetchApplicationDetailsResponse: ResponseData<InstalledApplication> =
-          await apiClient.node().getInstalledApplicationDetails(id);
+          await apiClient(showServerDownPopup).node().getInstalledApplicationDetails(id);
 
         let appMetadata: AppMetadata | null = null;
         if (fetchApplicationDetailsResponse.error) {
