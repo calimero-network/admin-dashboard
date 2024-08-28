@@ -3,10 +3,12 @@ import { styled } from 'styled-components';
 import translations from '../../../constants/en.global.json';
 import MetamaskIcon from '../../../assets/metamask-icon.svg';
 import NearIcon from '../../../assets/near-icon.svg';
+import StarknetIcon from '../../../assets/starknet-icon.svg';
 
 export interface LoginSelectorProps {
   navigateMetamaskLogin: () => void | undefined;
   navigateNearLogin: () => void | undefined;
+  navigateStarknetLogin: () => void | undefined;
 }
 
 const Wrapper = styled.div`
@@ -84,6 +86,7 @@ const Wrapper = styled.div`
 export default function LoginSelector({
   navigateMetamaskLogin,
   navigateNearLogin,
+  navigateStarknetLogin,
 }: LoginSelectorProps) {
   const t = translations.loginPage.loginSelector;
   return (
@@ -98,6 +101,10 @@ export default function LoginSelector({
           <button className="button-near" onClick={navigateNearLogin}>
             <img src={NearIcon as unknown as string} alt="near-icon" />
             <span>{t.nearButtonText}</span>
+          </button>
+          <button className="button-near" onClick={navigateStarknetLogin}>
+            <img src={StarknetIcon as unknown as string} alt="starknet-icon" />
+            <span>Starknet</span>
           </button>
         </div>
       </div>

@@ -24,6 +24,8 @@ import MetamaskRoute from './components/metamask/MetamaskRoute';
 import InstallApplication from './pages/InstallApplication';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import StarknetPage from './pages/StarknetPage';
+import AddStarknetRootKey from './pages/AddStarknetRootKey';
 
 export default function App() {
   const { showServerDownPopup } = useServerDown();
@@ -56,6 +58,11 @@ export default function App() {
                 element={<Metamask isLogin={false} />}
               />
             </Route>
+            <Route path="/auth/starknet" element={<StarknetPage />} />
+            <Route
+              path="/identity/root-key/starknet"
+              element={<AddStarknetRootKey />}
+            />
             <Route path="/identity" element={<Identity />} />
             <Route path="/identity/root-key" element={<AddRootKey />} />
             <Route path="/applications" element={<ApplicationsPage />} />
