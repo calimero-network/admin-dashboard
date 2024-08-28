@@ -10,6 +10,7 @@ export default function AddRootKeyPage() {
       <LoginSelector
         navigateMetamaskLogin={() => navigate('/identity/root-key/metamask')}
         navigateNearLogin={() => navigate('/identity/root-key/near')}
+        navigateStarknetLogin={() => navigate('/identity/root-key/starknet')}
         cardBackgroundColor={undefined}
       />
     </ContentWrapper>
