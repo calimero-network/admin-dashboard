@@ -17,7 +17,6 @@ const FlexWrapper = styled.div`
 interface ContextTableProps {
   nodeContextList: ContextsList<ContextObject>;
   navigateToStartContext: () => void;
-  navigateToJoinContext: () => void;
   currentOption: string;
   setCurrentOption: (option: string) => void;
   tableOptions: TableOptions[];
@@ -33,7 +32,7 @@ interface ContextTableProps {
 
 export default function ContextTable({
   nodeContextList,
-  navigateToJoinContext,
+  navigateToStartContext,
   currentOption,
   setCurrentOption,
   tableOptions,
@@ -51,9 +50,9 @@ export default function ContextTable({
   return (
     <ContentCard
       headerTitle={t.contextPageTitle}
-      headerOptionText={t.joinContextText}
+      headerOptionText={t.startNewContextText}
       headerDescription={t.contextPageDescription}
-      headerOnOptionClick={navigateToJoinContext}
+      headerOnOptionClick={navigateToStartContext}
     >
       <StatusModal
         show={showStatusModal}
