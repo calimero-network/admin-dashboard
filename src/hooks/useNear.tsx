@@ -34,13 +34,15 @@ import { Package, Release } from '../pages/Applications';
 import { getOrCreateKeypair } from '../auth/ed25519';
 import { Account } from '../components/near/NearWallet';
 import translation from '../constants/en.global.json';
-import { getNearEnvironment } from '../utils/node';
+import { useServerDown } from '../context/ServerDownContext';
 
 const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
+// @ts-ignore
 
 const t = translation.useNear;
 
 export function useRPC() {
+  const { showServerDownPopup } = useServerDown();
   const getPackages = async (): Promise<Package[]> => {
     const provider = new nearAPI.providers.JsonRpcProvider({
       url: JSON_RPC_ENDPOINT,
@@ -277,10 +279,9 @@ export function useNear({ accountId, selector }: UseNearProps) {
         };
         const walletMetadata: WalletMetadata = {
           wallet: WalletType.NEAR({
-            networkId: getNearEnvironment(),
+            networkId: selector.options.network.networkId,
           }),
           verifyingKey: publicKey,
-          walletAddress: accId,
         };
 
         const nearRequest: LoginRequest = {

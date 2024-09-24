@@ -5,7 +5,6 @@ import {
   ApiRootKey,
   DidResponse,
   ETHRootKey,
-  IcpRootKey,
   NearRootKey,
   Network,
   StarknetRootKey,
@@ -76,54 +75,41 @@ export function mapApiResponseToObjects(
   didResponse: DidResponse,
 ): RootKeyObject[] {
   if (didResponse?.did?.root_keys) {
-    const rootKeys: (
-      | ETHRootKey
-      | NearRootKey
-      | StarknetRootKey
-      | IcpRootKey
-    )[] = didResponse?.did?.root_keys?.map((obj: ApiRootKey) => {
-      switch (obj.wallet.type) {
-        case Network.NEAR:
-          return {
+    const rootKeys: (ETHRootKey | NearRootKey | StarknetRootKey)[] =
+      didResponse?.did?.root_keys?.map((obj: ApiRootKey) => {
+        if (obj.wallet.type === Network.NEAR) {
+          const nearObject: NearRootKey = {
             signingKey: obj.signing_key,
             createdAt: obj.created_at,
             type: Network.NEAR,
-          } as NearRootKey;
-
-        case Network.ETH:
-          return {
+          };
+          return nearObject;
+        } else if (obj.wallet.type === Network.ETH) {
+          const ethObject: ETHRootKey = {
             signingKey: obj.signing_key,
             type: Network.ETH,
             createdAt: obj.created_at,
             chainId: obj.wallet.chainId ?? 1,
-          } as ETHRootKey;
-
-        case Network.ICP:
-          return {
-            signingKey: obj.signing_key,
-            type: Network.ICP,
-            createdAt: obj.created_at,
-          } as IcpRootKey;
-
-        case Network.STARKNET:
-        default:
-          return {
+          };
+          return ethObject;
+        } else {
+          const snObject: StarknetRootKey = {
             signingKey: obj.signing_key,
             type: Network.STARKNET + ' ' + obj.wallet.walletName,
             createdAt: obj.created_at,
-          } as StarknetRootKey;
-      }
-    });
-
+          };
+          return snObject;
+        }
+      });
     return rootKeys.map((item) => ({
       type:
         item.type === Network.ETH
-          ? getMetamaskType((item as ETHRootKey).chainId ?? 1)
+          ? getMetamaskType(item.chainId ?? 1)
           : item.type,
       createdAt: item.createdAt,
       publicKey:
         item.type === 'NEAR'
-          ? (item as NearRootKey).signingKey.split(':')[1]!.trim()
+          ? item.signingKey.split(':')[1]!.trim()
           : item.signingKey,
     }));
   } else {

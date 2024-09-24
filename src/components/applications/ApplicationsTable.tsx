@@ -36,6 +36,7 @@ interface ApplicationsTableProps {
   navigateToAppDetails: (app: Application | undefined) => void;
   navigateToPublishApp: () => void;
   navigateToInstallApp: () => void;
+  changeSelectedTab: (option: string) => void;
   errorMessage: string;
 }
 

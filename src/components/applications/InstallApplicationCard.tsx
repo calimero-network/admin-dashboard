@@ -234,7 +234,7 @@ export default function InstallApplicationCard({
       </div>
       <div className="init-section">
         <Button
-          text={t.installButtonText}
+          text="Start"
           width={'144px'}
           onClick={onStartContextClick}
           isLoading={isLoading}

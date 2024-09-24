@@ -143,6 +143,8 @@ interface StartContextCardProps {
   setApplication: (application: ContextApplication) => void;
   isArgsChecked: boolean;
   setIsArgsChecked: (checked: boolean) => void;
+  methodName: string;
+  setMethodName: (method: string) => void;
   argumentsJson: string;
   setArgumentsJson: (args: string) => void;
   startContext: () => void;
@@ -160,6 +162,8 @@ export default function StartContextCard({
   setApplication,
   isArgsChecked,
   setIsArgsChecked,
+  methodName,
+  setMethodName,
   argumentsJson,
   setArgumentsJson,
   startContext,
@@ -175,7 +179,7 @@ export default function StartContextCard({
   const onStartContextClick = async () => {
     if (!application.appId) {
       return;
-    } else if (isArgsChecked && !argumentsJson) {
+    } else if (isArgsChecked && (!methodName || !argumentsJson)) {
       return;
     } else {
       await startContext();
@@ -266,6 +270,14 @@ export default function StartContextCard({
         {isArgsChecked && (
           <div className="args-section">
             <div className="section-title">{t.argsTitleText}</div>
+            <div className="input">
+              <label className="label">{t.methodLabelText}</label>
+              <input
+                className="method-input"
+                value={methodName}
+                onChange={(e) => setMethodName(e.target.value)}
+              />
+            </div>
             <div className="input">
               <label className="label">{t.argsLabelText}</label>
               <textarea

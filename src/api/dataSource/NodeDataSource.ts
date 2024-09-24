@@ -1,12 +1,10 @@
+import { Header, createAuthHeader } from '@calimero-is-near/calimero-p2p-sdk';
 import { getAppEndpointKey } from '../../utils/storage';
 import { HttpClient } from '../httpClient';
 import { ApiResponse, ResponseData } from '../response';
 import { NodeApi } from '../nodeApi';
 import translations from '../../constants/en.global.json';
 import { createAppMetadata } from '../../utils/metadata';
-import { Signature } from 'starknet';
-import { getNearEnvironment } from '../../utils/node';
-import { createAuthHeader, Header } from '../../auth/headers';
 
 const t = translations.nodeDataSource;
 
@@ -17,7 +15,6 @@ export enum Network {
   ARB = 'ARB',
   ZK = 'ZK',
   STARKNET = 'STARKNET',
-  ICP = 'ICP',
 }
 
 export interface ContextClientKeysList {
@@ -88,10 +85,6 @@ export interface NearRootKey extends RootKey {
 
 export interface StarknetRootKey extends RootKey {
   type: String;
-}
-
-export interface IcpRootKey extends RootKey {
-  type: Network.ICP;
 }
 
 interface NetworkType {
@@ -180,15 +173,7 @@ interface SNWalletType extends WalletTypeBase<'STARKNET'> {
   walletName: string;
 }
 
-interface IcpWalletType extends WalletTypeBase<'ICP'> {
-  canisterId: string;
-}
-// TODO: Legacy code, refacture to be used as Interface
-export type WalletType =
-  | ETHWalletType
-  | NEARWalletType
-  | SNWalletType
-  | IcpWalletType;
+export type WalletType = ETHWalletType | NEARWalletType | SNWalletType;
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export namespace WalletType {
@@ -211,23 +196,6 @@ export namespace WalletType {
   }): WalletType {
     return { type: 'STARKNET', walletName } as SNWalletType;
   }
-
-  // ID of production ICP canister used for signing messages
-  const IcpCanisterId = 'rdmx6-jaaaa-aaaaa-aaadq-cai';
-
-  export function ICP({
-    canisterId = IcpCanisterId,
-    walletName = 'II',
-  }: {
-    canisterId?: string;
-    walletName?: string;
-  }): WalletType {
-    return {
-      type: 'ICP',
-      canisterId,
-      walletName,
-    } as IcpWalletType;
-  }
 }
 
 export interface WalletMetadata {
@@ -240,7 +208,6 @@ export interface WalletMetadata {
 export interface NetworkMetadata {
   chainId: String;
   rpcUrl: String;
-  canisterId?: String;
 }
 
 export interface Payload {
@@ -248,13 +215,8 @@ export interface Payload {
   metadata: SignatureMetadata;
 }
 
-export interface SignData {
-  signature: Signature;
-  messageHash: String;
-}
-
 export interface LoginRequest {
-  walletSignature: SignData | string;
+  walletSignature: String;
   payload: Payload;
   walletMetadata: WalletMetadata;
 }
@@ -280,8 +242,6 @@ export interface EthSignatureMessageMetadata extends SignatureMetadata {}
 
 export interface StarknetSignatureMessageMetadata extends SignatureMetadata {}
 
-export interface IcpSignatureMessageMetadata extends SignatureMetadata {}
-
 export interface WalletSignatureData {
   payload: Payload | undefined;
   publicKey: String | undefined;
@@ -289,19 +249,6 @@ export interface WalletSignatureData {
 
 export interface InstallApplicationResponse {
   application_id: string;
-}
-
-export interface ContextIdentitiesResponse {
-  identities: string[];
-}
-
-export interface JsonWebToken {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface CreateTokenResponse {
-  data: JsonWebToken;
 }
 
 export class NodeDataSource implements NodeApi {
@@ -315,7 +262,6 @@ export class NodeDataSource implements NodeApi {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        getNearEnvironment(),
       );
       const response: ResponseData<GetInstalledApplicationsResponse> =
         await this.client.get<GetInstalledApplicationsResponse>(
@@ -340,7 +286,6 @@ export class NodeDataSource implements NodeApi {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        getNearEnvironment(),
       );
       const response: ResponseData<InstalledApplication> =
         await this.client.get<InstalledApplication>(
@@ -363,7 +308,6 @@ export class NodeDataSource implements NodeApi {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        getNearEnvironment(),
       );
       const response = await this.client.get<ContextList>(
         `${getAppEndpointKey()}/admin-api/contexts`,
@@ -378,10 +322,7 @@ export class NodeDataSource implements NodeApi {
 
   async getContext(contextId: string): ApiResponse<ApiContext> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ApiContext>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
@@ -397,10 +338,7 @@ export class NodeDataSource implements NodeApi {
     contextId: string,
   ): ApiResponse<ContextClientKeysList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextClientKeysList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/client-keys`,
         headers ?? {},
@@ -416,10 +354,7 @@ export class NodeDataSource implements NodeApi {
 
   async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextUsersList>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/users`,
         headers ?? {},
@@ -435,10 +370,7 @@ export class NodeDataSource implements NodeApi {
 
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.get<ContextStorage>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/storage`,
         headers ?? {},
@@ -454,10 +386,7 @@ export class NodeDataSource implements NodeApi {
 
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.delete<DeleteContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
         headers ?? {},
@@ -471,25 +400,23 @@ export class NodeDataSource implements NodeApi {
 
   async startContexts(
     applicationId: string,
+    initFunction: string,
     initArguments: string,
   ): ApiResponse<Context> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
           applicationId,
+          initFunction,
           initArguments,
         }),
-        getNearEnvironment(),
       );
-      const encoder = new TextEncoder();
-      const encodedArgs = encoder.encode(JSON.stringify(initArguments));
-      const initializationParams = Array.from(encodedArgs);
-
       const response = await this.client.post<Context>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         {
-          applicationId,
-          initializationParams: initializationParams,
+          applicationId: applicationId,
+          ...(initFunction && { initFunction }),
+          ...(initArguments && { initArgs: JSON.stringify(initArguments) }),
         },
         headers ?? {},
       );
@@ -504,7 +431,6 @@ export class NodeDataSource implements NodeApi {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
-        getNearEnvironment(),
       );
       const response = await this.client.get<DidResponse>(
         `${getAppEndpointKey()}/admin-api/did`,
@@ -536,7 +462,6 @@ export class NodeDataSource implements NodeApi {
           selectedVersion,
           hash,
         }),
-        getNearEnvironment(),
       );
 
       const response: ResponseData<InstallApplicationResponse> =
@@ -561,10 +486,7 @@ export class NodeDataSource implements NodeApi {
 
   async joinContext(contextId: string): ApiResponse<JoinContextResponse> {
     try {
-      const headers: Header | null = await createAuthHeader(
-        contextId,
-        getNearEnvironment(),
-      );
+      const headers: Header | null = await createAuthHeader(contextId);
       const response = await this.client.post<JoinContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts/${contextId}/join`,
         {},
@@ -593,7 +515,6 @@ export class NodeDataSource implements NodeApi {
   async addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse> {
     const headers: Header | null = await createAuthHeader(
       JSON.stringify(rootKeyRequest),
-      getNearEnvironment(),
     );
     if (!headers) {
       return { error: { code: 401, message: 'Unauthorized' } };
@@ -603,45 +524,6 @@ export class NodeDataSource implements NodeApi {
       `${getAppEndpointKey()}/admin-api/root-key`,
       {
         ...rootKeyRequest,
-      },
-      headers,
-    );
-  }
-
-  async getContextIdentity(
-    contextId: string,
-  ): ApiResponse<ContextIdentitiesResponse> {
-    const headers: Header | null = await createAuthHeader(
-      JSON.stringify(contextId),
-      getNearEnvironment(),
-    );
-    if (!headers) {
-      return { error: { code: 401, message: t.unauthorizedErrorMessage } };
-    }
-
-    return await this.client.get<ContextIdentitiesResponse>(
-      `${getAppEndpointKey()}/admin-api/contexts/${contextId}/identities`,
-      headers,
-    );
-  }
-
-  async createAccessToken(
-    contextId: string,
-    contextIdentity: string,
-  ): ApiResponse<CreateTokenResponse> {
-    const headers: Header | null = await createAuthHeader(
-      JSON.stringify(contextId),
-      getNearEnvironment(),
-    );
-    if (!headers) {
-      return { error: { code: 401, message: t.unauthorizedErrorMessage } };
-    }
-
-    return await this.client.post<CreateTokenResponse>(
-      `${getAppEndpointKey()}/admin-api/generate-jwt-token`,
-      {
-        contextId,
-        executorPublicKey: contextIdentity,
       },
       headers,
     );

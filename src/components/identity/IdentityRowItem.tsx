@@ -39,8 +39,7 @@ const RowItem = styled.div<RowItemProps>`
 
   .public-key {
     color: #6b7280;
-    width: 64%;
-    word-break: break-all;
+    width: fit-content;
   }
 
   .menu-dropdown {

@@ -111,7 +111,6 @@ export function useMetamask(): useMetamaskReturn {
       };
       setWalletSignatureData(wsd);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

@@ -69,10 +69,7 @@ export default function PublishApplicationTable({
         modalContent={deployStatus}
       />
       <FlexWrapper>
-        <ConnectWalletAccountCard
-          onClick={addWalletAccount}
-          deployerAccount={deployerAccount?.accountId}
-        />
+        <ConnectWalletAccountCard onClick={addWalletAccount} />
 
         {deployerAccount && (
           <>

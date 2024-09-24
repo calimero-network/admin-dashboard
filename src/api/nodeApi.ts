@@ -1,3 +1,4 @@
+import { ApiResponse } from '@calimero-is-near/calimero-p2p-sdk';
 import {
   ContextStorage,
   Context,
@@ -17,10 +18,7 @@ import {
   RootKeyResponse,
   InstallApplicationResponse,
   InstalledApplication,
-  ContextIdentitiesResponse,
-  CreateTokenResponse,
 } from './dataSource/NodeDataSource';
-import { ApiResponse } from './response';
 
 export interface NodeApi {
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
@@ -34,6 +32,7 @@ export interface NodeApi {
   deleteContext(contextId: string): ApiResponse<DeleteContextResponse>;
   startContexts(
     applicationId: string,
+    initFunction: string,
     initArguments: string,
   ): ApiResponse<Context>;
   getDidList(): ApiResponse<DidResponse>;
@@ -49,9 +48,4 @@ export interface NodeApi {
   login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;
   requestChallenge(): ApiResponse<NodeChallenge>;
   addRootKey(rootKeyRequest: LoginRequest): ApiResponse<RootKeyResponse>;
-  getContextIdentity(contextId: string): ApiResponse<ContextIdentitiesResponse>;
-  createAccessToken(
-    contextId: string,
-    contextIdentity: string,
-  ): ApiResponse<CreateTokenResponse>;
 }
