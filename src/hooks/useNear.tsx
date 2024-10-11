@@ -34,15 +34,13 @@ import { Package, Release } from '../pages/Applications';
 import { getOrCreateKeypair } from '../auth/ed25519';
 import { Account } from '../components/near/NearWallet';
 import translation from '../constants/en.global.json';
-import { useServerDown } from '../context/ServerDownContext';
+import { getNearEnvironment } from '../utils/node';
 
 const JSON_RPC_ENDPOINT = 'https://rpc.testnet.near.org';
-// @ts-ignore
 
 const t = translation.useNear;
 
 export function useRPC() {
-  const { showServerDownPopup } = useServerDown();
   const getPackages = async (): Promise<Package[]> => {
     const provider = new nearAPI.providers.JsonRpcProvider({
       url: JSON_RPC_ENDPOINT,
@@ -85,7 +83,7 @@ export function useRPC() {
       return JSON.parse(Buffer.from(rawResult.result).toString());
     } catch (e) {
       //If there is no package available, there is high possibility that context contains local wasm for development
-      console.log('Error getting package', e);
+      console.error('Error getting package', e);
       return null;
     }
   };
@@ -137,7 +135,7 @@ export function useRPC() {
       }
       return releases[releases.length - 1];
     } catch (e) {
-      console.log('Error getting latest relase', e);
+      console.error('Error getting latest relase', e);
       return null;
     }
   };
@@ -279,9 +277,10 @@ export function useNear({ accountId, selector }: UseNearProps) {
         };
         const walletMetadata: WalletMetadata = {
           wallet: WalletType.NEAR({
-            networkId: selector.options.network.networkId,
+            networkId: getNearEnvironment(),
           }),
-          signingKey: publicKey,
+          verifyingKey: publicKey,
+          walletAddress: accId,
         };
 
         const nearRequest: LoginRequest = {

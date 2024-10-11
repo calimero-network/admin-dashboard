@@ -16,6 +16,26 @@
     "signMessageError": "Error while signing message",
     "signOutError": "Failed to signing out"
   },
+  "useStarknet": {
+    "requestNodeDataError": "Error while requesting node data",
+    "noSignatureError": "Signature is empty",
+    "noAddressError": "Address is empty",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "applicationNameText": "admin-dashboard",
+    "signMessageError": "Error while signing message",
+    "signOutError": "Failed to signing out",
+    "errorChangingNetwork": "Error changing network",
+    "walletNotFound": "Wallet not found",
+    "errorLogin": "Error while login"
+  },
+  "useIcp": {
+    "requestNodeDataError": "Error while requesting node data",
+    "errorChangingNetwork": "Error changing network",
+    "loginError": "Error while login",
+    "rootkeyError": "Error while adding root key",
+    "signMessageError": "Error while signing message"
+  },
   "loginPage": {
     "logoDashboardText": "Admin Dashboard",
     "title": "Calimero Node Admin Dashboard",
@@ -24,7 +44,9 @@
     "loginSelector": {
       "title": "Continue with wallet",
       "metamaskButtonText": "Metamask wallet",
-      "nearButtonText": "Near wallet"
+      "nearButtonText": "Near wallet",
+      "starknetButtonText": "Starknet wallet",
+      "IcpButtonText": "Internet Computer"
     },
     "nearLogin": {
       "title": "Login with NEAR",
@@ -36,6 +58,16 @@
       "switchAccountButtonText": "Switch Account",
       "backButtonText": "Back to wallet selector"
     },
+    "IcpLogin": {
+      "title": "Login with Internet Identity",
+      "subtitle": "Choose from which account you want to log in with",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "currentNetwork": "Current network",
+      "authButtonText": "Authenticate",
+      "switchAccountButtonText": "Switch Account",
+      "backToLoginPage": "Back to login page"
+    },
     "metamaskLogin": {
       "titleLogin": "Login with Metamask",
       "titleRootKey": "Add Metamask root key",
@@ -43,6 +75,23 @@
       "authButtonText": "Sign authentication transaction",
       "errorTitleText": "Error signing message",
       "backButtonText": "Back to wallet selector"
+    },
+    "starknetLogin": {
+      "title": "Login with Starknet",
+      "subtitle": "Choose which account from your wallet you want to log in with",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "switchWalletButtonText": "Switch Wallet",
+      "authButtonText": "Authenticate",
+      "switchAccountButtonText": "Switch Account",
+      "backButtonText": "Back to wallet selector",
+      "argentXButton": "Login with ArgentX",
+      "metamaskButton": "Login with MetaMask",
+      "titleRootKey": "Add Starknet root key",
+      "currentNetwork": "Current network",
+      "signMessage": "Sign authentication message",
+      "backToWalletSelector": "Back to wallet selector",
+      "backToLoginPage": "Back to login selector"
     }
   },
   "addRootKeyPage": {
@@ -55,6 +104,29 @@
       "authButtonText": "Add root key",
       "switchAccountButtonText": "Switch Account",
       "backButtonText": "Back to wallet selector"
+    },
+    "starknetRootKey": {
+      "title": "Add Starknet root key",
+      "subtitle": "Choose which account from your wallet you want to add a node root key for. Each key, and therefore each account, can only be added once",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "argentXButton": "Add root key with ArgentX",
+      "metamaskButton": "Add root key with MetaMask",
+      "currentNetwork": "Current network",
+      "signMessage": "Sign authentication message",
+      "backToWalletSelector": "Back to wallet selector",
+      "backToLoginPage": "Back to login selector"
+    },
+    "IcpKey": {
+      "title": "Add Internet Identity root key",
+      "subtitle": "Choose which account from your wallet you want to add a node root key for. Each key, and therefore each account, can only be added once",
+      "accountIdText": "Account Id",
+      "logoutButtonText": "Logout",
+      "currentNetwork": "Current network",
+      "signMessage": "Sign authentication message",
+      "backToWalletSelector": "Back to wallet selector",
+      "authButtonText": "Add root key",
+      "backToLoginPage": "Back to login selector"
     }
   },
   "footer": {
@@ -69,9 +141,15 @@
       "title": "Applications",
       "publishNewAppText": "Publish new application",
       "noAvailableAppsText": "No applications available",
+      "noAvailableReleasesText": "No available releases",
       "noInstalledAppsText": "No installed applications",
       "noOwnedAppsText": "No owned applications",
-      "installNewAppText": "install new application"
+      "installNewAppText": "install new application",
+      "actionDialog": {
+        "title": "Uninstall Application",
+        "subtitle": "Are you sure you want to uninstall this application? This action cannot be undone.",
+        "buttonActionText": "Uninstall"
+      }
     },
     "installApplication": {
       "title": "Install Application",
@@ -84,6 +162,7 @@
       "installErrorTitle": "Failed to install application",
       "selectApplicationTitle": "Select app from the marketplace or publish new application",
       "selectedApplicationTitle": "Selected Application",
+      "installButtonText": "Install application",
       "idLabelText": "Application ID: ",
       "nameLabelText": "Application Name: ",
       "versionLabelText": "Version: ",
@@ -190,6 +269,8 @@
     "invitedListDescription": "Contexts you have been invited to",
     "noJoinedAppsListText": "You have not joined any contexts.",
     "noInviedAppsListText": "You have not been invited to any contexts.",
+    "devApplicationTitle": "Development application",
+    "deleteContextText": "Delete Context",
     "contextDetails": {
       "title": "Context Details",
       "clientKeysListDescription": "Client keys are authorization keys used by the application frontend.",
@@ -203,6 +284,7 @@
       "lableVersionText": "Version: ",
       "labelAppId": "App ID: ",
       "titleApps": "Installed application",
+      "localAppTitle": "Metadata not available for locally installed application",
       "titleStorage": "Storage",
       "labelStorageText": "Used: "
     },
@@ -217,14 +299,16 @@
     }
   },
   "startContextPage": {
-    "backButtonText": "Back to Contexts",
+    "backButtonText": "back to context select",
     "selectApplicationTitle": "Select app from the marketplace or publish new application",
     "selectedApplicationTitle": "Selected Application",
-    "initSectionTitle": "Initialize state",
+    "initSectionTitle": "Initialize application state",
     "argsTitleText": "Arguments",
     "methodLabelText": "method name",
     "argsLabelText": "arguments json",
     "buttonFormatText": "format",
+    "loginRequestPopupTitle": "Application Sign-in Request - Start Context",
+    "detailsText": "Details",
     "applicationList": {
       "listTitle": "Select Available Application",
       "noAvailableAppsText": "No applications available",
@@ -268,7 +352,8 @@
   },
   "nodeDataSource": {
     "joinContextErrorTitle": "Error joining context",
-    "joinContextErrorMessage": "Failed to join context"
+    "joinContextErrorMessage": "Failed to join context",
+    "unauthorizedErrorMessage": "Unauthorized"
   },
   "authHeaders": {
     "errorText": "Error extracting private key"
@@ -276,5 +361,53 @@
   "walletSelectorContext": {
     "alertErrorText": "Failed to initialise wallet selector",
     "componentErrorText": "useWalletSelector must be used within a WalletSelectorContextProvider"
+  },
+  "appLoginPopup": {
+    "createTokenError": "Error creating token, please try again",
+    "selectContext": {
+      "title": "Application Sign-in Request",
+      "detailsText": "Details",
+      "websiteText": "From site: ",
+      "appIdText": "Application Id: ",
+      "contextsTitle": "Select Context",
+      "contextsSubtitle": "To continue select available or start a new context for the application",
+      "noContextsText": "No contexts found",
+      "selectedContextText": "Selected context Id:",
+      "buttonNextText": "Confirm context Id",
+      "buttonBackText": "Return to application",
+      "buttonCreateText": "Start new"
+    },
+    "selectIdentity": {
+      "title": "Application Sign-in Request",
+      "detailsText": "Details",
+      "websiteText": "From site: ",
+      "appIdText": "Application Id: ",
+      "contextIdText": "Context Id: ",
+      "contextsTitle": "Select context identity",
+      "contextsSubtitle": "To continue select available context identity for the application",
+      "noContextsText": "No contexts identities found",
+      "selectedContextText": "Selected context identity:",
+      "backButtonText": "back to context select",
+      "buttonNextText": "Confirm context identity",
+      "buttonBackText": "Return to application"
+    },
+    "createToken": {
+      "title": "Application Sign-in Request",
+      "websiteText": "From site: ",
+      "appIdText": "Application Id: ",
+      "contextIdText": "Context Id: ",
+      "backButtonText": "back to select context identity",
+      "contextIdentityText": "Context Identity: ",
+      "detailsText": "Details",
+      "buttonNextText": "Create token"
+    }
+  },
+  "setupModal": {
+    "inputIdLengthError": "Application ID must be between 32 and 44 characters long.",
+    "inputEncodeError": "Application ID must contain only base58 characters.",
+    "nodeHealthCheckError": "Connection failed. Please check if node url is correct.",
+    "modalTitle": "App setup",
+    "urlInputPlacerholder": "node url",
+    "buttonSetText": "Set node url"
   }
 }
