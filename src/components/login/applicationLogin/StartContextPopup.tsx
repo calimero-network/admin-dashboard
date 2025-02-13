@@ -319,6 +319,7 @@ export default function StartContextPopup({
             <option value="near">NEAR</option>
             <option value="starknet">Starknet</option>
             <option value="icp">ICP</option>
+            <option value="stellar">Stellar</option>
           </select>
         </div>
         <div className="flex-wrapper-buttons">
