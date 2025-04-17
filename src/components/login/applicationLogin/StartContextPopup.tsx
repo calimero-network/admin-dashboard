@@ -171,6 +171,7 @@ const Wrapper = styled.div`
       }
     }
   }
+
   .protocol-input {
     width: 100%;
     padding: 8px;
@@ -179,10 +180,12 @@ const Wrapper = styled.div`
     font-size: 14px;
     background-color: white;
   }
+
   .protocol-input:focus {
     outline: none;
     border-color: #007bff;
   }
+
   /* Optional: Style the dropdown arrow */
   .protocol-input {
     appearance: none;
@@ -194,6 +197,10 @@ const Wrapper = styled.div`
     background-color: transparent;
     margin-top: 5px;
   }
+
+  .protocol-title {
+    color: #fff;
+  }
 `;
 
 interface StartContextPopupProps {
@@ -203,12 +210,12 @@ interface StartContextPopupProps {
   argumentsJson: string;
   setArgumentsJson: (args: string) => void;
   startContext: () => void;
-  setProtocol: (protocol: string) => void;
   isLoading: boolean;
   showStatusModal: boolean;
   closeModal: () => void;
   startContextStatus: ModalContent;
   backLoginStep: () => void;
+  setProtocol: (protocol: string) => void;
 }
 
 export default function StartContextPopup({
@@ -319,6 +326,7 @@ export default function StartContextPopup({
             <option value="near">NEAR</option>
             <option value="starknet">Starknet</option>
             <option value="icp">ICP</option>
+            <option value="stellar">Stellar</option>
             <option value="ethereum">Ethereum</option>
           </select>
         </div>

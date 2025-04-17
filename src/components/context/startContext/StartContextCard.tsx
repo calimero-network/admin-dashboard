@@ -136,6 +136,7 @@ const Wrapper = styled.div`
       }
     }
   }
+
   .protocol-input {
     width: 100%;
     padding: 8px;
@@ -144,10 +145,12 @@ const Wrapper = styled.div`
     font-size: 14px;
     background-color: white;
   }
+
   .protocol-input:focus {
     outline: none;
     border-color: #007bff;
   }
+
   /* Optional: Style the dropdown arrow */
   .protocol-input {
     appearance: none;
@@ -187,8 +190,8 @@ export default function StartContextCard({
   argumentsJson,
   setArgumentsJson,
   startContext,
-  setProtocol,
   showBrowseApplication,
+  setProtocol,
   setShowBrowseApplication,
   onUploadClick,
   isLoading,
