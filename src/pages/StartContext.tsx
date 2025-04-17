@@ -126,8 +126,8 @@ export default function StartContextPage() {
             setIsArgsChecked={setIsArgsChecked}
             argumentsJson={argumentsJson}
             setArgumentsJson={setArgumentsJson}
-            startContext={startContext}
             setProtocol={setProtocol}
+            startContext={startContext}
             showBrowseApplication={showBrowseApplication}
             setShowBrowseApplication={setShowBrowseApplication}
             onUploadClick={() => navigate('/publish-application')}
