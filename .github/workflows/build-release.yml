@@ -1,0 +1,61 @@
+name: Build and Push Dist Folder
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - closed
+
+permissions:
+  contents: write  # needed to push to another branch
+
+jobs:
+  build_and_push:
+    if: github.event.pull_request.merged == true || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build app
+        run: pnpm build
+
+      - name: Push dist folder to build branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create a temporary directory to clone the build branch
+          mkdir temp-deploy
+          cd temp-deploy
+          git init
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
+          # Fetch and checkout the build branch
+          git fetch origin build || echo "No build branch, creating a new one"
+          git checkout -b build || git checkout build
+
+          # Copy the entire dist folder to the repo's root
+          cp -r $GITHUB_WORKSPACE/dist ./dist
+
+          # Commit and push the dist folder
+          git add dist
+          git commit -m "Deploy dist folder from commit $GITHUB_SHA"
+          git push --force origin build
