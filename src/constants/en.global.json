@@ -302,7 +302,7 @@
   "startContextPage": {
     "backButtonText": "back to context select",
     "selectApplicationTitle": "Select app from the marketplace or publish new application",
-    "selectApplicationTitleNew": "Select one of installed application to create context",
+    "selectApplicationTitleNew": "Select one of the installed applications to create a context",
     "selectedApplicationTitle": "Selected Application",
     "protocolLabelText": "Protocol",
     "applicationLabelText": "Application",
