@@ -8,7 +8,6 @@ import StartContextCard from '../components/context/startContext/StartContextCar
 import translations from '../constants/en.global.json';
 import apiClient from '../api/index';
 import { useServerDown } from '../context/ServerDownContext';
-// import { Application } from './InstallApplication';
 import { ResponseData } from '../api/response';
 import { GetInstalledApplicationsResponse, InstalledApplication } from '../api/dataSource/NodeDataSource';
 
@@ -25,9 +24,6 @@ export default function StartContextPage() {
   const navigate = useNavigate();
   const { showServerDownPopup } = useServerDown();
   const [applicationId, setApplicationId] = useState('');
-  const [isArgsChecked, setIsArgsChecked] = useState(false);
-  const [argumentsJson, setArgumentsJson] = useState('');
-  const [showBrowseApplication, setShowBrowseApplication] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [protocol, setProtocol] = useState('');
@@ -40,15 +36,10 @@ export default function StartContextPage() {
 
   const startContext = async () => {
     setIsLoading(true);
-    // const appId: string | null = await installApplicationHandler();
-    // if (!appId) {
-    //   setIsLoading(false);
-    //   setShowStatusModal(true);
-    //   return;
-    // }
+
     const startContextResponse = await apiClient(showServerDownPopup)
       .node()
-      .createContexts(applicationId, argumentsJson, protocol);
+      .createContexts(applicationId, "", protocol);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
@@ -67,36 +58,6 @@ export default function StartContextPage() {
     setIsLoading(false);
     setShowStatusModal(true);
   };
-
-  // const installApplicationHandler = async (): Promise<string | null> => {
-  //   if (!applicationId) {
-  //     return null;
-  //   }
-
-  //   const response = await apiClient(showServerDownPopup)
-  //     .node()
-  //     .installApplication(
-  //       application.appId,
-  //       application.version,
-  //       application.path,
-  //       application.hash,
-  //     );
-  //   if (response.error) {
-  //     setStartContextStatus({
-  //       title: t.failInstallTitle,
-  //       message: response.error.message,
-  //       error: true,
-  //     });
-  //     return null;
-  //   } else {
-  //     setStartContextStatus({
-  //       title: t.successInstallTitle,
-  //       message: `Installed application ${applicationId}`,
-  //       error: false,
-  //     });
-  //     return response.data.applicationId;
-  //   }
-  // };
 
   const closeModal = () => {
     setShowStatusModal(false);
@@ -131,15 +92,8 @@ export default function StartContextPage() {
           <StartContextCard
             applicationId={applicationId}
             setApplicationId={setApplicationId}
-            isArgsChecked={isArgsChecked}
-            setIsArgsChecked={setIsArgsChecked}
-            argumentsJson={argumentsJson}
-            setArgumentsJson={setArgumentsJson}
             setProtocol={setProtocol}
             startContext={startContext}
-            showBrowseApplication={showBrowseApplication}
-            setShowBrowseApplication={setShowBrowseApplication}
-            onUploadClick={() => navigate('/publish-application')}
             isLoading={isLoading}
             showStatusModal={showStatusModal}
             closeModal={closeModal}

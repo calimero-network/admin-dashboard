@@ -48,6 +48,7 @@ export default function ApplicationDetailsPage() {
             description: appMetadata?.description ?? '',
             repository: appMetadata?.repositoryUrl ?? '',
             owner: appMetadata?.applicationOwner ?? '',
+            version: appMetadata?.applicationVersion ?? '',
           },
           releases: null,
         });

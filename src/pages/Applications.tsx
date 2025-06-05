@@ -31,6 +31,7 @@ export interface Package {
   description: string;
   repository: string;
   owner: string;
+  version: string;
 }
 
 export interface Release {
