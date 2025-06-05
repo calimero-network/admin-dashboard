@@ -161,6 +161,7 @@
       "releaseDetailsLabel": "Release Details",
       "installErrorTitle": "Failed to install application",
       "selectApplicationTitle": "Select app from the marketplace or publish new application",
+      "selectApplicationTitleNew": "Select application to install",
       "selectedApplicationTitle": "Selected Application",
       "installButtonText": "Install application",
       "idLabelText": "Application ID: ",
@@ -301,8 +302,10 @@
   "startContextPage": {
     "backButtonText": "back to context select",
     "selectApplicationTitle": "Select app from the marketplace or publish new application",
+    "selectApplicationTitleNew": "Select one of installed application to create context",
     "selectedApplicationTitle": "Selected Application",
     "protocolLabelText": "Protocol",
+    "applicationLabelText": "Application",
     "initSectionTitle": "Initialize application state",
     "argsTitleText": "Arguments",
     "methodLabelText": "method name",
@@ -316,7 +319,7 @@
       "noOwnedAppsText": "No owned applications installed"
     },
     "startContextSuccessTitle": "Context started",
-    "startedContextMessage": "Application context has been started successfully.",
+    "startedContextMessage": "Application context has been started successfully. Context ID: {0}, Identity Public Key: {1}",
     "startContextErrorTitle": "Failed to start context",
     "startContextErrorMessage": "Failed to start the application context.",
     "idLabelText": "Application ID: ",

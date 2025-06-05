@@ -74,7 +74,7 @@ export default function PublishApplicationTable({
           deployerAccount={deployerAccount?.accountId}
         />
 
-        {deployerAccount && (
+        {!deployerAccount && (
           <>
             <AddPackageForm
               packageInfo={packageInfo}

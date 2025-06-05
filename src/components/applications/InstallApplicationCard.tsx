@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { Application } from '../../pages/InstallApplication';
 import Button from '../common/Button';
-import ApplicationsPopup from '../context/startContext/ApplicationsPopup';
+// import ApplicationsPopup from '../context/startContext/ApplicationsPopup';
 import StatusModal, { ModalContent } from '../common/StatusModal';
 import translations from '../../constants/en.global.json';
 
@@ -156,8 +156,8 @@ export default function InstallApplicationCard({
   application,
   setApplication,
   installApplication,
-  showBrowseApplication,
-  setShowBrowseApplication,
+  // showBrowseApplication,
+  // setShowBrowseApplication,
   onUploadClick,
   isLoading,
   showStatusModal,
@@ -179,18 +179,18 @@ export default function InstallApplicationCard({
         closeModal={closeModal}
         modalContent={installAppStatus}
       />
-      {showBrowseApplication && (
+      {/* {showBrowseApplication && (
         <ApplicationsPopup
           show={showBrowseApplication}
           closeModal={() => setShowBrowseApplication(false)}
           setApplication={setApplication}
         />
-      )}
+      )} */}
       <div className="select-app-section">
         <div className="section-title">
           {application.appId
             ? t.selectedApplicationTitle
-            : t.selectApplicationTitle}
+            : t.selectApplicationTitleNew}
           {application.appId && (
             <XMarkIcon
               className="cancel-icon"
@@ -223,23 +223,25 @@ export default function InstallApplicationCard({
           </div>
         ) : (
           <div className="button-container">
-            <Button
+            {/* <Button
               text="Browse"
               width={'144px'}
               onClick={() => setShowBrowseApplication(true)}
-            />
-            <Button text="Upload" width={'144px'} onClick={onUploadClick} />
+            /> */}
+            <Button text="Browse" width={'144px'} onClick={onUploadClick} />
           </div>
         )}
       </div>
-      <div className="init-section">
-        <Button
-          text={t.installButtonText}
-          width={'144px'}
-          onClick={onStartContextClick}
-          isLoading={isLoading}
-        />
-      </div>
+      {application.appId && (
+        <div className="init-section">
+          <Button
+            text={t.installButtonText}
+            width={'144px'}
+            onClick={onStartContextClick}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
     </Wrapper>
   );
 }

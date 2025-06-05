@@ -70,6 +70,10 @@ export default function PublishApplicationPage() {
   });
 
   useEffect(() => {
+    navigate('/applications');
+  }, []);
+
+  useEffect(() => {
     (async () => {
       setPackages(await getPackages());
     })();

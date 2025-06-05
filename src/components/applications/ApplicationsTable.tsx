@@ -56,8 +56,8 @@ export default function ApplicationsTable(props: ApplicationsTableProps) {
   return (
     <ContentCard
       headerTitle={t.title}
-      headerOptionText={t.publishNewAppText}
-      headerOnOptionClick={props.navigateToPublishApp}
+      // headerOptionText={t.publishNewAppText}
+      // headerOnOptionClick={props.navigateToPublishApp}
       headerSecondOptionText={t.installNewAppText}
       headerOnSecondOptionClick={props.navigateToInstallApp}
     >

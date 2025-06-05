@@ -65,7 +65,7 @@ export interface Context {
 
 export interface CreateContextResponse {
   contextId: string;
-  memberPublicKey: SigningKey;
+  memberPublicKey: string;
 }
 
 export interface GetContextsResponse {
