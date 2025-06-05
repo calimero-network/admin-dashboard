@@ -39,7 +39,7 @@ export default function StartContextPage() {
 
     const startContextResponse = await apiClient(showServerDownPopup)
       .node()
-      .createContexts(applicationId, "", protocol);
+      .createContexts(applicationId, protocol);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,

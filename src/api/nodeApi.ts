@@ -36,7 +36,6 @@ export interface NodeApi {
   deleteContext(contextId: string): ApiResponse<DeleteContextResponse>;
   createContexts(
     applicationId: string,
-    initArguments: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse>;
   getDidList(): ApiResponse<DidResponse>;

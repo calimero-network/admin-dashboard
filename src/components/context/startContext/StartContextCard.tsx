@@ -191,7 +191,7 @@ export default function StartContextCard({
 }: StartContextCardProps) {
   const t = translations.startContextPage;
   const onStartContextClick = async () => {
-    if (!applicationId) {
+    if (applicationId) {
       await startContext();
     }
   };
@@ -221,7 +221,7 @@ export default function StartContextCard({
             {applications.length > 0 &&
               applications.map((app, i) => (
                 <option key={i} value={app.id}>
-                  {parseAppMetadata(app.metadata)?.applicationName ?? ''} -{' '}
+                  {parseAppMetadata(app.metadata)?.applicationName ?? ''} - {' '}
                   {app.id}
                 </option>
               ))}

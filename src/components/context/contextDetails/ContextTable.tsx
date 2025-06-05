@@ -11,7 +11,6 @@ import DetailsCard from './DetailsCard';
 import {
   ClientKey,
   ContextStorage,
-  User,
 } from '../../../api/dataSource/NodeDataSource';
 import { ContextDetails } from '../../../types/context';
 
@@ -24,7 +23,7 @@ interface ContextTableProps {
   contextDetailsError: string | null;
   contextClientKeys: ClientKey[];
   contextClientKeysError: string | null;
-  contextUsers: User[];
+  contextUsers: { identity: string }[];
   contextUsersError: string | null;
   contextStorage: ContextStorage;
   contextStorageError: string | null;
@@ -70,7 +69,7 @@ export default function ContextTable(props: ContextTableProps) {
           />
         )}
         {props.currentOption === DetailsOptions.USERS && (
-          <ListTable<User>
+          <ListTable<{ identity: string }>
             numOfColumns={1}
             listItems={props.contextUsers || []}
             error={props.contextUsersError ?? ''}

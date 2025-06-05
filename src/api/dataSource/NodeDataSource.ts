@@ -475,26 +475,21 @@ export class NodeDataSource implements NodeApi {
 
   async createContexts(
     applicationId: string,
-    initArguments: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
           applicationId,
-          initArguments,
         }),
         getNearEnvironment(),
       );
-      const encoder = new TextEncoder();
-      const encodedArgs = encoder.encode(JSON.stringify(initArguments));
-      const initializationParams = Array.from(encodedArgs);
 
       const response = await this.client.post<CreateContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         {
           applicationId,
-          initializationParams: initializationParams,
+          initializationParams: [],
           protocol,
         },
         headers ?? {},
