@@ -5,7 +5,6 @@ import { ContentCard } from '../../common/ContentCard';
 import { Account } from '@near-wallet-selector/core';
 import { ReleaseInfo } from '../../../pages/PublishApplication';
 import { AddReleaseForm } from '../AddReleaseForm';
-import { ConnectWalletAccountCard } from '../ConnectWalletAccountCard';
 import StatusModal, { ModalContent } from '../../common/StatusModal';
 import Button from '../../common/Button';
 import { Package } from '../../../pages/Applications';
@@ -92,7 +91,6 @@ export default function AddReleaseTable({
           setReleaseInfo={setReleaseInfo}
           fileInputRef={fileInputRef}
         />
-        <ConnectWalletAccountCard onClick={addWalletAccount} />
         <div className="button-wrapper">
           <Button
             text={t.buttonText}

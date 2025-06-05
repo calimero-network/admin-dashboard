@@ -7,6 +7,7 @@ import { createAppMetadata } from '../../utils/metadata';
 import { Signature } from 'starknet';
 import { getNearEnvironment } from '../../utils/node';
 import { createAuthHeader, Header } from '../../auth/headers';
+import { AppMetadata } from '../../pages/InstallApplication';
 
 const t = translations.nodeDataSource;
 
@@ -50,6 +51,10 @@ export interface InstalledApplication {
   version: string | null;
   source: string;
   metadata: number[];
+}
+
+export interface InstalledApplicationDetails {
+  application: InstalledApplication;
 }
 
 export interface SigningKey {
@@ -335,14 +340,14 @@ export class NodeDataSource implements NodeApi {
 
   async getInstalledApplicationDetails(
     appId: string,
-  ): ApiResponse<InstalledApplication> {
+  ): ApiResponse<InstalledApplicationDetails> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
         getNearEnvironment(),
       );
-      const response: ResponseData<InstalledApplication> =
-        await this.client.get<InstalledApplication>(
+      const response: ResponseData<InstalledApplicationDetails> =
+        await this.client.get<InstalledApplicationDetails>(
           `${getAppEndpointKey()}/admin-api/applications/${appId}`,
           headers ?? {},
         );
@@ -525,17 +530,12 @@ export class NodeDataSource implements NodeApi {
   }
 
   async installApplication(
-    selectedPackageId: string,
-    selectedVersion: string,
-    ipfsPath: string,
-    hash: string,
+    application: AppMetadata,
   ): ApiResponse<InstallApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
-          selectedPackageId,
-          selectedVersion,
-          hash,
+          application,
         }),
         getNearEnvironment(),
       );
@@ -544,10 +544,8 @@ export class NodeDataSource implements NodeApi {
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
           {
-            url: ipfsPath,
-            version: selectedVersion,
-            // TODO: parse hash to format
-            metadata: createAppMetadata(selectedPackageId),
+            url: application.applicationUrl,
+            metadata: createAppMetadata(application),
           },
           headers ?? {},
         );

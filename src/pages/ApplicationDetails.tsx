@@ -4,14 +4,14 @@ import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { useRPC } from '../hooks/useNear';
 import { Package, Release } from './Applications';
 import ApplicationDetailsTable from '../components/applications/details/ApplicationDetailsTable';
 import apiClient from '../api';
 import { ResponseData } from '../api/response';
-import { AppMetadata, parseAppMetadata } from '../utils/metadata';
-import { InstalledApplication } from '../api/dataSource/NodeDataSource';
+import { parseAppMetadata } from '../utils/metadata';
+import { InstalledApplicationDetails } from '../api/dataSource/NodeDataSource';
 import { useServerDown } from '../context/ServerDownContext';
+import { AppMetadata } from './InstallApplication';
 
 export interface AppDetails {
   package: Package;
@@ -22,57 +22,35 @@ export default function ApplicationDetailsPage() {
   const { id } = useParams();
   const { showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
-  const { getPackage, getReleases } = useRPC();
   const [applicationInformation, setApplicationInformation] =
     useState<AppDetails>();
 
   useEffect(() => {
     const fetchApplicationData = async () => {
       if (id) {
-        const fetchApplicationDetailsResponse: ResponseData<InstalledApplication> =
+        const fetchApplicationDetailsResponse: ResponseData<InstalledApplicationDetails> =
           await apiClient(showServerDownPopup)
             .node()
             .getInstalledApplicationDetails(id);
 
-        let appMetadata: AppMetadata | null = null;
         if (fetchApplicationDetailsResponse.error) {
-          // dangerous: contract app id has different format than our app id so it returns bad request
-          if (fetchApplicationDetailsResponse.error.code === 400) {
-            //marketplace app
-            appMetadata = {
-              contractAppId: id,
-            };
-          } else {
-            //Handle error
-            console.error(fetchApplicationDetailsResponse.error.message);
-          }
-        } else {
-          appMetadata = parseAppMetadata(
-            fetchApplicationDetailsResponse.data.metadata,
-          );
+          console.error(fetchApplicationDetailsResponse.error.message);
+          return;
         }
+        const appMetadata: AppMetadata | null = parseAppMetadata(
+          fetchApplicationDetailsResponse.data.application.metadata,
+        );
 
-        if (appMetadata) {
-          const packageData = await getPackage(appMetadata.contractAppId);
-          const versionData = await getReleases(appMetadata.contractAppId);
-          if (packageData && versionData) {
-            setApplicationInformation({
-              package: packageData,
-              releases: versionData,
-            });
-          }
-        } else {
-          setApplicationInformation({
-            package: {
-              id: id,
-              name: 'Local app',
-              description: '',
-              repository: '',
-              owner: '',
-            },
-            releases: null,
-          });
-        }
+        setApplicationInformation({
+          package: {
+            id: id,
+            name: appMetadata?.applicationName ?? '',
+            description: appMetadata?.description ?? '',
+            repository: appMetadata?.repositoryUrl ?? '',
+            owner: appMetadata?.applicationOwner ?? '',
+          },
+          releases: null,
+        });
       }
     };
     fetchApplicationData();

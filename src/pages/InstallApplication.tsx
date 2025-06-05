@@ -17,24 +17,33 @@ export interface Application {
   hash: string;
 }
 
+export interface AppMetadata {
+  applicationUrl: string;
+  applicationName: string;
+  applicationOwner: string;
+  applicationVersion: string;
+  description: string;
+  repositoryUrl: string;
+}
+
 export default function InstallApplication() {
   const t = translations.applicationsPage.installApplication;
   const navigate = useNavigate();
   const { showServerDownPopup } = useServerDown();
-  const [application, setApplication] = useState<Application>({
-    appId: '',
-    name: '',
-    version: '',
-    path: '',
-    hash: '',
-  });
-  const [showBrowseApplication, setShowBrowseApplication] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [installAppStatus, setInstallAppStatus] = useState({
     title: '',
     message: '',
     error: false,
+  });
+  const [application, setApplication] = useState<AppMetadata>({
+    applicationUrl: '',
+    applicationName: '',
+    applicationOwner: '',
+    applicationVersion: '',
+    description: '',
+    repositoryUrl: '',
   });
 
   const installApplication = async () => {
@@ -50,18 +59,10 @@ export default function InstallApplication() {
   };
 
   const installApplicationHandler = async (): Promise<string | null> => {
-    if (!application.appId || !application.version) {
-      return null;
-    }
-
     const response = await apiClient(showServerDownPopup)
       .node()
-      .installApplication(
-        application.appId,
-        application.version,
-        application.path,
-        application.hash,
-      );
+      .installApplication(application);
+      console.log(response);
     if (response.error) {
       setInstallAppStatus({
         title: t.failInstallTitle,
@@ -72,7 +73,7 @@ export default function InstallApplication() {
     } else {
       setInstallAppStatus({
         title: t.successInstallTitle,
-        message: `Installed application ${application.name}, version ${application.version}.`,
+        message: `Installed application ${application.applicationName}, with ID ${response.data.applicationId}.`,
         error: false,
       });
       return response.data.applicationId;
@@ -104,9 +105,6 @@ export default function InstallApplication() {
             application={application}
             setApplication={setApplication}
             installApplication={installApplication}
-            showBrowseApplication={showBrowseApplication}
-            setShowBrowseApplication={setShowBrowseApplication}
-            onUploadClick={() => navigate('/publish-application')}
             isLoading={isLoading}
             showStatusModal={showStatusModal}
             closeModal={closeModal}

@@ -21,7 +21,6 @@ interface ApplicationDetailsTableProps {
 export default function ApplicationDetailsTable({
   applicationInformation,
   navigateToApplicationList,
-  navigateToAddRelease,
 }: ApplicationDetailsTableProps) {
   const t = translations.applicationsPage.applicationsTable;
 
@@ -32,13 +31,6 @@ export default function ApplicationDetailsTable({
       descriptionComponent={
         <DetailsCard details={applicationInformation.package} />
       }
-      headerOptionText="Add new release"
-      headerOnOptionClick={() => {
-        //TODO remove button to upload release for local apps
-        if (applicationInformation.package.owner.length > 0) {
-          navigateToAddRelease();
-        }
-      }}
     >
       <FlexWrapper>
         <ListTable<Release>

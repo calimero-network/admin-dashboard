@@ -1,3 +1,4 @@
+import { AppMetadata } from '../pages/InstallApplication';
 import {
   ContextStorage,
   HealthRequest,
@@ -13,13 +14,13 @@ import {
   NodeChallenge,
   RootKeyResponse,
   InstallApplicationResponse,
-  InstalledApplication,
   ContextIdentitiesResponse,
   CreateTokenResponse,
   UninstallApplicationResponse,
   CreateContextResponse,
   GetContextsResponse,
   Context,
+  InstalledApplicationDetails,
 } from './dataSource/NodeDataSource';
 import { ApiResponse } from './response';
 
@@ -27,7 +28,7 @@ export interface NodeApi {
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
   getInstalledApplicationDetails(
     appId: string,
-  ): ApiResponse<InstalledApplication>;
+  ): ApiResponse<InstalledApplicationDetails>;
   getContexts(): ApiResponse<GetContextsResponse>;
   getContext(contextId: string): ApiResponse<Context>;
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
@@ -42,10 +43,7 @@ export interface NodeApi {
   health(request: HealthRequest): ApiResponse<HealthStatus>;
   getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
   installApplication(
-    selectedPackageId: string,
-    selectedVersion: string,
-    ipfsPath: string,
-    hash: string,
+    application: AppMetadata,
   ): ApiResponse<InstallApplicationResponse>;
   joinContext(contextId: string): ApiResponse<JoinContextResponse>;
   login(loginRequest: LoginRequest): ApiResponse<LoginResponse>;

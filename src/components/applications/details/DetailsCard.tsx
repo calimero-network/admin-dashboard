@@ -68,11 +68,11 @@ export default function DetailsCard({ details }: DetailsCardProps) {
         </div>
         <div className="item">
           {t.labelDescriptionText}
-          {details.description || '-'}
+          <span className="highlight">{details.description || '-'}</span>
         </div>
         <div className="item">
           {t.labelRepositoryText}
-          {details.repository || '-'}
+          <span className="highlight">{details.repository || '-'}</span>
         </div>
       </div>
     </DetailsCardWrapper>
