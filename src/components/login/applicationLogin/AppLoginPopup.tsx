@@ -128,7 +128,7 @@ export default function AppLoginPopup({
         setErrorMessage(t.createTokenError);
       }
     } catch (e) {
-      console.log(e);
+      console.error(e);
       setErrorMessage(t.createTokenError);
     }
   };

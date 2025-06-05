@@ -62,7 +62,6 @@ export default function InstallApplication() {
     const response = await apiClient(showServerDownPopup)
       .node()
       .installApplication(application);
-      console.log(response);
     if (response.error) {
       setInstallAppStatus({
         title: t.failInstallTitle,

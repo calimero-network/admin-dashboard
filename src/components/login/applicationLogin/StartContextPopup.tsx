@@ -248,7 +248,7 @@ export default function StartContextPopup({
       const formattedJson = JSON.stringify(JSON.parse(argumentsJson), null, 2);
       setArgumentsJson(formattedJson);
     } catch (error) {
-      console.log('error', error);
+      console.error('error', error);
     }
   };
 
