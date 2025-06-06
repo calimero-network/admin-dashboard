@@ -137,7 +137,7 @@ export function SetupModal({
           setLoading(false);
         });
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setError(t.nodeHealthCheckError);
         setLoading(false);
       }

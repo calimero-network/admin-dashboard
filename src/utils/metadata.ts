@@ -1,13 +1,7 @@
-export interface AppMetadata {
-  contractAppId: string;
-}
+import { AppMetadata } from "../pages/InstallApplication";
 
-export function createAppMetadata(contractAppId: string): number[] {
-  var appMetadata: AppMetadata = {
-    contractAppId,
-  };
-
-  return Array.from(new TextEncoder().encode(JSON.stringify(appMetadata)));
+export function createAppMetadata(application: AppMetadata): number[] {
+  return Array.from(new TextEncoder().encode(JSON.stringify(application)));
 }
 
 export function parseAppMetadata(metadata: number[]): AppMetadata | null {

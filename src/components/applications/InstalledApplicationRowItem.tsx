@@ -68,6 +68,14 @@ const RowItem = styled.div<ApplicationRowItemProps>`
     align-items: center;
     width: 20%;
   }
+
+  .link {
+    color: #fff;
+    text-decoration: none;
+    &:hover {
+      color: #4cfafc;
+    }
+  }
 `;
 
 export default function installedApplicationRowItem(
@@ -84,12 +92,13 @@ export default function installedApplicationRowItem(
 
   return (
     <RowItem key={item.id} $hasBorders={id === count}>
-      <div
-        className="row-item name"
-        onClick={() => onRowItemClick && onRowItemClick(item.id)}
+      <a
+        className="row-item name link"
+        href={`/admin-dashboard/applications/${item.id}`}
+        rel="noopener noreferrer"
       >
         {item.name}
-      </div>
+      </a>
       <div className="row-item read">
         <ClipboardDocumentIcon
           className="copy-icon"

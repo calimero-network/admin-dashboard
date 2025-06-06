@@ -6,17 +6,16 @@ import ContextTable from '../components/context/contextDetails/ContextTable';
 import { useParams, useNavigate } from 'react-router-dom';
 import apiClient from '../api/index';
 import { DetailsOptions } from '../constants/ContextConstants';
-import { useRPC } from '../hooks/useNear';
 import { TableOptions } from '../components/common/OptionsHeader';
 import {
   ClientKey,
   Context,
   ContextStorage,
-  User,
 } from '../api/dataSource/NodeDataSource';
 import { ContextDetails } from '../types/context';
 import { useServerDown } from '../context/ServerDownContext';
 import { parseAppMetadata } from '../utils/metadata';
+import { AppMetadata } from './InstallApplication';
 
 const initialOptions = [
   {
@@ -48,7 +47,7 @@ export default function ContextDetailsPage() {
   const [contextClientKeysError, setContextClientKeysError] = useState<
     string | null
   >(null);
-  const [contextUsers, setContextUsers] = useState<User[]>();
+  const [contextUsers, setContextUsers] = useState<{ identity: string }[]>();
   const [contextUsersError, setContextUsersError] = useState<string | null>(
     null,
   );
@@ -61,25 +60,29 @@ export default function ContextDetailsPage() {
   );
   const [tableOptions, setTableOptions] =
     useState<TableOptions[]>(initialOptions);
-  const { getPackage, getLatestRelease } = useRPC();
 
   const generateContextObjects = useCallback(
     async (context: Context, id: string, metadata?: number[]) => {
       let appId = context.applicationId;
-      let packageData = null;
-      let versionData = null;
-      if (metadata && metadata.length !== 0) {
-        appId =
-          parseAppMetadata(metadata)?.contractAppId ?? context.applicationId;
-        packageData = await getPackage(appId);
-        versionData = await getLatestRelease(appId);
-      }
+      const appMetadata: AppMetadata | null = parseAppMetadata(metadata ?? []);
 
       const contextDetails: ContextDetails = {
         applicationId: appId,
         contextId: id,
-        package: packageData,
-        release: versionData,
+        package: {
+          id: appId,
+          name: appMetadata?.applicationName ?? '',
+          description: appMetadata?.description ?? '',
+          repository: appMetadata?.repositoryUrl ?? '',
+          owner: appMetadata?.applicationOwner ?? '',
+          version: appMetadata?.applicationVersion ?? '',
+        },
+        release: {
+          version: appMetadata?.applicationVersion ?? '',
+          notes: '',
+          path: '',
+          hash: '',
+        },
       };
 
       return contextDetails;
@@ -108,7 +111,7 @@ export default function ContextDetailsPage() {
             await apiClient(showServerDownPopup)
               .node()
               .getInstalledApplicationDetails(nodeContext.data.applicationId)
-          ).data?.metadata;
+          ).data?.application.metadata;
           const contextObject = await generateContextObjects(
             nodeContext.data,
             id,

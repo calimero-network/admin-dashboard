@@ -7,6 +7,7 @@ import { createAppMetadata } from '../../utils/metadata';
 import { Signature } from 'starknet';
 import { getNearEnvironment } from '../../utils/node';
 import { createAuthHeader, Header } from '../../auth/headers';
+import { AppMetadata } from '../../pages/InstallApplication';
 
 const t = translations.nodeDataSource;
 
@@ -52,6 +53,10 @@ export interface InstalledApplication {
   metadata: number[];
 }
 
+export interface InstalledApplicationDetails {
+  application: InstalledApplication;
+}
+
 export interface SigningKey {
   signingKey: string;
 }
@@ -65,7 +70,7 @@ export interface Context {
 
 export interface CreateContextResponse {
   contextId: string;
-  memberPublicKey: SigningKey;
+  memberPublicKey: string;
 }
 
 export interface GetContextsResponse {
@@ -335,14 +340,14 @@ export class NodeDataSource implements NodeApi {
 
   async getInstalledApplicationDetails(
     appId: string,
-  ): ApiResponse<InstalledApplication> {
+  ): ApiResponse<InstalledApplicationDetails> {
     try {
       const headers: Header | null = await createAuthHeader(
         getAppEndpointKey() as string,
         getNearEnvironment(),
       );
-      const response: ResponseData<InstalledApplication> =
-        await this.client.get<InstalledApplication>(
+      const response: ResponseData<InstalledApplicationDetails> =
+        await this.client.get<InstalledApplicationDetails>(
           `${getAppEndpointKey()}/admin-api/applications/${appId}`,
           headers ?? {},
         );
@@ -470,26 +475,21 @@ export class NodeDataSource implements NodeApi {
 
   async createContexts(
     applicationId: string,
-    initArguments: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
           applicationId,
-          initArguments,
         }),
         getNearEnvironment(),
       );
-      const encoder = new TextEncoder();
-      const encodedArgs = encoder.encode(JSON.stringify(initArguments));
-      const initializationParams = Array.from(encodedArgs);
 
       const response = await this.client.post<CreateContextResponse>(
         `${getAppEndpointKey()}/admin-api/contexts`,
         {
           applicationId,
-          initializationParams: initializationParams,
+          initializationParams: [],
           protocol,
         },
         headers ?? {},
@@ -525,17 +525,12 @@ export class NodeDataSource implements NodeApi {
   }
 
   async installApplication(
-    selectedPackageId: string,
-    selectedVersion: string,
-    ipfsPath: string,
-    hash: string,
+    application: AppMetadata,
   ): ApiResponse<InstallApplicationResponse> {
     try {
       const headers: Header | null = await createAuthHeader(
         JSON.stringify({
-          selectedPackageId,
-          selectedVersion,
-          hash,
+          application,
         }),
         getNearEnvironment(),
       );
@@ -544,10 +539,8 @@ export class NodeDataSource implements NodeApi {
         await this.client.post<InstallApplicationResponse>(
           `${getAppEndpointKey()}/admin-api/install-application`,
           {
-            url: ipfsPath,
-            version: selectedVersion,
-            // TODO: parse hash to format
-            metadata: createAppMetadata(selectedPackageId),
+            url: application.applicationUrl,
+            metadata: createAppMetadata(application),
           },
           headers ?? {},
         );
