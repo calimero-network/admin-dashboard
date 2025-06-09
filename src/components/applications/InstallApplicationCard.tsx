@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 import { AppMetadata } from '../../pages/InstallApplication';
 import Button from '../common/Button';
 import StatusModal, { ModalContent } from '../common/StatusModal';
 import translations from '../../constants/en.global.json';
+import { CloudArrowUpIcon } from '@heroicons/react/24/solid';
+import axios from 'axios';
 
 const Wrapper = styled.div`
   display: flex;
@@ -73,11 +75,11 @@ const Wrapper = styled.div`
     line-height: 0.75rem;
     text-align: left;
     margin-bottom: 1rem;
+    margin-top: 1rem;
   }
 
   input {
     background-color: transparent;
-    margin-bottom: 1rem;
     padding: 0.5rem;
     border: 1px solid rgb(255, 255, 255, 0.1);
     background-color: rgb(255, 255, 255, 0.2);
@@ -86,6 +88,7 @@ const Wrapper = styled.div`
     color: rgb(255, 255, 255, 0.7);
     outline: none;
     width: 60%;
+    height: 2.5rem;
   }
 
   .input:focus {
@@ -101,6 +104,64 @@ const Wrapper = styled.div`
     .section {
       width: 50%;
     }
+  }
+
+  .relative-container {
+    .h-flex {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: start;
+      width: 100%;
+
+      .cloud-arrow-up-icon {
+        margin-left: 1rem;
+        background-color: rgb(255, 255, 255, 0.2);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        height: 2.5rem;
+        width: 2.5rem;
+        padding: 0.5rem;
+        color: #6b7280;
+        cursor: pointer;
+      }
+
+      .cloud-arrow-up-icon:hover {
+        color: #fff;
+      }
+    }
+  }
+
+  .install-button-container {
+    margin-top: 1rem;
+  }
+`;
+
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+const IconLabel = styled.label<{ disabled?: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.25rem;
+  background-color: rgb(255, 255, 255, 0.2);
+  transition: background-color 0.2s ease;
+  margin-left: 0.5rem;
+
+  &:hover {
+    background-color: ${({ disabled }) => (disabled ? '#f0f0f0' : '#e0e0e0')};
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #333;
   }
 `;
 
@@ -123,7 +184,45 @@ export default function InstallApplicationCard({
   closeModal,
   installAppStatus,
 }: InstallApplicationCardProps) {
+  const [uploading, setUploading] = useState(false);
   const t = translations.applicationsPage.installApplication;
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+
+    setUploading(true);
+
+    const file = e.target.files[0];
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env['VITE_SERVER_URL']}/get-upload-url`,
+        {
+          fileName: file.name,
+          fileType: file.type,
+        },
+      );
+      const response = await fetch(res.data.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'image/png',
+          'x-amz-acl': 'public-read',
+        },
+        body: file,
+      });
+
+      if (response.ok) {
+        setApplication({ ...application, applicationUrl: res.data.fileUrl });
+        setUploading(false);
+      } else {
+        window.alert('Error uploading image');
+        console.error(response);
+      }
+    } catch (error) {
+      window.alert('Error uploading image');
+      console.error(error);
+    }
+  };
 
   return (
     <Wrapper>
@@ -199,16 +298,32 @@ export default function InstallApplicationCard({
           />
         </div>
       </div>
-      <div className="label">{t.applicationUrl}</div>
-      <input
-        type="text"
-        name="applicationUrl"
-        className="input input-url"
-        value={application.applicationUrl}
-        onChange={(e) =>
-          setApplication({ ...application, applicationUrl: e.target.value })
-        }
-      />
+      <div className="relative-container">
+        <div className="label">{t.applicationUrl}</div>
+        <div className="h-flex">
+          <input
+            type="text"
+            name="applicationUrl"
+            className="input input-url input-url-container"
+            placeholder={t.applicationUrlPlaceholder}
+            value={application.applicationUrl}
+            disabled={uploading}
+            onChange={(e) =>
+              setApplication({ ...application, applicationUrl: e.target.value })
+            }
+          />
+          <HiddenInput
+            id="upload-wasm"
+            type="file"
+            accept=".wasm"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+          <IconLabel htmlFor="upload-wasm" disabled={uploading}>
+            <CloudArrowUpIcon />
+          </IconLabel>
+        </div>
+      </div>
       <div className="label">{t.repositoryUrl}</div>
       <input
         type="text"
@@ -220,7 +335,7 @@ export default function InstallApplicationCard({
           setApplication({ ...application, repositoryUrl: e.target.value })
         }
       />
-      <div className="init-section">
+      <div className="install-button-container">
         <Button
           text={t.installButtonText}
           width={'144px'}
