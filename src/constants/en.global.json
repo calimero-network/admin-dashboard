@@ -161,6 +161,7 @@
       "applicationName": "Application Name",
       "applicationOwner": "Application Owner",
       "applicationVersion": "Application Version",
+      "applicationUrlPlaceholder": "Provide the application URL or upload the application wasm file",
       "description": "Description",
       "repositoryUrl": "Repository URL",
       "optionalField": "(optional)",
