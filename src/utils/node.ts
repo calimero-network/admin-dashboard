@@ -1,4 +1,7 @@
-import { getAppEndpointKey, setAppEndpointKey } from "@calimero-network/calimero-client";
+import {
+  getAppEndpointKey,
+  setAppEndpointKey,
+} from '@calimero-network/calimero-client';
 
 export function getNodeUrl(): string {
   let storageKey = getAppEndpointKey();

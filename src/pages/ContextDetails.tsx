@@ -10,7 +10,10 @@ import { ContextDetails } from '../types/context';
 import { parseAppMetadata } from '../utils/metadata';
 import { AppMetadata } from './InstallApplication';
 import { ClientKey } from '@calimero-network/calimero-client/lib/api/adminApi';
-import { Context, ContextStorage } from '@calimero-network/calimero-client/lib/api/nodeApi';
+import {
+  Context,
+  ContextStorage,
+} from '@calimero-network/calimero-client/lib/api/nodeApi';
 import { apiClient } from '@calimero-network/calimero-client';
 
 const initialOptions = [
@@ -103,7 +106,9 @@ export default function ContextDetailsPage() {
 
         if (nodeContext.data) {
           const applicationMetadata = (
-            await apiClient.node().getInstalledApplicationDetails(nodeContext.data.applicationId)
+            await apiClient
+              .node()
+              .getInstalledApplicationDetails(nodeContext.data.applicationId)
           ).data?.metadata;
           const contextObject = await generateContextObjects(
             nodeContext.data,

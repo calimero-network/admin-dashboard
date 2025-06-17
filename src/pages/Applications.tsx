@@ -84,7 +84,9 @@ export default function ApplicationsPage() {
 
   const setApps = async () => {
     setErrorMessage('');
-    const fetchApplicationResponse = await apiClient.node().getInstalledApplications();
+    const fetchApplicationResponse = await apiClient
+      .node()
+      .getInstalledApplications();
 
     console.log('fetchApplicationResponse', fetchApplicationResponse);
 
@@ -112,7 +114,7 @@ export default function ApplicationsPage() {
               repository: appMetadata ? appMetadata.repositoryUrl : null,
               owner: appMetadata ? appMetadata.applicationOwner : null,
             };
-           
+
             console.log('application', application);
             return application;
           },

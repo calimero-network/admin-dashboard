@@ -1,4 +1,4 @@
-import { AppMetadata } from "../pages/InstallApplication";
+import { AppMetadata } from '../pages/InstallApplication';
 
 export function createAppMetadata(application: AppMetadata): number[] {
   return Array.from(new TextEncoder().encode(JSON.stringify(application)));

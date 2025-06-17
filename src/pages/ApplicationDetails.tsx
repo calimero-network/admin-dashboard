@@ -24,10 +24,9 @@ export default function ApplicationDetailsPage() {
   useEffect(() => {
     const fetchApplicationData = async () => {
       if (id) {
-        const fetchApplicationDetailsResponse =
-          await apiClient
-            .node()
-            .getInstalledApplicationDetails(id);
+        const fetchApplicationDetailsResponse = await apiClient
+          .node()
+          .getInstalledApplicationDetails(id);
 
         if (fetchApplicationDetailsResponse.error) {
           console.error(fetchApplicationDetailsResponse.error.message);

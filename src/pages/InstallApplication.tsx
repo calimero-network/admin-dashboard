@@ -59,7 +59,9 @@ export default function InstallApplication() {
   };
 
   const installApplicationHandler = async (): Promise<string | null> => {
-    const response = await apiClient.node().installApplication(application.applicationUrl);
+    const response = await apiClient
+      .node()
+      .installApplication(application.applicationUrl);
     if (response.error) {
       setInstallAppStatus({
         title: t.failInstallTitle,

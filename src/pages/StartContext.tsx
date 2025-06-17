@@ -34,7 +34,9 @@ export default function StartContextPage() {
   const startContext = async () => {
     setIsLoading(true);
 
-    const startContextResponse = await apiClient.node().createContext(applicationId, protocol);
+    const startContextResponse = await apiClient
+      .node()
+      .createContext(applicationId, protocol);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
@@ -46,7 +48,9 @@ export default function StartContextPage() {
       const identityPublicKey = startContextResponse.data?.memberPublicKey;
       setStartContextStatus({
         title: t.startContextSuccessTitle,
-        message: t.startedContextMessage.replace('{0}', newConextId).replace('{1}', identityPublicKey),
+        message: t.startedContextMessage
+          .replace('{0}', newConextId)
+          .replace('{1}', identityPublicKey),
         error: false,
       });
     }
@@ -69,7 +73,9 @@ export default function StartContextPage() {
 
   useEffect(() => {
     const fetchApplication = async () => {
-      const fetchApplicationResponse = await apiClient.node().getInstalledApplications();
+      const fetchApplicationResponse = await apiClient
+        .node()
+        .getInstalledApplications();
       setApplications(fetchApplicationResponse.data?.apps ?? []);
     };
     fetchApplication();
