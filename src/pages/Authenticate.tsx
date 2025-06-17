@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ContentWrapper from '../components/login/ContentWrapper';
+import ContentWrapper from '../components/layout/ContentWrapper';
 import LoginSelector from '../components/login/wallets/LoginSelector';
 
 export default function AuthenticatePage() {

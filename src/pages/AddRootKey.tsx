@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ContentWrapper from '../components/login/ContentWrapper';
+import ContentWrapper from '../components/layout/ContentWrapper';
 import { apiClient } from '@calimero-network/calimero-client';
 import { styled } from 'styled-components';
 import translations from '../constants/en.global.json';

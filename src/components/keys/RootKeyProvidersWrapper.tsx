@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { apiClient } from '@calimero-network/calimero-client';
-import ContentWrapper from '../login/ContentWrapper';
+import ContentWrapper from '../layout/ContentWrapper';
 import { styled } from 'styled-components';
 import { NearWalletProvider } from './providers/NearWalletProvider';
-import Button from '../common/Button';
 
 const Wrapper = styled.div`
   display: flex;

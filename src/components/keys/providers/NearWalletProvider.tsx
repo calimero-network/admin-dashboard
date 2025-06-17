@@ -9,7 +9,6 @@ import { apiClient } from '@calimero-network/calimero-client';
 import { styled } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../common/Button';
-import LoaderSpinner from '../../common/LoaderSpinner';
 import Loading from '../../common/Loading';
 
 const Wrapper = styled.div`
@@ -53,21 +52,6 @@ export function NearWalletProvider({ provider }: NearWalletProviderProps) {
   const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accountId = urlParams.get('account_id');
-    const publicKey = urlParams.get('all_keys');
-
-    console.log('accountId', accountId);
-    console.log('publicKey', publicKey);
-
-    if (accountId && publicKey) {
-      addRootKey(publicKey, accountId);
-    } else {
-      connectWallet();
-    }
-  }, []);
 
   const connectWallet = useCallback(async () => {
     setError(null);
@@ -128,6 +112,21 @@ export function NearWalletProvider({ provider }: NearWalletProviderProps) {
     },
     [],
   );
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountId = urlParams.get('account_id');
+    const publicKey = urlParams.get('all_keys');
+
+    console.log('accountId', accountId);
+    console.log('publicKey', publicKey);
+
+    if (accountId && publicKey) {
+      addRootKey(publicKey, accountId);
+    } else {
+      connectWallet();
+    }
+  }, [addRootKey, connectWallet]);
 
   return (
     <Wrapper>
