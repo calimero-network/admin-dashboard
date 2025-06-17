@@ -6,12 +6,9 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Package, Release } from './Applications';
 import ApplicationDetailsTable from '../components/applications/details/ApplicationDetailsTable';
-import apiClient from '../api';
-import { ResponseData } from '../api/response';
 import { parseAppMetadata } from '../utils/metadata';
-import { InstalledApplicationDetails } from '../api/dataSource/NodeDataSource';
-import { useServerDown } from '../context/ServerDownContext';
 import { AppMetadata } from './InstallApplication';
+import { apiClient } from '@calimero-network/calimero-client';
 
 export interface AppDetails {
   package: Package;
@@ -20,7 +17,6 @@ export interface AppDetails {
 
 export default function ApplicationDetailsPage() {
   const { id } = useParams();
-  const { showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
   const [applicationInformation, setApplicationInformation] =
     useState<AppDetails>();
@@ -28,8 +24,8 @@ export default function ApplicationDetailsPage() {
   useEffect(() => {
     const fetchApplicationData = async () => {
       if (id) {
-        const fetchApplicationDetailsResponse: ResponseData<InstalledApplicationDetails> =
-          await apiClient(showServerDownPopup)
+        const fetchApplicationDetailsResponse =
+          await apiClient
             .node()
             .getInstalledApplicationDetails(id);
 
@@ -38,7 +34,7 @@ export default function ApplicationDetailsPage() {
           return;
         }
         const appMetadata: AppMetadata | null = parseAppMetadata(
-          fetchApplicationDetailsResponse.data.application.metadata,
+          fetchApplicationDetailsResponse.data?.metadata ?? [],
         );
 
         setApplicationInformation({

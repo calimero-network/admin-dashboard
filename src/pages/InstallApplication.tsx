@@ -5,9 +5,8 @@ import PageContentWrapper from '../components/common/PageContentWrapper';
 import { useNavigate } from 'react-router-dom';
 import { ContentCard } from '../components/common/ContentCard';
 import translations from '../constants/en.global.json';
-import apiClient from '../api/index';
 import InstallApplicationCard from '../components/applications/InstallApplicationCard';
-import { useServerDown } from '../context/ServerDownContext';
+import { apiClient } from '@calimero-network/calimero-client';
 
 export interface Application {
   appId: string;
@@ -23,13 +22,13 @@ export interface AppMetadata {
   applicationOwner: string;
   applicationVersion: string;
   description: string;
+  contractAppId: string;
   repositoryUrl: string;
 }
 
 export default function InstallApplication() {
   const t = translations.applicationsPage.installApplication;
   const navigate = useNavigate();
-  const { showServerDownPopup } = useServerDown();
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [installAppStatus, setInstallAppStatus] = useState({
@@ -43,6 +42,7 @@ export default function InstallApplication() {
     applicationOwner: '',
     applicationVersion: '',
     description: '',
+    contractAppId: '',
     repositoryUrl: '',
   });
 
@@ -59,9 +59,7 @@ export default function InstallApplication() {
   };
 
   const installApplicationHandler = async (): Promise<string | null> => {
-    const response = await apiClient(showServerDownPopup)
-      .node()
-      .installApplication(application);
+    const response = await apiClient.node().installApplication(application.applicationUrl);
     if (response.error) {
       setInstallAppStatus({
         title: t.failInstallTitle,
