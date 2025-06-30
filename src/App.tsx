@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
-import { ProtectedRoutesWrapper } from '@calimero-network/calimero-client';
+import { ProtectedRoutesWrapper, getAccessToken, getRefreshToken } from '@calimero-network/calimero-client';
 
 import Identity from './pages/Identity';
 import ApplicationsPage from './pages/Applications';
@@ -14,28 +14,54 @@ import PublishApplication from './pages/PublishApplication';
 import AddRelease from './pages/AddRelease';
 import AddRootKey from './pages/AddRootKey';
 import InstallApplication from './pages/InstallApplication';
+
 import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
+
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
+  const [hasValidTokens, setHasValidTokens] = useState<boolean>(false);
+  const [isTokenCheckComplete, setIsTokenCheckComplete] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkTokens = () => {
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
+      
+      const tokensExist = accessToken && refreshToken;
+      setHasValidTokens(!!tokensExist);
+      setIsTokenCheckComplete(true);
+    };
+
+    checkTokens();
+  }, []);
+
+  // Show loading state while checking tokens
+  if (!isTokenCheckComplete) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <BrowserRouter basename="/admin-dashboard">
       <ProtectedRoutesWrapper permissions={['admin']}>
         <Routes>
-          {/* Redirect root to identity page */}
-          <Route path="/" element={<Navigate to="/identity" replace />} />
+          { hasValidTokens ? (
+            <>
+              <Route path="/" element={<Navigate to="/identity" replace />} />
+              <Route path="/identity" element={<Identity />} />
+              <Route path="/identity/root-key" element={<AddRootKey />} />
+              <Route
+                path="/identity/root-key/:providerId"
+                element={<RootKeyProvidersWrapper />}
+              />
+            </>
+          ) : (
+            <Route path="/" element={<Navigate to="/applications" replace />} />
+          )}
 
-          {/* Identity routes */}
-          <Route path="/identity" element={<Identity />} />
-          <Route path="/identity/root-key" element={<AddRootKey />} />
-          <Route
-            path="/identity/root-key/:providerId"
-            element={<RootKeyProvidersWrapper />}
-          />
+          <Route path="/applications" element={<ApplicationsPage />} />  
 
-          {/* Application routes */}
-          <Route path="/applications" element={<ApplicationsPage />} />
           <Route
             path="/applications/install"
             element={<InstallApplication />}
