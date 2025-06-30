@@ -4,7 +4,10 @@ import CalimeroLogo from '../assets/calimero-logo.svg';
 import translations from '../constants/en.global.json';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-import { getAccessToken, getRefreshToken } from '@calimero-network/calimero-client';
+import {
+  getAccessToken,
+  getRefreshToken,
+} from '@calimero-network/calimero-client';
 
 const NavigationWrapper = styled.div`
   background-color: #111111;
@@ -122,7 +125,7 @@ export function Navigation() {
   };
 
   // Filter navigation items based on authentication status
-  const filteredNavigationItems = NavigationItems.filter(item => {  
+  const filteredNavigationItems = NavigationItems.filter((item) => {
     if (item.id === 0 && !hasTokens()) {
       return false;
     }

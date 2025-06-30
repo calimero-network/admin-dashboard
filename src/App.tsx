@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
-import { ProtectedRoutesWrapper, getAccessToken, getRefreshToken } from '@calimero-network/calimero-client';
+import {
+  ProtectedRoutesWrapper,
+  getAccessToken,
+  getRefreshToken,
+} from '@calimero-network/calimero-client';
 
 import Identity from './pages/Identity';
 import ApplicationsPage from './pages/Applications';
@@ -17,18 +21,18 @@ import InstallApplication from './pages/InstallApplication';
 
 import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
   const [hasValidTokens, setHasValidTokens] = useState<boolean>(false);
-  const [isTokenCheckComplete, setIsTokenCheckComplete] = useState<boolean>(false);
+  const [isTokenCheckComplete, setIsTokenCheckComplete] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const checkTokens = () => {
       const accessToken = getAccessToken();
       const refreshToken = getRefreshToken();
-      
+
       const tokensExist = accessToken && refreshToken;
       setHasValidTokens(!!tokensExist);
       setIsTokenCheckComplete(true);
@@ -46,7 +50,7 @@ export default function App() {
     <BrowserRouter basename="/admin-dashboard">
       <ProtectedRoutesWrapper permissions={['admin']}>
         <Routes>
-          { hasValidTokens ? (
+          {hasValidTokens ? (
             <>
               <Route path="/" element={<Navigate to="/identity" replace />} />
               <Route path="/identity" element={<Identity />} />
@@ -60,7 +64,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/applications" replace />} />
           )}
 
-          <Route path="/applications" element={<ApplicationsPage />} />  
+          <Route path="/applications" element={<ApplicationsPage />} />
 
           <Route
             path="/applications/install"
