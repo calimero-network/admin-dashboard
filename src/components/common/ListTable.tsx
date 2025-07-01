@@ -60,6 +60,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
 
   .list-items {
     overflow-y: scroll;
+    max-height: 65vh;
   }
 
   .container {
