@@ -37,23 +37,19 @@ export default function App() {
           return;
         }
 
-        // Try to call the admin API endpoint directly
         const response = await fetch(`${baseUrl}/admin/keys`, {
-          method: 'HEAD', // Use HEAD to avoid downloading response body
+          method: 'HEAD',
           headers: {
             'Content-Type': 'application/json',
           },
         });
 
-        // If we get any response other than 404, admin API is available
         if (response.status === 404) {
           setIsAdminApiAvailable(false);
         } else {
-          // Status 200, 401, 403, etc. all mean the endpoint exists
           setIsAdminApiAvailable(true);
         }
       } catch (error) {
-        // Network error or other issues - assume admin API not available
         setIsAdminApiAvailable(false);
       }
     };
