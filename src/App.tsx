@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import {
   ProtectedRoutesWrapper,
-  getAccessToken,
-  getRefreshToken,
+  apiClient,
+  getAppEndpointKey,
 } from '@calimero-network/calimero-client';
 
 import Identity from './pages/Identity';
@@ -24,33 +24,46 @@ import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
-  const [hasValidTokens, setHasValidTokens] = useState<boolean>(false);
-  const [isTokenCheckComplete, setIsTokenCheckComplete] =
-    useState<boolean>(false);
+  const [isAdminApiAvailable, setIsAdminApiAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkTokens = () => {
-      const accessToken = getAccessToken();
-      const refreshToken = getRefreshToken();
+    const checkAdminApiAvailability = async () => {
+      try {
+        const baseUrl = getAppEndpointKey();
+        if (!baseUrl) {
+          setIsAdminApiAvailable(false);
+          return;
+        }
 
-      const tokensExist = accessToken && refreshToken;
-      setHasValidTokens(!!tokensExist);
-      setIsTokenCheckComplete(true);
+        // Try to call the admin API endpoint directly
+        const response = await fetch(`${baseUrl}/admin/keys`, {
+          method: 'HEAD', // Use HEAD to avoid downloading response body
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        // If we get any response other than 404, admin API is available
+        if (response.status === 404) {
+          setIsAdminApiAvailable(false);
+        } else {
+          // Status 200, 401, 403, etc. all mean the endpoint exists
+          setIsAdminApiAvailable(true);
+        }
+      } catch (error) {
+        // Network error or other issues - assume admin API not available
+        setIsAdminApiAvailable(false);
+      }
     };
 
-    checkTokens();
+    checkAdminApiAvailability();
   }, []);
-
-  // Show loading state while checking tokens
-  if (!isTokenCheckComplete) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <BrowserRouter basename="/admin-dashboard">
       <ProtectedRoutesWrapper permissions={['admin']}>
         <Routes>
-          {hasValidTokens ? (
+          {isAdminApiAvailable ? (
             <>
               <Route path="/" element={<Navigate to="/identity" replace />} />
               <Route path="/identity" element={<Identity />} />
@@ -65,7 +78,6 @@ export default function App() {
           )}
 
           <Route path="/applications" element={<ApplicationsPage />} />
-
           <Route
             path="/applications/install"
             element={<InstallApplication />}
@@ -86,8 +98,16 @@ export default function App() {
           {/* Export route */}
           <Route path="/export" element={<Export />} />
 
-          {/* Catch all unknown routes and redirect to identity */}
-          <Route path="*" element={<Navigate to="/identity" replace />} />
+          {/* Catch all unknown routes and redirect appropriately */}
+          <Route 
+            path="*" 
+            element={
+              <Navigate 
+                to={isAdminApiAvailable ? "/identity" : "/applications"} 
+                replace 
+              />
+            } 
+          />
         </Routes>
       </ProtectedRoutesWrapper>
     </BrowserRouter>
