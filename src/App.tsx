@@ -24,7 +24,9 @@ import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
-  const [isAdminApiAvailable, setIsAdminApiAvailable] = useState<boolean | null>(null);
+  const [isAdminApiAvailable, setIsAdminApiAvailable] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     const checkAdminApiAvailability = async () => {
@@ -99,14 +101,14 @@ export default function App() {
           <Route path="/export" element={<Export />} />
 
           {/* Catch all unknown routes and redirect appropriately */}
-          <Route 
-            path="*" 
+          <Route
+            path="*"
             element={
-              <Navigate 
-                to={isAdminApiAvailable ? "/identity" : "/applications"} 
-                replace 
+              <Navigate
+                to={isAdminApiAvailable ? '/identity' : '/applications'}
+                replace
               />
-            } 
+            }
           />
         </Routes>
       </ProtectedRoutesWrapper>
