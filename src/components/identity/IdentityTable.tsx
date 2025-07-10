@@ -83,9 +83,13 @@ const RowItem = styled.div`
   }
 
   .actions {
-    width: 10%;
+    width: 20%;
+    padding: 0.75rem 0rem;
+    height: 4.5rem;
     display: flex;
-    justify-content: flex-end;
+    justify-content: end;
+    align-items: center;
+    position: relative;
   }
 `;
 
