@@ -4,15 +4,11 @@ import translations from '../../../constants/en.global.json';
 import { ContentCard } from '../../common/ContentCard';
 import OptionsHeader, { TableOptions } from '../../common/OptionsHeader';
 import ListTable from '../../common/ListTable';
-import clientKeyRowItem from './ClientKeyRowItem';
 import userRowItem from './UserRowItem';
 import { DetailsOptions } from '../../../constants/ContextConstants';
 import DetailsCard from './DetailsCard';
-import {
-  ClientKey,
-  ContextStorage,
-} from '../../../api/dataSource/NodeDataSource';
 import { ContextDetails } from '../../../types/context';
+import { ContextStorage } from '@calimero-network/calimero-client/lib/api/nodeApi';
 
 const FlexWrapper = styled.div`
   flex: 1;
@@ -21,8 +17,6 @@ const FlexWrapper = styled.div`
 interface ContextTableProps {
   contextDetails: ContextDetails;
   contextDetailsError: string | null;
-  contextClientKeys: ClientKey[];
-  contextClientKeysError: string | null;
   contextUsers: { identity: string }[];
   contextUsersError: string | null;
   contextStorage: ContextStorage;
@@ -54,18 +48,6 @@ export default function ContextTable(props: ContextTableProps) {
             detailsErrror={props.contextDetailsError}
             contextStorage={props.contextStorage}
             contextStorageError={props.contextStorageError}
-          />
-        )}
-        {props.currentOption === DetailsOptions.CLIENT_KEYS && (
-          <ListTable<ClientKey>
-            listDescription={t.clientKeysListDescription}
-            numOfColumns={3}
-            listHeaderItems={['TYPE', 'ADDED', 'PUBLIC KEY']}
-            listItems={props.contextClientKeys || []}
-            error={props.contextClientKeysError ?? ''}
-            rowItem={clientKeyRowItem}
-            roundTopItem={true}
-            noItemsText={t.noClientKeysText}
           />
         )}
         {props.currentOption === DetailsOptions.USERS && (
