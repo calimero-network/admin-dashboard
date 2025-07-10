@@ -6,10 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { ContentCard } from '../components/common/ContentCard';
 import StartContextCard from '../components/context/startContext/StartContextCard';
 import translations from '../constants/en.global.json';
-import apiClient from '../api/index';
-import { useServerDown } from '../context/ServerDownContext';
-import { ResponseData } from '../api/response';
-import { GetInstalledApplicationsResponse, InstalledApplication } from '../api/dataSource/NodeDataSource';
+import { apiClient } from '@calimero-network/calimero-client';
+import { InstalledApplication } from '@calimero-network/calimero-client/lib/api/nodeApi';
 
 export interface ContextApplication {
   appId: string;
@@ -22,7 +20,6 @@ export interface ContextApplication {
 export default function StartContextPage() {
   const t = translations.startContextPage;
   const navigate = useNavigate();
-  const { showServerDownPopup } = useServerDown();
   const [applicationId, setApplicationId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -37,9 +34,9 @@ export default function StartContextPage() {
   const startContext = async () => {
     setIsLoading(true);
 
-    const startContextResponse = await apiClient(showServerDownPopup)
+    const startContextResponse = await apiClient
       .node()
-      .createContexts(applicationId, protocol);
+      .createContext(applicationId, protocol);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
@@ -51,7 +48,9 @@ export default function StartContextPage() {
       const identityPublicKey = startContextResponse.data?.memberPublicKey;
       setStartContextStatus({
         title: t.startContextSuccessTitle,
-        message: t.startedContextMessage.replace('{0}', newConextId).replace('{1}', identityPublicKey),
+        message: t.startedContextMessage
+          .replace('{0}', newConextId)
+          .replace('{1}', identityPublicKey),
         error: false,
       });
     }
@@ -74,8 +73,9 @@ export default function StartContextPage() {
 
   useEffect(() => {
     const fetchApplication = async () => {
-      const fetchApplicationResponse: ResponseData<GetInstalledApplicationsResponse> =
-        await apiClient(showServerDownPopup).node().getInstalledApplications();
+      const fetchApplicationResponse = await apiClient
+        .node()
+        .getInstalledApplications();
       setApplications(fetchApplicationResponse.data?.apps ?? []);
     };
     fetchApplication();

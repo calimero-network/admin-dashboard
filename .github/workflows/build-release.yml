@@ -60,7 +60,7 @@ jobs:
           cd temp-deploy
           git init
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          
+
           git fetch origin
 
           git checkout build || git checkout -b build

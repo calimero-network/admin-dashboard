@@ -4,6 +4,10 @@ import CalimeroLogo from '../assets/calimero-logo.svg';
 import translations from '../constants/en.global.json';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import {
+  getAccessToken,
+  getRefreshToken,
+} from '@calimero-network/calimero-client';
 
 const NavigationWrapper = styled.div`
   background-color: #111111;
@@ -113,6 +117,21 @@ export function Navigation() {
   const t = translations.navigation;
   const location = useLocation();
 
+  // Check if user is authenticated by checking for tokens
+  const hasTokens = () => {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+    return !!(accessToken && refreshToken);
+  };
+
+  // Filter navigation items based on authentication status
+  const filteredNavigationItems = NavigationItems.filter((item) => {
+    if (item.id === 0 && !hasTokens()) {
+      return false;
+    }
+    return true;
+  });
+
   const logout = () => {
     localStorage.clear();
     window.location.href = '/admin-dashboard/';
@@ -131,7 +150,7 @@ export function Navigation() {
       </div>
       <div className="items-wrapper">
         <div className="navigation-items-wrapper">
-          {NavigationItems.map((item) =>
+          {filteredNavigationItems.map((item) =>
             item.id === 5 ? (
               <div key={item.id} className="nav-item logout" onClick={logout}>
                 {item.title}

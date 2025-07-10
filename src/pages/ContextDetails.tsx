@@ -4,18 +4,17 @@ import { FlexLayout } from '../components/layout/FlexLayout';
 import PageContentWrapper from '../components/common/PageContentWrapper';
 import ContextTable from '../components/context/contextDetails/ContextTable';
 import { useParams, useNavigate } from 'react-router-dom';
-import apiClient from '../api/index';
 import { DetailsOptions } from '../constants/ContextConstants';
 import { TableOptions } from '../components/common/OptionsHeader';
-import {
-  ClientKey,
-  Context,
-  ContextStorage,
-} from '../api/dataSource/NodeDataSource';
 import { ContextDetails } from '../types/context';
-import { useServerDown } from '../context/ServerDownContext';
 import { parseAppMetadata } from '../utils/metadata';
 import { AppMetadata } from './InstallApplication';
+import { ClientKey } from '@calimero-network/calimero-client/lib/api/adminApi';
+import {
+  Context,
+  ContextStorage,
+} from '@calimero-network/calimero-client/lib/api/nodeApi';
+import { apiClient } from '@calimero-network/calimero-client';
 
 const initialOptions = [
   {
@@ -37,7 +36,6 @@ const initialOptions = [
 
 export default function ContextDetailsPage() {
   const { id } = useParams();
-  const { showServerDownPopup } = useServerDown();
   const navigate = useNavigate();
   const [contextDetails, setContextDetails] = useState<ContextDetails>();
   const [contextDetailsError, setContextDetailsError] = useState<string | null>(
@@ -100,18 +98,18 @@ export default function ContextDetailsPage() {
           contextClientUsers,
           contextStorage,
         ] = await Promise.all([
-          apiClient(showServerDownPopup).node().getContext(id),
-          apiClient(showServerDownPopup).node().getContextClientKeys(id),
-          apiClient(showServerDownPopup).node().getContextUsers(id),
-          apiClient(showServerDownPopup).node().getContextStorageUsage(id),
+          apiClient.node().getContext(id),
+          apiClient.node().getContextClientKeys(id),
+          apiClient.node().getContextUsers(id),
+          apiClient.node().getContextStorageUsage(id),
         ]);
 
         if (nodeContext.data) {
           const applicationMetadata = (
-            await apiClient(showServerDownPopup)
+            await apiClient
               .node()
               .getInstalledApplicationDetails(nodeContext.data.applicationId)
-          ).data?.application.metadata;
+          ).data?.metadata;
           const contextObject = await generateContextObjects(
             nodeContext.data,
             id,

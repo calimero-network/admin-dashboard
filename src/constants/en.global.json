@@ -213,7 +213,13 @@
     "badgeRevokedText": "Revoked",
     "setActiveText": "Set Active",
     "revokeKeyText": "Revoke Key",
-    "addNewText": "Add new Key"
+    "addNewText": "Add new Key",
+    "permissionsDialogTitle": "Manage Permissions",
+    "permissionsSaveButton": "Save Changes",
+    "permissionsCancelButton": "Cancel",
+    "permissionsError": "Failed to update permissions",
+    "permissionsAtLeastOne": "At least one permission is required",
+    "permissionsUpdated": "Permissions updated successfully"
   },
   "uploadPage": {
     "title": "Upload Application",

@@ -13,7 +13,6 @@ export default function ApplicationDetailsTable({
   applicationInformation,
   navigateToApplicationList,
 }: ApplicationDetailsTableProps) {
-
   return (
     <ContentCard
       headerBackText={'Application'}

@@ -71,7 +71,7 @@ export default function PublishApplicationPage() {
 
   useEffect(() => {
     navigate('/applications');
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     (async () => {

@@ -3,26 +3,32 @@ import React from 'react';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/index';
 import PageContentWrapper from '../components/common/PageContentWrapper';
 import ApplicationsTable from '../components/applications/ApplicationsTable';
 import { TableOptions } from '../components/common/OptionsHeader';
 import { ApplicationOptions } from '../constants/ContextConstants';
-import {
-  Application,
-  GetInstalledApplicationsResponse,
-  InstalledApplication,
-} from '../api/dataSource/NodeDataSource';
-import { ResponseData } from '../api/response';
-import { useServerDown } from '../context/ServerDownContext';
 import { parseAppMetadata } from '../utils/metadata';
 import { ModalContent } from '../components/common/StatusModal';
 import { AppMetadata } from './InstallApplication';
+import { apiClient } from '@calimero-network/calimero-client';
+import { InstalledApplication } from '@calimero-network/calimero-client/lib/api/nodeApi';
 
 export enum Tabs {
   AVAILABLE,
   OWNED,
   INSTALLED,
+}
+
+export interface Application {
+  id: string;
+  blob: string;
+  version: string | null;
+  source: string;
+  contract_app_id: string | null;
+  name: string | null;
+  description: string | null;
+  repository: string | null;
+  owner: string | null;
 }
 
 export interface Package {
@@ -57,7 +63,6 @@ export interface Applications {
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
-  const { showServerDownPopup } = useServerDown();
   const [errorMessage, setErrorMessage] = useState('');
   const [currentOption, setCurrentOption] = useState<string>(
     ApplicationOptions.INSTALLED,
@@ -79,8 +84,11 @@ export default function ApplicationsPage() {
 
   const setApps = async () => {
     setErrorMessage('');
-    const fetchApplicationResponse: ResponseData<GetInstalledApplicationsResponse> =
-      await apiClient(showServerDownPopup).node().getInstalledApplications();
+    const fetchApplicationResponse = await apiClient
+      .node()
+      .getInstalledApplications();
+
+    console.log('fetchApplicationResponse', fetchApplicationResponse);
 
     if (fetchApplicationResponse.error) {
       setErrorMessage(fetchApplicationResponse.error.message);
@@ -95,21 +103,19 @@ export default function ApplicationsPage() {
               app.metadata,
             );
 
-            let application: Application | null = null;
-            if (appMetadata) {
-              application = {
-                id: app.id,
-                version: appMetadata.applicationVersion,
-                source: app.source,
-                blob: app.blob,
-                contract_app_id: null,
-                name: appMetadata.applicationName,
-                description: appMetadata.description,
-                repository: appMetadata.repositoryUrl,
-                owner: appMetadata.applicationOwner,
-              };
-            }
+            let application: Application = {
+              id: app.id,
+              version: appMetadata ? appMetadata.applicationVersion : null,
+              source: app.source,
+              blob: app.blob,
+              contract_app_id: null,
+              name: appMetadata ? appMetadata.applicationName : null,
+              description: appMetadata ? appMetadata.description : null,
+              repository: appMetadata ? appMetadata.repositoryUrl : null,
+              owner: appMetadata ? appMetadata.applicationOwner : null,
+            };
 
+            console.log('application', application);
             return application;
           },
         ),
@@ -131,9 +137,7 @@ export default function ApplicationsPage() {
   }, []);
 
   const uninstallApplication = async () => {
-    const contextResponse = await apiClient(showServerDownPopup)
-      .node()
-      .getContexts();
+    const contextResponse = await apiClient.node().getContexts();
     if (contextResponse.error) {
       setUninstallStatus({
         title: 'Error',
@@ -166,9 +170,7 @@ export default function ApplicationsPage() {
       }
     }
 
-    const response = await apiClient(showServerDownPopup)
-      .node()
-      .uninstallApplication(selectedAppId);
+    const response = await apiClient.node().uninstallApplication(selectedAppId);
     if (response.error) {
       setUninstallStatus({
         title: 'Error',
