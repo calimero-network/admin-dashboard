@@ -87,15 +87,12 @@ export default function ContextDetailsPage() {
   useEffect(() => {
     const fetchNodeContexts = async () => {
       if (id) {
-        const [
-          nodeContext,
-          contextClientUsers,
-          contextStorage,
-        ] = await Promise.all([
-          apiClient.node().getContext(id),
-          apiClient.node().getContextUsers(id),
-          apiClient.node().getContextStorageUsage(id),
-        ]);
+        const [nodeContext, contextClientUsers, contextStorage] =
+          await Promise.all([
+            apiClient.node().getContext(id),
+            apiClient.node().getContextUsers(id),
+            apiClient.node().getContextStorageUsage(id),
+          ]);
 
         if (nodeContext.data) {
           const applicationMetadata = (
@@ -151,22 +148,20 @@ export default function ContextDetailsPage() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-        {contextDetails &&
-          contextUsers &&
-          contextStorage && (
-            <ContextTable
-              contextDetails={contextDetails}
-              contextDetailsError={contextDetailsError}
-              contextUsers={contextUsers}
-              contextUsersError={contextUsersError}
-              contextStorage={contextStorage}
-              contextStorageError={contextStorageError}
-              navigateToContextList={() => navigate('/contexts')}
-              currentOption={currentOption}
-              setCurrentOption={setCurrentOption}
-              tableOptions={tableOptions}
-            />
-          )}
+        {contextDetails && contextUsers && contextStorage && (
+          <ContextTable
+            contextDetails={contextDetails}
+            contextDetailsError={contextDetailsError}
+            contextUsers={contextUsers}
+            contextUsersError={contextUsersError}
+            contextStorage={contextStorage}
+            contextStorageError={contextStorageError}
+            navigateToContextList={() => navigate('/contexts')}
+            currentOption={currentOption}
+            setCurrentOption={setCurrentOption}
+            tableOptions={tableOptions}
+          />
+        )}
       </PageContentWrapper>
     </FlexLayout>
   );
