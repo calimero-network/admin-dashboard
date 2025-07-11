@@ -9,7 +9,6 @@ import { TableOptions } from '../components/common/OptionsHeader';
 import { ContextDetails } from '../types/context';
 import { parseAppMetadata } from '../utils/metadata';
 import { AppMetadata } from './InstallApplication';
-import { ClientKey } from '@calimero-network/calimero-client/lib/api/adminApi';
 import {
   Context,
   ContextStorage,
@@ -41,10 +40,6 @@ export default function ContextDetailsPage() {
   const [contextDetailsError, setContextDetailsError] = useState<string | null>(
     null,
   );
-  const [contextClientKeys, setContextClientKeys] = useState<ClientKey[]>();
-  const [contextClientKeysError, setContextClientKeysError] = useState<
-    string | null
-  >(null);
   const [contextUsers, setContextUsers] = useState<{ identity: string }[]>();
   const [contextUsersError, setContextUsersError] = useState<string | null>(
     null,
@@ -92,17 +87,12 @@ export default function ContextDetailsPage() {
   useEffect(() => {
     const fetchNodeContexts = async () => {
       if (id) {
-        const [
-          nodeContext,
-          contextClientKeys,
-          contextClientUsers,
-          contextStorage,
-        ] = await Promise.all([
-          apiClient.node().getContext(id),
-          apiClient.node().getContextClientKeys(id),
-          apiClient.node().getContextUsers(id),
-          apiClient.node().getContextStorageUsage(id),
-        ]);
+        const [nodeContext, contextClientUsers, contextStorage] =
+          await Promise.all([
+            apiClient.node().getContext(id),
+            apiClient.node().getContextUsers(id),
+            apiClient.node().getContextStorageUsage(id),
+          ]);
 
         if (nodeContext.data) {
           const applicationMetadata = (
@@ -118,12 +108,6 @@ export default function ContextDetailsPage() {
           setContextDetails(contextObject);
         } else {
           setContextDetailsError(nodeContext.error?.message);
-        }
-
-        if (contextClientKeys.data) {
-          setContextClientKeys(contextClientKeys.data.clientKeys);
-        } else {
-          setContextClientKeysError(contextClientKeys.error?.message);
         }
 
         if (contextClientUsers.data) {
@@ -149,11 +133,6 @@ export default function ContextDetailsPage() {
             count: -1,
           },
           {
-            name: 'Client Keys',
-            id: DetailsOptions.CLIENT_KEYS,
-            count: contextClientKeys.data?.clientKeys?.length ?? 0,
-          },
-          {
             name: 'Users',
             id: DetailsOptions.USERS,
             count: contextClientUsers.data?.identities?.length ?? 0,
@@ -169,25 +148,20 @@ export default function ContextDetailsPage() {
     <FlexLayout>
       <Navigation />
       <PageContentWrapper>
-        {contextDetails &&
-          contextClientKeys &&
-          contextUsers &&
-          contextStorage && (
-            <ContextTable
-              contextDetails={contextDetails}
-              contextDetailsError={contextDetailsError}
-              contextClientKeys={contextClientKeys}
-              contextClientKeysError={contextClientKeysError}
-              contextUsers={contextUsers}
-              contextUsersError={contextUsersError}
-              contextStorage={contextStorage}
-              contextStorageError={contextStorageError}
-              navigateToContextList={() => navigate('/contexts')}
-              currentOption={currentOption}
-              setCurrentOption={setCurrentOption}
-              tableOptions={tableOptions}
-            />
-          )}
+        {contextDetails && contextUsers && contextStorage && (
+          <ContextTable
+            contextDetails={contextDetails}
+            contextDetailsError={contextDetailsError}
+            contextUsers={contextUsers}
+            contextUsersError={contextUsersError}
+            contextStorage={contextStorage}
+            contextStorageError={contextStorageError}
+            navigateToContextList={() => navigate('/contexts')}
+            currentOption={currentOption}
+            setCurrentOption={setCurrentOption}
+            tableOptions={tableOptions}
+          />
+        )}
       </PageContentWrapper>
     </FlexLayout>
   );
