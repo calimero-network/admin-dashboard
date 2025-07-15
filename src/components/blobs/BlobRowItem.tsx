@@ -105,11 +105,11 @@ export default function BlobRowItem({
     if (item.isDetecting) {
       return 'detecting...';
     }
-    
+
     if (item.fileType && item.fileType !== 'unknown') {
       return item.fileType.toUpperCase();
     }
-    
+
     return 'N/A';
   };
 
@@ -122,12 +122,8 @@ export default function BlobRowItem({
         />
         <span>{truncateHash(item.blob_id)}</span>
       </div>
-      <div className="row-item size read">
-        {formatFileSize(item.size)}
-      </div>
-      <div className="row-item type read">
-        {getFileTypeDisplay()}
-      </div>
+      <div className="row-item size read">{formatFileSize(item.size)}</div>
+      <div className="row-item type read">{getFileTypeDisplay()}</div>
       <div className="menu-dropdown">
         <MenuIconDropdown
           options={[
@@ -144,4 +140,4 @@ export default function BlobRowItem({
       </div>
     </RowItem>
   );
-} 
+}

@@ -40,7 +40,7 @@ const ErrorWrapper = styled.div`
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  
+
   .error-text {
     color: #ef4444;
     font-size: 0.875rem;
@@ -70,11 +70,12 @@ export default function BlobsTable(props: BlobsTableProps) {
     refreshText: 'Refresh',
     actionDialog: {
       title: 'Delete Blob',
-      subtitle: 'Are you sure you want to delete this blob? This action cannot be undone.',
-      buttonActionText: 'Delete'
-    }
+      subtitle:
+        'Are you sure you want to delete this blob? This action cannot be undone.',
+      buttonActionText: 'Delete',
+    },
   };
-  
+
   const headersList = ['BLOB ID', 'SIZE', 'TYPE'];
 
   if (props.loading) {
@@ -137,4 +138,4 @@ export default function BlobsTable(props: BlobsTableProps) {
       </FlexWrapper>
     </ContentCard>
   );
-} 
+}
