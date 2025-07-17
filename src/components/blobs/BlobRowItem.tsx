@@ -3,13 +3,7 @@ import styled from 'styled-components';
 import { truncateHash } from '../../utils/displayFunctions';
 import MenuIconDropdown from '../common/MenuIconDropdown';
 import { ClipboardDocumentIcon } from '@heroicons/react/24/solid';
-
-interface BlobInfo {
-  blob_id: string;
-  size: number;
-  fileType?: string;
-  isDetecting?: boolean;
-}
+import { BlobInfo } from '../../pages/Blobs';
 
 interface BlobRowItemProps {
   $hasBorders: boolean;
@@ -114,13 +108,13 @@ export default function BlobRowItem({
   };
 
   return (
-    <RowItem key={item.blob_id} $hasBorders={id === count}>
+    <RowItem key={item.blobId} $hasBorders={id === count}>
       <div className="row-item blob-id read">
         <ClipboardDocumentIcon
           className="copy-icon"
-          onClick={() => copyToClipboard(item.blob_id)}
+          onClick={() => copyToClipboard(item.blobId)}
         />
-        <span>{truncateHash(item.blob_id)}</span>
+        <span>{truncateHash(item.blobId)}</span>
       </div>
       <div className="row-item size read">{formatFileSize(item.size)}</div>
       <div className="row-item type read">{getFileTypeDisplay()}</div>
@@ -129,11 +123,11 @@ export default function BlobRowItem({
           options={[
             {
               title: 'Download blob',
-              onClick: () => downloadBlob(item.blob_id),
+              onClick: () => downloadBlob(item.blobId),
             },
             {
               title: 'Delete blob',
-              onClick: () => showDeleteDialog(item.blob_id),
+              onClick: () => showDeleteDialog(item.blobId),
             },
           ]}
         />

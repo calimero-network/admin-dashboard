@@ -6,18 +6,20 @@ import BlobsTable from '../components/blobs/BlobsTable';
 import { ModalContent } from '../components/common/StatusModal';
 import { apiClient } from '@calimero-network/calimero-client';
 
-// Define BlobInfo interface locally since it's not exported from the main package
-interface BlobInfo {
-  blob_id: string;
+// Define BlobInfo interface to match BlobsTable expectations
+export interface BlobInfo {
+  blobId: string;
   size: number;
-  fileType?: string; // Add optional file type
-  isDetecting?: boolean; // Add loading state for type detection
+  fileType?: string;
+  isDetecting?: boolean;
 }
 
 export default function BlobsPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [selectedBlobId, setSelectedBlobId] = useState('');
@@ -33,7 +35,7 @@ export default function BlobsPage() {
 
     try {
       const response = await apiClient.blob().listBlobs();
-      console.log('response', response);
+
       if (response.error) {
         setErrorMessage(response.error.message);
         return;
@@ -71,24 +73,24 @@ export default function BlobsPage() {
       await Promise.all(
         batch.map(async (blob) => {
           try {
-            const fileType = await detectFileTypeFromBlobId(blob.blob_id);
+            const fileType = await detectFileTypeFromBlobId(blob.blobId);
 
             setBlobs((prevBlobs) =>
               prevBlobs.map((b) =>
-                b.blob_id === blob.blob_id
+                b.blobId === blob.blobId
                   ? { ...b, fileType, isDetecting: false }
                   : b,
               ),
             );
           } catch (error) {
             console.warn(
-              `Failed to detect type for blob ${blob.blob_id}:`,
+              `Failed to detect type for blob ${blob.blobId}:`,
               error,
             );
 
             setBlobs((prevBlobs) =>
               prevBlobs.map((b) =>
-                b.blob_id === blob.blob_id
+                b.blobId === blob.blobId
                   ? { ...b, fileType: 'unknown', isDetecting: false }
                   : b,
               ),
@@ -103,7 +105,6 @@ export default function BlobsPage() {
   const detectFileTypeFromBlobId = async (blobId: string): Promise<string> => {
     try {
       const response = await apiClient.blob().getBlobMetadata(blobId);
-      console.log('response detectFileTypeFromBlobId', response);
 
       if (response.error) {
         throw new Error(`HTTP ${response.error.code}`);
@@ -143,6 +144,52 @@ export default function BlobsPage() {
     };
 
     return mimeMap[mimeType] || 'unknown';
+  };
+
+  const uploadBlob = async (file: File) => {
+    setLoading(true);
+    setIsUploading(true);
+    setUploadProgress(0);
+    setErrorMessage('');
+
+    try {
+      const response = await apiClient.blob().uploadBlob(
+        file,
+        (progress) => {
+          setUploadProgress(progress);
+        }
+      );
+
+      if (response.error) {
+        setDeleteStatus({
+          title: 'Upload Failed',
+          message: response.error.message || 'Failed to upload blob',
+          error: true,
+        });
+        setShowStatusModal(true);
+      } else {
+        setDeleteStatus({
+          title: 'Upload Successful',
+          message: `File "${file.name}" uploaded successfully. Blob ID: ${response.data.blobId}`,
+          error: false,
+        });
+        setShowStatusModal(true);
+        
+        // Refresh the blob list to show the new upload
+        await fetchBlobs();
+      }
+    } catch (error) {
+      setDeleteStatus({
+        title: 'Upload Failed',
+        message: `Network error while uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: true,
+      });
+      setShowStatusModal(true);
+    }
+
+    setLoading(false);
+    setIsUploading(false);
+    setUploadProgress(0);
   };
 
   const deleteBlob = async () => {
@@ -334,7 +381,10 @@ export default function BlobsPage() {
           deleteBlob={deleteBlob}
           downloadBlob={downloadBlob}
           formatFileSize={formatFileSize}
+          uploadBlob={uploadBlob}
           refreshBlobs={fetchBlobs}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
         />
       </PageContentWrapper>
     </FlexLayout>
