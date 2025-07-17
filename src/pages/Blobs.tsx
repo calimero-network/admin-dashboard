@@ -153,12 +153,9 @@ export default function BlobsPage() {
     setErrorMessage('');
 
     try {
-      const response = await apiClient.blob().uploadBlob(
-        file,
-        (progress) => {
-          setUploadProgress(progress);
-        }
-      );
+      const response = await apiClient.blob().uploadBlob(file, (progress) => {
+        setUploadProgress(progress);
+      });
 
       if (response.error) {
         setDeleteStatus({
@@ -174,7 +171,7 @@ export default function BlobsPage() {
           error: false,
         });
         setShowStatusModal(true);
-        
+
         // Refresh the blob list to show the new upload
         await fetchBlobs();
       }
