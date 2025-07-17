@@ -178,12 +178,14 @@ export default function BlobsTable(props: BlobsTableProps) {
   };
 
   if (props.loading && !props.isUploading) {
-      return (
-    <ContentCard
-      headerTitle={t.title}
-      headerSecondOptionText={props.isUploading ? 'Uploading...' : t.uploadText}
-      headerOnSecondOptionClick={handleUploadClick}
-    >
+    return (
+      <ContentCard
+        headerTitle={t.title}
+        headerSecondOptionText={
+          props.isUploading ? 'Uploading...' : t.uploadText
+        }
+        headerOnSecondOptionClick={handleUploadClick}
+      >
         <HiddenFileInput
           ref={fileInputRef}
           type="file"
