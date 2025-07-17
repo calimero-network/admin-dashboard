@@ -4,6 +4,7 @@ import { apiClient } from '@calimero-network/calimero-client';
 import ContentWrapper from '../layout/ContentWrapper';
 import { styled } from 'styled-components';
 import { NearWalletProvider } from './providers/NearWalletProvider';
+import { UsernamePasswordProvider } from './providers/UsernamePasswordProvider';
 
 const Wrapper = styled.div`
   display: flex;
@@ -104,15 +105,28 @@ export default function RootKeyProvidersWrapper() {
     );
   }
 
+  const renderProvider = () => {
+    switch (provider.name.toLowerCase()) {
+      case 'near_wallet':
+        return <NearWalletProvider provider={provider} />;
+      case 'user_password':
+        return <UsernamePasswordProvider provider={provider} />;
+      default:
+        return (
+          <div style={{ color: 'white', textAlign: 'center' }}>
+            Provider "{provider.name}" is not yet supported in the admin
+            dashboard.
+            <br />
+            <br />
+            Supported providers: near_wallet, username_password
+          </div>
+        );
+    }
+  };
+
   return (
     <ContentWrapper>
-      <Wrapper>
-        {provider.name === 'near_wallet' ? (
-          <NearWalletProvider provider={provider} />
-        ) : (
-          <div>Provider not supported</div>
-        )}
-      </Wrapper>
+      <Wrapper>{renderProvider()}</Wrapper>
     </ContentWrapper>
   );
 }
