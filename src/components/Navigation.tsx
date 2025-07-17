@@ -102,6 +102,11 @@ const NavigationItems = [
     path: '/applications',
   },
   {
+    id: 3,
+    title: 'Blobs',
+    path: '/blobs',
+  },
+  {
     id: 4,
     title: 'Export',
     path: '/export',

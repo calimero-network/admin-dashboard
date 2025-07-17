@@ -18,6 +18,7 @@ import PublishApplication from './pages/PublishApplication';
 import AddRelease from './pages/AddRelease';
 import AddRootKey from './pages/AddRootKey';
 import InstallApplication from './pages/InstallApplication';
+import BlobsPage from './pages/Blobs';
 
 import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 
@@ -92,6 +93,9 @@ export default function App() {
           <Route path="/contexts/start-context" element={<StartContext />} />
           <Route path="/contexts/join-context" element={<JoinContext />} />
           <Route path="/contexts/:id" element={<ContextDetails />} />
+
+          {/* Blobs route */}
+          <Route path="/blobs" element={<BlobsPage />} />
 
           {/* Export route */}
           <Route path="/export" element={<Export />} />
