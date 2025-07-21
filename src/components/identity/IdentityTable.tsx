@@ -66,18 +66,18 @@ const RowItem = styled.div`
   line-height: 1.25rem;
 
   .type {
-    width: 25%;
+    width: 26%;
     color: #fff;
     overflow-wrap: break-word;
   }
 
   .date {
-    width: 25%;
+    width: 26%;
     color: #fff;
   }
 
   .key {
-    width: 40%;
+    width: 30%;
     color: #9c9da3;
     word-break: break-all;
   }
