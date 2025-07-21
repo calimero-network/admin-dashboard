@@ -111,39 +111,11 @@ export default function BlobsPage() {
       }
 
       const mimeType = response.data.fileType;
-      // Convert MIME type to simple extension for display
-      return mimeTypeToExtension(mimeType);
+      return mimeType;
     } catch (error) {
       console.warn('File type detection failed:', error);
       return 'unknown';
     }
-  };
-
-  // Helper to convert MIME type to file extension for display
-  const mimeTypeToExtension = (mimeType: string): string => {
-    const mimeMap: { [key: string]: string } = {
-      'application/wasm': 'wasm',
-      'image/jpeg': 'jpg',
-      'image/png': 'png',
-      'image/gif': 'gif',
-      'image/webp': 'webp',
-      'application/pdf': 'pdf',
-      'application/zip': 'zip',
-      'application/gzip': 'gz',
-      'application/x-executable': 'elf',
-      'application/java-vm': 'class',
-      'application/x-msdownload': 'exe',
-      'application/x-7z-compressed': '7z',
-      'application/x-bzip2': 'bz2',
-      'application/vnd.rar': 'rar',
-      'text/html': 'html',
-      'application/json': 'json',
-      'text/javascript': 'js',
-      'text/plain': 'txt',
-      'application/octet-stream': 'bin',
-    };
-
-    return mimeMap[mimeType] || 'unknown';
   };
 
   const uploadBlob = async (file: File) => {
@@ -208,7 +180,7 @@ export default function BlobsPage() {
       } else {
         setDeleteStatus({
           title: 'Delete Successful',
-          message: 'Blob metadata has been successfully deleted.',
+          message: 'Blob and its metadata have been successfully deleted.',
           error: false,
         });
         // Refresh the blob list
@@ -235,7 +207,7 @@ export default function BlobsPage() {
       const blob = await apiClient.blob().downloadBlob(blobId);
 
       // Try to detect file type from blob content
-      const { filename, mimeType } = await detectFileType(blob, blobId);
+      const mimeType = await detectFileTypeFromBlobId(blobId);
 
       // Create a download link with proper MIME type
       const url = window.URL.createObjectURL(
@@ -243,7 +215,7 @@ export default function BlobsPage() {
       );
       const link = document.createElement('a');
       link.href = url;
-      link.download = filename;
+      link.download = blobId;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -255,89 +227,6 @@ export default function BlobsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Helper function to detect file type from blob content
-  const detectFileType = async (
-    blob: Blob,
-    blobId: string,
-  ): Promise<{ filename: string; mimeType: string }> => {
-    // Create filename with first 6 + last 6 characters of blob ID
-    const shortId = `${blobId.substring(0, 6)}...${blobId.substring(blobId.length - 6)}`;
-
-    // Read first few bytes to detect file signature (magic bytes)
-    const arrayBuffer = await blob.slice(0, 20).arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Convert to hex string for pattern matching
-    const hex = Array.from(uint8Array)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-
-    // Common file signatures (magic bytes)
-    const signatures = [
-      { pattern: /^0061736d/, ext: 'wasm', mime: 'application/wasm' }, // WebAssembly files
-      { pattern: /^ffd8ff/, ext: 'jpg', mime: 'image/jpeg' },
-      { pattern: /^89504e47/, ext: 'png', mime: 'image/png' },
-      { pattern: /^47494638/, ext: 'gif', mime: 'image/gif' },
-      { pattern: /^52494646.{8}57454250/, ext: 'webp', mime: 'image/webp' },
-      { pattern: /^25504446/, ext: 'pdf', mime: 'application/pdf' },
-      { pattern: /^504b0304/, ext: 'zip', mime: 'application/zip' },
-      { pattern: /^504b030414/, ext: 'zip', mime: 'application/zip' },
-      { pattern: /^1f8b08/, ext: 'gz', mime: 'application/gzip' },
-      { pattern: /^7f454c46/, ext: 'elf', mime: 'application/x-executable' },
-      { pattern: /^cafebabe/, ext: 'class', mime: 'application/java-vm' },
-      { pattern: /^feedface/, ext: 'macho', mime: 'application/x-mach-binary' },
-      { pattern: /^4d5a/, ext: 'exe', mime: 'application/x-msdownload' },
-      {
-        pattern: /^377abcaf271c/,
-        ext: '7z',
-        mime: 'application/x-7z-compressed',
-      },
-      { pattern: /^425a68/, ext: 'bz2', mime: 'application/x-bzip2' },
-      { pattern: /^1f9d/, ext: 'tar.z', mime: 'application/x-compress' },
-      { pattern: /^1fa0/, ext: 'tar.z', mime: 'application/x-compress' },
-      { pattern: /^526172211a0700/, ext: 'rar', mime: 'application/vnd.rar' },
-      { pattern: /^526172211a070100/, ext: 'rar', mime: 'application/vnd.rar' },
-    ];
-
-    // Check for text-based files by looking for common patterns
-    const textContent = new TextDecoder('utf-8', { fatal: false }).decode(
-      uint8Array,
-    );
-    const isValidText = !textContent.includes('\ufffd'); // No replacement characters
-
-    if (isValidText && uint8Array.length > 0) {
-      // Check for specific text file patterns
-      if (
-        textContent.startsWith('<!DOCTYPE') ||
-        textContent.startsWith('<html')
-      ) {
-        return { filename: `${shortId}.html`, mimeType: 'text/html' };
-      }
-      if (textContent.startsWith('{') || textContent.startsWith('[')) {
-        return { filename: `${shortId}.json`, mimeType: 'application/json' };
-      }
-      if (
-        textContent.includes('function') ||
-        textContent.includes('const ') ||
-        textContent.includes('var ')
-      ) {
-        return { filename: `${shortId}.js`, mimeType: 'text/javascript' };
-      }
-      // Default to text file
-      return { filename: `${shortId}.txt`, mimeType: 'text/plain' };
-    }
-
-    // Check binary file signatures
-    for (const { pattern, ext, mime } of signatures) {
-      if (pattern.test(hex)) {
-        return { filename: `${shortId}.${ext}`, mimeType: mime };
-      }
-    }
-
-    // Default to binary file
-    return { filename: `${shortId}.bin`, mimeType: 'application/octet-stream' };
   };
 
   const showDeleteDialog = (blobId: string) => {
