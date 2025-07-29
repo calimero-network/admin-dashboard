@@ -31,12 +31,12 @@ export default function StartContextPage() {
   });
   const [applications, setApplications] = useState<InstalledApplication[]>([]);
 
-  const startContext = async () => {
+  const startContext = async (initArgs: string) => {
     setIsLoading(true);
 
     const startContextResponse = await apiClient
       .node()
-      .createContext(applicationId, protocol);
+      .createContext(applicationId, initArgs, protocol);
     if (startContextResponse.error) {
       setStartContextStatus({
         title: t.startContextErrorTitle,
