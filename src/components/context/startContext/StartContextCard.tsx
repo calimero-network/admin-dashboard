@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import Button from '../../common/Button';
 import translations from '../../../constants/en.global.json';
 import StatusModal, { ModalContent } from '../../common/StatusModal';
-import { InstalledApplication } from '../../../api/dataSource/NodeDataSource';
 import { parseAppMetadata } from '../../../utils/metadata';
+import { InstalledApplication } from '@calimero-network/calimero-client/lib/api/nodeApi';
 
 const Wrapper = styled.div`
   display: flex;
@@ -136,6 +136,45 @@ const Wrapper = styled.div`
     }
   }
 
+  .init-args-section {
+    .init-args-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.25rem;
+      text-align: left;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-message {
+      color: #ef4444;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    textarea.args-input {
+      width: 100%;
+      min-height: 120px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: monospace;
+      background-color: #121216;
+      color: #fff;
+      resize: vertical;
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      &::placeholder {
+        color: #6b7280;
+      }
+    }
+  }
+
   .protocol-input,
   .application-input {
     width: 100%;
@@ -169,7 +208,7 @@ const Wrapper = styled.div`
 interface StartContextCardProps {
   applicationId: string;
   setApplicationId: (appId: string) => void;
-  startContext: () => void;
+  startContext: (initArgs: string) => void;
   setProtocol: (protocol: string) => void;
   isLoading: boolean;
   showStatusModal: boolean;
@@ -190,9 +229,33 @@ export default function StartContextCard({
   applications,
 }: StartContextCardProps) {
   const t = translations.startContextPage;
+  const [initArgs, setInitArgs] = useState('{}');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
+  const formatJson = () => {
+    try {
+      const parsed = JSON.parse(initArgs);
+      setInitArgs(JSON.stringify(parsed, null, 2));
+      setJsonError(null);
+    } catch (e) {
+      setJsonError('Invalid JSON format');
+    }
+  };
+
+  const validateJson = (value: string) => {
+    try {
+      JSON.parse(value);
+      setJsonError(null);
+      return true;
+    } catch (e) {
+      setJsonError('Invalid JSON format');
+      return false;
+    }
+  };
+
   const onStartContextClick = async () => {
-    if (applicationId) {
-      await startContext();
+    if (applicationId && validateJson(initArgs)) {
+      await startContext(initArgs);
     }
   };
 
@@ -244,6 +307,26 @@ export default function StartContextCard({
             <option value="stellar">Stellar</option>
             <option value="ethereum">Ethereum</option>
           </select>
+        </div>
+        <div className="init-args-section">
+          <div className="init-args-title">Initialization Arguments (JSON)</div>
+          <div className="input">
+            <textarea
+              className="args-input"
+              value={initArgs}
+              onChange={(e) => {
+                setInitArgs(e.target.value);
+                validateJson(e.target.value);
+              }}
+              placeholder="Enter JSON initialization arguments"
+            />
+            <div className="flex-wrapper">
+              <div className="format-btn" onClick={formatJson}>
+                Format JSON
+              </div>
+            </div>
+            {jsonError && <div className="error-message">{jsonError}</div>}
+          </div>
         </div>
         <Button
           text="Start"
