@@ -37,6 +37,9 @@ Thumbs.db
 # Ignore test snapshots
 __snapshots__/
 
+# Ignore markdown docs
+README.md
+
 # Ignore next.js build output
 .next/
 
