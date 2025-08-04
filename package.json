@@ -96,7 +96,6 @@
       "react-app/jest"
     ]
   },
-
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
