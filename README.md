@@ -66,6 +66,7 @@ This project uses **semantic releases** with automated versioning and deployment
 ```
 
 **Types:**
+
 - `feat`: New features (triggers minor version bump)
 - `fix`: Bug fixes (triggers patch version bump)
 - `BREAKING CHANGE`: Breaking changes (triggers major version bump)
@@ -76,6 +77,7 @@ This project uses **semantic releases** with automated versioning and deployment
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```bash
 git commit -m "feat: add new wallet integration"
 git commit -m "fix: resolve authentication issue"
@@ -100,6 +102,7 @@ git commit -m "BREAKING CHANGE: remove deprecated API endpoints"
 ### Release Assets
 
 Each release includes:
+
 - **Source code** (zip file)
 - **Built application** (zip file)
 - **Changelog** (automatically generated)
@@ -177,4 +180,4 @@ This project is licensed under the MIT License.
 
 - [Live Demo](https://calimero-network.github.io/admin-dashboard/)
 - [GitHub Repository](https://github.com/calimero-network/admin-dashboard)
-- [Calimero Network](https://calimero.network/) 
+- [Calimero Network](https://calimero.network/)

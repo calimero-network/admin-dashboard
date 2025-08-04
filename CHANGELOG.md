@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. See [standa
 ## [Unreleased]
 
 ### Features
+
 - Automated semantic release process
 - Conventional commit validation
 - Automated changelog generation
@@ -12,5 +13,6 @@ All notable changes to this project will be documented in this file. See [standa
 - GitHub Pages deployment automation
 
 ### Documentation
+
 - Comprehensive README with release process documentation
-- Contributing guidelines with commit message format 
+- Contributing guidelines with commit message format
