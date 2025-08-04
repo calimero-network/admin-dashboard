@@ -29,6 +29,53 @@ export default function BlobsPage() {
     error: false,
   });
 
+  // Function to detect file types for multiple blobs efficiently
+  const detectFileTypesForBlobs = useCallback(
+    async (blobsToDetect: BlobInfo[]) => {
+      // Mark all blobs as detecting
+      setBlobs((prevBlobs) =>
+        prevBlobs.map((blob) => ({ ...blob, isDetecting: true })),
+      );
+
+      // Process blobs in parallel but limit concurrent requests
+      const batchSize = 5; // Process 5 blobs at a time to avoid overwhelming the server
+
+      for (let i = 0; i < blobsToDetect.length; i += batchSize) {
+        const batch = blobsToDetect.slice(i, i + batchSize);
+
+        await Promise.all(
+          batch.map(async (blob) => {
+            try {
+              const fileType = await detectFileTypeFromBlobId(blob.blobId);
+
+              setBlobs((prevBlobs) =>
+                prevBlobs.map((b) =>
+                  b.blobId === blob.blobId
+                    ? { ...b, fileType, isDetecting: false }
+                    : b,
+                ),
+              );
+            } catch (error) {
+              console.warn(
+                `Failed to detect type for blob ${blob.blobId}:`,
+                error,
+              );
+
+              setBlobs((prevBlobs) =>
+                prevBlobs.map((b) =>
+                  b.blobId === blob.blobId
+                    ? { ...b, fileType: 'unknown', isDetecting: false }
+                    : b,
+                ),
+              );
+            }
+          }),
+        );
+      }
+    },
+    [],
+  );
+
   const fetchBlobs = useCallback(async () => {
     setLoading(true);
     setErrorMessage('');
@@ -55,51 +102,7 @@ export default function BlobsPage() {
     }
 
     setLoading(false);
-  }, []);
-
-  // Function to detect file types for multiple blobs efficiently
-  const detectFileTypesForBlobs = async (blobsToDetect: BlobInfo[]) => {
-    // Mark all blobs as detecting
-    setBlobs((prevBlobs) =>
-      prevBlobs.map((blob) => ({ ...blob, isDetecting: true })),
-    );
-
-    // Process blobs in parallel but limit concurrent requests
-    const batchSize = 5; // Process 5 blobs at a time to avoid overwhelming the server
-
-    for (let i = 0; i < blobsToDetect.length; i += batchSize) {
-      const batch = blobsToDetect.slice(i, i + batchSize);
-
-      await Promise.all(
-        batch.map(async (blob) => {
-          try {
-            const fileType = await detectFileTypeFromBlobId(blob.blobId);
-
-            setBlobs((prevBlobs) =>
-              prevBlobs.map((b) =>
-                b.blobId === blob.blobId
-                  ? { ...b, fileType, isDetecting: false }
-                  : b,
-              ),
-            );
-          } catch (error) {
-            console.warn(
-              `Failed to detect type for blob ${blob.blobId}:`,
-              error,
-            );
-
-            setBlobs((prevBlobs) =>
-              prevBlobs.map((b) =>
-                b.blobId === blob.blobId
-                  ? { ...b, fileType: 'unknown', isDetecting: false }
-                  : b,
-              ),
-            );
-          }
-        }),
-      );
-    }
-  };
+  }, [detectFileTypesForBlobs]);
 
   // Function to detect file type from blob ID using HEAD request for efficiency
   const detectFileTypeFromBlobId = async (blobId: string): Promise<string> => {

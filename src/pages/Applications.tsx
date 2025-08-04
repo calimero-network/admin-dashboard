@@ -133,7 +133,6 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     setApps();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const uninstallApplication = async () => {
