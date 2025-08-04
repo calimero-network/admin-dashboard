@@ -28,12 +28,13 @@ This project uses semantic releases. When you merge to `main`, it automatically:
 Use conventional commits to trigger releases:
 
 - `feat: new feature` → minor version bump
-- `fix: bug fix` → patch version bump  
+- `fix: bug fix` → patch version bump
 - `BREAKING CHANGE: description` → major version bump
 
 ### Release Workflow
 
 1. Create a feature branch:
+
 ```bash
 git checkout -b feature/your-feature
 git add .
