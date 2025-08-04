@@ -16,7 +16,7 @@
     "prettier:check": "exec prettier . --check"
   },
   "dependencies": {
-    "@calimero-network/calimero-client": "1.9.0",
+    "@calimero-network/calimero-client": "1.10.6",
     "@dfinity/identity": "^2.0.0",
     "@floating-ui/react-native": "^0.10.4",
     "@heroicons/react": "^2.1.3",
