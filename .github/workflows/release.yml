@@ -1,9 +1,9 @@
-name: Release (DRY RUN)
+name: Release
 
 on:
   push:
     branches:
-      - chore/release-process
+      - main
 
 permissions:
   contents: write
@@ -44,10 +44,13 @@ jobs:
       - name: Check formatting
         run: pnpm prettier:check
 
-  dry-run:
-    name: Dry Run - List Files
+  release:
+    name: Release
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.release.outputs.new_release_published }}
+      new_release_version: ${{ steps.release.outputs.new_release_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,153 +75,81 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: List build directory contents
-        run: |
-          echo "=== BUILD DIRECTORY CONTENTS ==="
-          find build -type f | sort
-          echo ""
-          echo "=== BUILD DIRECTORY SIZE ==="
-          du -sh build
-          echo ""
-          echo "=== TOP LEVEL BUILD FILES ==="
-          ls -la build/
-          echo ""
-          echo "=== BUILD ASSETS DIRECTORY ==="
-          ls -la build/assets/
-
-      - name: Create test zip (dry run)
+      - name: Create release zip
         run: |
           cd build
-          zip -r ../admin-dashboard-dry-run.zip .
+          zip -r ../admin-dashboard-${{ github.sha }}.zip .
           cd ..
-          echo "=== ZIP FILE CREATED ==="
-          ls -la admin-dashboard-dry-run.zip
-          echo ""
-          echo "=== ZIP CONTENTS ==="
-          unzip -l admin-dashboard-dry-run.zip | head -20
+          echo "zip_file=admin-dashboard-${{ github.sha }}.zip" >> $GITHUB_OUTPUT
 
-      - name: Show what would be in release
-        run: |
-          echo "=== DRY RUN SUMMARY ==="
-          echo "This would create a release with:"
-          echo "- Build files: $(find build -type f | wc -l) files"
-          echo "- Total size: $(du -sh build | cut -f1)"
-          echo "- Zip size: $(ls -lh admin-dashboard-dry-run.zip | awk '{print $5}')"
-          echo ""
-          echo "=== RELEASE ASSETS THAT WOULD BE CREATED ==="
-          echo "1. admin-dashboard-{version}.zip (contains build directory)"
-          echo "2. Source code zip (from GitHub)"
-          echo "3. Changelog (auto-generated)"
-          echo "4. Release notes (from commit messages)"
+      - name: Release
+        id: release
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        with:
+          semantic_version: 24
+          branches: |
+            [
+              'main'
+            ]
+          plugins: |
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/changelog
+            @semantic-release/npm
+            @semantic-release/github
+            @semantic-release/git
 
-  # Commented out actual release for dry run
-  # release:
-  #   name: Release
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     new_release_published: ${{ steps.release.outputs.new_release_published }}
-  #     new_release_version: ${{ steps.release.outputs.new_release_version }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload release assets
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ./admin-dashboard-${{ github.sha }}.zip
+          asset_name: admin-dashboard-${{ steps.release.outputs.new_release_version }}.zip
+          asset_content_type: application/zip
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-  #         cache: 'npm'
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #           version: 8
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-  #     - name: Build
-  #       run: pnpm build
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Create release zip
-  #       run: |
-  #         cd build
-  #         zip -r ../admin-dashboard-${{ github.sha }}.zip .
-  #         cd ..
-  #         echo "zip_file=admin-dashboard-${{ github.sha }}.zip" >> $GITHUB_OUTPUT
+      - name: Build
+        run: pnpm build
 
-  #     - name: Release
-  #       id: release
-  #       uses: cycjimmy/semantic-release-action@v4
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  #       with:
-  #         semantic_version: 24
-  #         branches: |
-  #           [
-  #             'main'
-  #           ]
-  #         plugins: |
-  #           @semantic-release/commit-analyzer
-  #           @semantic-release/release-notes-generator
-  #           @semantic-release/changelog
-  #           @semantic-release/npm
-  #           @semantic-release/github
-  #           @semantic-release/git
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-  #     - name: Upload release assets
-  #       if: steps.release.outputs.new_release_published == 'true'
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         upload_url: ${{ steps.release.outputs.upload_url }}
-  #         asset_path: ./admin-dashboard-${{ github.sha }}.zip
-  #         asset_name: admin-dashboard-${{ steps.release.outputs.new_release_version }}.zip
-  #         asset_content_type: application/zip
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './build'
 
-  # Commented out deployment for dry run
-  # deploy:
-  #   name: Deploy to GitHub Pages
-  #   needs: release
-  #   if: needs.release.outputs.new_release_published == 'true'
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: github-pages
-  #     url: ${{ steps.deployment.outputs.page_url }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-  #         cache: 'npm'
-
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: 8
-
-  #     - name: Install dependencies
-  #       run: pnpm install
-
-  #     - name: Build
-  #       run: pnpm build
-
-  #     - name: Setup Pages
-  #       uses: actions/configure-pages@v4
-
-  #     - name: Upload artifact
-  #       uses: actions/upload-pages-artifact@v3
-  #       with:
-  #         path: './build'
-
-  #     - name: Deploy to GitHub Pages
-  #       id: deployment
-  #       uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
