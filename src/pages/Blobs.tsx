@@ -29,36 +29,8 @@ export default function BlobsPage() {
     error: false,
   });
 
-  const fetchBlobs = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage('');
-
-    try {
-      const response = await apiClient.blob().listBlobs();
-
-      if (response.error) {
-        setErrorMessage(response.error.message);
-        return;
-      }
-
-      const blobsData = (response.data.blobs || []).map((blob) => ({
-        ...blob,
-        isDetecting: false,
-      }));
-
-      setBlobs(blobsData);
-
-      // Start detecting file types for all blobs
-      detectFileTypesForBlobs(blobsData);
-    } catch (error) {
-      setErrorMessage('Network error while fetching blobs');
-    }
-
-    setLoading(false);
-  }, []);
-
   // Function to detect file types for multiple blobs efficiently
-  const detectFileTypesForBlobs = async (blobsToDetect: BlobInfo[]) => {
+  const detectFileTypesForBlobs = useCallback(async (blobsToDetect: BlobInfo[]) => {
     // Mark all blobs as detecting
     setBlobs((prevBlobs) =>
       prevBlobs.map((blob) => ({ ...blob, isDetecting: true })),
@@ -99,7 +71,35 @@ export default function BlobsPage() {
         }),
       );
     }
-  };
+  }, []);
+
+  const fetchBlobs = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await apiClient.blob().listBlobs();
+
+      if (response.error) {
+        setErrorMessage(response.error.message);
+        return;
+      }
+
+      const blobsData = (response.data.blobs || []).map((blob) => ({
+        ...blob,
+        isDetecting: false,
+      }));
+
+      setBlobs(blobsData);
+
+      // Start detecting file types for all blobs
+      detectFileTypesForBlobs(blobsData);
+    } catch (error) {
+      setErrorMessage('Network error while fetching blobs');
+    }
+
+    setLoading(false);
+  }, [detectFileTypesForBlobs]);
 
   // Function to detect file type from blob ID using HEAD request for efficiency
   const detectFileTypeFromBlobId = async (blobId: string): Promise<string> => {

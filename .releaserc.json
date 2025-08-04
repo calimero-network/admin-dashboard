@@ -1,0 +1,21 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/npm",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "admin-dashboard-*.zip",
+            "label": "Admin Dashboard Build"
+          }
+        ]
+      }
+    ],
+    "@semantic-release/git"
+  ]
+} 

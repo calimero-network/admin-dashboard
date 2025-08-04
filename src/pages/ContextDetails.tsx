@@ -141,7 +141,6 @@ export default function ContextDetailsPage() {
       }
     };
     fetchNodeContexts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generateContextObjects, id]);
 
   return (
