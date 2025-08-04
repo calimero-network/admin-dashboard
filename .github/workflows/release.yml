@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 
 permissions:
   contents: write
@@ -92,9 +92,9 @@ jobs:
           semantic_version: 24
           branches: |
             [
-              'main'
+              'master'
             ]
-          plugins: |
+          extra_plugins: |
             @semantic-release/commit-analyzer
             @semantic-release/release-notes-generator
             @semantic-release/changelog
