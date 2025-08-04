@@ -3,7 +3,7 @@ name: Release (DRY RUN)
 on:
   push:
     branches:
-      - main
+      - chore/release-process
 
 permissions:
   contents: write
