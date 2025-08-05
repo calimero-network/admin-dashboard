@@ -96,6 +96,13 @@
       "react-app/jest"
     ]
   },
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> 462f776 (feat: configure semantic-release to start from v1.0.2 and skip existing manual tags)
+=======
+>>>>>>> d4c2d00 (fix: change release version start)
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
