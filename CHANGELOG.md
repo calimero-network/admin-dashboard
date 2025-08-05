@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/calimero-network/admin-dashboard/compare/v1.1.0...v1.1.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* **build:** restore build file until core changes get merged ([#120](https://github.com/calimero-network/admin-dashboard/issues/120)) ([aec81d6](https://github.com/calimero-network/admin-dashboard/commit/aec81d6eb2229050493385e773aad62336d44e9b))
+
 # [1.1.0](https://github.com/calimero-network/admin-dashboard/compare/v1.0.1...v1.1.0) (2025-08-05)
 
 
