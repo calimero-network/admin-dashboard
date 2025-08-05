@@ -3,6 +3,13 @@
 
 ### Features
 
+* add semantic-release workflow with build artifacts and GitHub releases ([52fe764](https://github.com/calimero-network/admin-dashboard/commit/52fe764136b16a952c6985b77f99823111099498))
+
+# [1.1.0](https://github.com/calimero-network/admin-dashboard/compare/v1.0.1...v1.1.0) (2025-08-05)
+
+
+### Features
+
 * add semantic-release workflow and update README ([2563702](https://github.com/calimero-network/admin-dashboard/commit/256370245cc531c4d8a9b5a2669e549d3f22dc76))
 
 # Changelog
