@@ -1,7 +1,7 @@
 {
   "name": "node-ui",
   "private": true,
-  "version": "1.0.1",
+  "version": "0.0.0-development",
   "type": "module",
   "homepage": "https://calimero-network.github.io/admin-dashboard/",
   "scripts": {
@@ -13,7 +13,9 @@
     "predeploy": "pnpm run build",
     "deploy": "gh-pages -d build",
     "prettier": "exec prettier . --write",
-    "prettier:check": "exec prettier . --check"
+    "prettier:check": "exec prettier . --check",
+    "semantic-release": "semantic-release",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@calimero-network/calimero-client": "1.10.6",
@@ -54,7 +56,15 @@
     "styled-components": "^6.1.8"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.0.3",
+    "@commitlint/config-conventional": "^19.0.3",
     "@eslint/js": "^9.4.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/eslint__js": "^8.42.3",
     "@types/react": "^18.2.79",
     "@types/react-copy-to-clipboard": "^5.0.7",
@@ -72,7 +82,9 @@
     "eslint-plugin-react-refresh": "^0.4.7",
     "file-loader": "^6.2.0",
     "gh-pages": "^6.1.1",
+    "husky": "^9.0.11",
     "prettier": "3.3.2",
+    "semantic-release": "^24.0.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.13.0",
     "vite": "^5.4.19",
@@ -82,6 +94,11 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
     ]
   }
 }
