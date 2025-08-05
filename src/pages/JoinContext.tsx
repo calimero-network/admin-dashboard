@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Navigation } from '../components/Navigation';
 import { FlexLayout } from '../components/layout/FlexLayout';
 import { useNavigate } from 'react-router-dom';
-import translations from '../constants/en.global.json';
 import JoinContextCard from '../components/context/joinContext/JoinContextCard';
 import styled from 'styled-components';
 import { ModalContent } from '../components/common/StatusModal';
-import { apiClient } from '@calimero-network/calimero-client';
 
 export interface ContextApplication {
   appId: string;
@@ -28,7 +26,6 @@ const Wrapper = styled.div`
 `;
 
 export default function JoinContextPage() {
-  const t = translations.joinContextPage;
   const navigate = useNavigate();
   const [contextId, setContextId] = useState('');
   const [showModal, setShowModal] = useState(false);
