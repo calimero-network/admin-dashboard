@@ -78,9 +78,8 @@ jobs:
       - name: Create release zip
         run: |
           cd build
-          zip -r ../admin-dashboard-${{ github.sha }}.zip .
+          zip -r ../admin-dashboard-build.zip .
           cd ..
-          echo "zip_file=admin-dashboard-${{ github.sha }}.zip" >> $GITHUB_OUTPUT
 
       - name: Configure Git
         run: |
@@ -101,7 +100,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: ./admin-dashboard-${{ github.sha }}.zip
+          asset_path: ./admin-dashboard-build.zip
           asset_name: admin-dashboard-${{ steps.release.outputs.new_release_version }}.zip
           asset_content_type: application/zip
 
