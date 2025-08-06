@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/calimero-network/admin-dashboard/compare/v1.1.1...v1.2.0) (2025-08-06)
+
+
+### Features
+
+* bump calimero sdk version ([#121](https://github.com/calimero-network/admin-dashboard/issues/121)) ([bae6b3a](https://github.com/calimero-network/admin-dashboard/commit/bae6b3a783adc0f10348a4c429feea807fece23d))
+
 ## [1.1.1](https://github.com/calimero-network/admin-dashboard/compare/v1.1.0...v1.1.1) (2025-08-05)
 
 
