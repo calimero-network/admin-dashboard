@@ -147,15 +147,17 @@ export function Navigation() {
   const logout = () => {
     // Get the stored app URL to determine the correct redirect path
     const appUrl = getAppEndpointKey();
-    
+
     // Determine the correct admin dashboard URL
     let adminDashboardUrl = '/admin-dashboard/';
-    
+
     if (appUrl) {
       try {
         const url = new URL(appUrl);
         // Extract the path from the app URL (e.g., /node1, /myapp, etc.)
-        const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+        const pathSegments = url.pathname
+          .split('/')
+          .filter((segment) => segment.length > 0);
         if (pathSegments.length > 0) {
           const nodePath = pathSegments[0];
           adminDashboardUrl = `/${nodePath}/admin-dashboard/`;
@@ -164,13 +166,13 @@ export function Navigation() {
         console.error('Error parsing app URL:', error);
       }
     }
-    
+
     // Clear auth data using the same methods as clientLogout but without the reload
     clearAccessToken();
     clearApplicationId();
     clearContextId();
     clearExecutorPublicKey();
-    
+
     // Redirect to the correct admin dashboard URL
     window.location.href = adminDashboardUrl;
   };
