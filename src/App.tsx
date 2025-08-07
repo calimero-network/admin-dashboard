@@ -57,8 +57,16 @@ export default function App() {
     checkAdminApiAvailability();
   }, []);
 
+  const getBasePath = () => {
+    const path = window.location.pathname;
+    if (path.includes('/admin-dashboard')) {
+      return path.substring(0, path.indexOf('/admin-dashboard') + '/admin-dashboard'.length);
+    }
+    return '/admin-dashboard';
+  };
+
   return (
-    <BrowserRouter basename="/admin-dashboard">
+    <BrowserRouter basename={getBasePath()}>
       <ProtectedRoutesWrapper permissions={['admin']}>
         <Routes>
           {isAdminApiAvailable ? (
