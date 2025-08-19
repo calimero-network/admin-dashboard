@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Package, Release } from './Applications';
 import ApplicationDetailsTable from '../components/applications/details/ApplicationDetailsTable';
-import { parseAppMetadata } from '../utils/metadata';
+import { parseAppMetadataDetails } from '../utils/metadata';
 import { AppMetadata } from './InstallApplication';
 import { apiClient } from '@calimero-network/calimero-client';
 
@@ -32,8 +32,11 @@ export default function ApplicationDetailsPage() {
           console.error(fetchApplicationDetailsResponse.error.message);
           return;
         }
-        const appMetadata: AppMetadata | null = parseAppMetadata(
-          fetchApplicationDetailsResponse.data?.metadata ?? [],
+        const appMetadata: AppMetadata | null = parseAppMetadataDetails(
+          new Uint8Array(
+            // @ts-expect-error - return type
+            fetchApplicationDetailsResponse.data?.application.metadata ?? [],
+          ),
         );
 
         setApplicationInformation({

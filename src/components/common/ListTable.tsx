@@ -126,11 +126,23 @@ interface ListTableProps<T> {
     id: number,
     lastIndex: number,
     onRowItemClick?: (id: string) => void,
+    installAppStatus?: { title: string; message: string; error: boolean },
+    setInstallAppStatus?: (status: {
+      title: string;
+      message: string;
+      error: boolean;
+    }) => void,
   ) => JSX.Element;
   numOfColumns: number;
   roundTopItem: boolean;
   noItemsText: string;
   onRowItemClick?: (id: string, isAccepted?: boolean) => void;
+  installAppStatus?: { title: string; message: string; error: boolean };
+  setInstallAppStatus?: (status: {
+    title: string;
+    message: string;
+    error: boolean;
+  }) => void;
 }
 
 export default function ListTable<T>(props: ListTableProps<T>) {
@@ -157,6 +169,8 @@ export default function ListTable<T>(props: ListTableProps<T>) {
               id,
               props.listItems.length - 1,
               props?.onRowItemClick,
+              props.installAppStatus,
+              props.setInstallAppStatus,
             ),
           )}
           {props.listItems?.length === 0 && (
