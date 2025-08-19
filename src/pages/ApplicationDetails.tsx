@@ -27,7 +27,7 @@ export default function ApplicationDetailsPage() {
         const fetchApplicationDetailsResponse = await apiClient
           .node()
           .getInstalledApplicationDetails(id);
-        
+
         if (fetchApplicationDetailsResponse.error) {
           console.error(fetchApplicationDetailsResponse.error.message);
           return;

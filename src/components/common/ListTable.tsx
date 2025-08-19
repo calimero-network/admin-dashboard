@@ -127,14 +127,22 @@ interface ListTableProps<T> {
     lastIndex: number,
     onRowItemClick?: (id: string) => void,
     installAppStatus?: { title: string; message: string; error: boolean },
-    setInstallAppStatus?: (status: { title: string; message: string; error: boolean }) => void,
+    setInstallAppStatus?: (status: {
+      title: string;
+      message: string;
+      error: boolean;
+    }) => void,
   ) => JSX.Element;
   numOfColumns: number;
   roundTopItem: boolean;
   noItemsText: string;
   onRowItemClick?: (id: string, isAccepted?: boolean) => void;
   installAppStatus?: { title: string; message: string; error: boolean };
-  setInstallAppStatus?: (status: { title: string; message: string; error: boolean }) => void;
+  setInstallAppStatus?: (status: {
+    title: string;
+    message: string;
+    error: boolean;
+  }) => void;
 }
 
 export default function ListTable<T>(props: ListTableProps<T>) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { truncateHash } from '../../utils/displayFunctions';
 import { ClipboardDocumentIcon } from '@heroicons/react/24/solid';

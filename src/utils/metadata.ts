@@ -19,8 +19,9 @@ export function parseAppMetadata(metadata: number[]): AppMetadata | null {
   }
 }
 
-
-export function parseAppMetadataDetails(metadata: Uint8Array): AppMetadata | null {
+export function parseAppMetadataDetails(
+  metadata: Uint8Array,
+): AppMetadata | null {
   try {
     if (metadata.length === 0) {
       return null;

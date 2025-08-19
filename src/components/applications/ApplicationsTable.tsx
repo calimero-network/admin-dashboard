@@ -57,7 +57,12 @@ export default function ApplicationsTable(props: ApplicationsTableProps) {
     error: false,
   });
   const headersList = ['NAME', 'ID', 'LATEST VERSION', 'PUBLISHED BY'];
-  const marketplaceHeadersList = ['NAME', "URL", 'LATEST VERSION', 'PUBLISHED BY'];
+  const marketplaceHeadersList = [
+    'NAME',
+    'URL',
+    'LATEST VERSION',
+    'PUBLISHED BY',
+  ];
 
   return (
     <ContentCard

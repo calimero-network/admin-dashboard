@@ -208,7 +208,7 @@ export default function InstallApplicationCard({
   const [fieldsLocked, setFieldsLocked] = useState(false);
   const t = translations.applicationsPage.installApplication;
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
 
     setInstallAppStatus({
@@ -217,7 +217,7 @@ export default function InstallApplicationCard({
       error: false,
     });
     setShowStatusModal(false);
-    
+
     setUploading(true);
 
     const file = e.target.files[0];
@@ -409,7 +409,10 @@ export default function InstallApplicationCard({
                 onChange={handleFileChange}
                 disabled={uploading || fieldsLocked}
               />
-              <IconLabel htmlFor="upload-wasm" disabled={uploading || fieldsLocked}>
+              <IconLabel
+                htmlFor="upload-wasm"
+                disabled={uploading || fieldsLocked}
+              >
                 <CloudArrowUpIcon />
               </IconLabel>
             </div>
