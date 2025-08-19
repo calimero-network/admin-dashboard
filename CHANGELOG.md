@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/calimero-network/admin-dashboard/compare/v1.3.0...v1.4.0) (2025-08-19)
+
+
+### Features
+
+* **apps:** install application and listing ([#124](https://github.com/calimero-network/admin-dashboard/issues/124)) ([11c3f52](https://github.com/calimero-network/admin-dashboard/commit/11c3f52b7b64488307bb6ea73e1141841fa72bae))
+
 # [1.3.0](https://github.com/calimero-network/admin-dashboard/compare/v1.2.0...v1.3.0) (2025-08-11)
 
 
