@@ -95,6 +95,12 @@ const Wrapper = styled.div`
     border: 1px solid #4cfafc;
   }
 
+  .input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: rgb(255, 255, 255, 0.1);
+  }
+
   .flex-container {
     display: flex;
     flex-direction: row;
@@ -104,6 +110,13 @@ const Wrapper = styled.div`
     .section {
       width: 50%;
     }
+  }
+
+  .flex-container-url {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 1rem;
   }
 
   .relative-container {
@@ -134,6 +147,9 @@ const Wrapper = styled.div`
 
   .install-button-container {
     margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
   }
 `;
 
@@ -173,6 +189,8 @@ interface InstallApplicationCardProps {
   showStatusModal: boolean;
   closeModal: () => void;
   installAppStatus: ModalContent;
+  setInstallAppStatus: (status: ModalContent) => void;
+  setShowStatusModal: (show: boolean) => void;
 }
 
 export default function InstallApplicationCard({
@@ -183,13 +201,23 @@ export default function InstallApplicationCard({
   showStatusModal,
   closeModal,
   installAppStatus,
+  setInstallAppStatus,
+  setShowStatusModal,
 }: InstallApplicationCardProps) {
   const [uploading, setUploading] = useState(false);
+  const [fieldsLocked, setFieldsLocked] = useState(false);
   const t = translations.applicationsPage.installApplication;
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
 
+    setInstallAppStatus({
+      title: '',
+      message: '',
+      error: false,
+    });
+    setShowStatusModal(false);
+    
     setUploading(true);
 
     const file = e.target.files[0];
@@ -200,6 +228,13 @@ export default function InstallApplicationCard({
         {
           fileName: file.name,
           fileType: file.type,
+          metadata: {
+            appName: application.applicationName,
+            appOwner: application.applicationOwner,
+            appVersion: application.applicationVersion,
+            appDescription: application.description,
+            appRepositoryUrl: application.repositoryUrl,
+          },
         },
       );
       const response = await fetch(res.data.uploadUrl, {
@@ -213,15 +248,41 @@ export default function InstallApplicationCard({
 
       if (response.ok) {
         setApplication({ ...application, applicationUrl: res.data.fileUrl });
-        setUploading(false);
+        setFieldsLocked(true);
       } else {
-        window.alert('Error uploading image');
+        setInstallAppStatus({
+          title: t.failInstallTitle,
+          message: 'Error uploading image',
+          error: true,
+        });
+        setShowStatusModal(true);
         console.error(response);
       }
-    } catch (error) {
-      window.alert('Error uploading image');
+    } catch (error: any) {
+      setInstallAppStatus({
+        title: t.failInstallTitle,
+        message: error.response.data.error + ': ' + error.response.data.message,
+        error: true,
+      });
+      setShowStatusModal(true);
       console.error(error);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
     }
+  };
+
+  const unlockFields = () => {
+    setFieldsLocked(false);
+    setApplication({
+      applicationUrl: '',
+      applicationName: '',
+      applicationOwner: '',
+      applicationVersion: '',
+      description: '',
+      contractAppId: '',
+      repositoryUrl: '',
+    });
   };
 
   return (
@@ -241,7 +302,9 @@ export default function InstallApplicationCard({
             type="text"
             name="applicationName"
             className="input input-name"
+            placeholder={t.defaultName}
             value={application.applicationName}
+            disabled={fieldsLocked}
             onChange={(e) =>
               setApplication({
                 ...application,
@@ -256,8 +319,9 @@ export default function InstallApplicationCard({
             type="text"
             name="applicationOwner"
             className="input input-owner"
-            placeholder={t.optionalField}
+            placeholder={t.defaultOwner}
             value={application.applicationOwner}
+            disabled={fieldsLocked}
             onChange={(e) =>
               setApplication({
                 ...application,
@@ -274,8 +338,9 @@ export default function InstallApplicationCard({
             type="text"
             name="applicationVersion"
             className="input input-version"
-            placeholder={t.optionalField}
+            placeholder={t.defaultVersion}
             value={application.applicationVersion}
+            disabled={fieldsLocked}
             onChange={(e) =>
               setApplication({
                 ...application,
@@ -290,52 +355,76 @@ export default function InstallApplicationCard({
             type="text"
             name="description"
             className="input input-description"
-            placeholder={t.optionalField}
+            placeholder={t.defaultDescription}
             value={application.description}
+            disabled={fieldsLocked}
             onChange={(e) =>
               setApplication({ ...application, description: e.target.value })
             }
           />
         </div>
       </div>
-      <div className="relative-container">
-        <div className="label">{t.applicationUrl}</div>
-        <div className="h-flex">
-          <input
-            type="text"
-            name="applicationUrl"
-            className="input input-url input-url-container"
-            placeholder={t.applicationUrlPlaceholder}
-            value={application.applicationUrl}
-            disabled={uploading}
-            onChange={(e) =>
-              setApplication({ ...application, applicationUrl: e.target.value })
-            }
-          />
-          <HiddenInput
-            id="upload-wasm"
-            type="file"
-            accept=".wasm"
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-          <IconLabel htmlFor="upload-wasm" disabled={uploading}>
-            <CloudArrowUpIcon />
-          </IconLabel>
-        </div>
-      </div>
+
       <div className="label">{t.repositoryUrl}</div>
       <input
         type="text"
         name="repositoryUrl"
         className="input input-repository-url"
-        placeholder={t.optionalField}
+        placeholder={t.defaultRepositoryUrl}
         value={application.repositoryUrl}
+        disabled={fieldsLocked}
         onChange={(e) =>
-          setApplication({ ...application, repositoryUrl: e.target.value })
+          setApplication({
+            ...application,
+            repositoryUrl: e.target.value,
+          })
         }
       />
+      {application.applicationName &&
+        application.applicationOwner &&
+        application.applicationVersion &&
+        application.description &&
+        application.repositoryUrl && (
+          <div className="relative-container">
+            <div className="label">{t.applicationUrl}</div>
+            <div className="h-flex">
+              <input
+                type="text"
+                name="applicationUrl"
+                className="input input-url input-url-container"
+                placeholder={t.applicationUrlPlaceholder}
+                value={application.applicationUrl}
+                disabled={uploading || fieldsLocked}
+                onChange={(e) =>
+                  setApplication({
+                    ...application,
+                    applicationUrl: e.target.value,
+                  })
+                }
+              />
+              <HiddenInput
+                id="upload-wasm"
+                type="file"
+                accept=".wasm"
+                onChange={handleFileChange}
+                disabled={uploading || fieldsLocked}
+              />
+              <IconLabel htmlFor="upload-wasm" disabled={uploading || fieldsLocked}>
+                <CloudArrowUpIcon />
+              </IconLabel>
+            </div>
+          </div>
+        )}
       <div className="install-button-container">
+        {fieldsLocked && (
+          <Button
+            text="Cancel"
+            width={'144px'}
+            onClick={unlockFields}
+            isLoading={false}
+            isDisabled={false}
+          />
+        )}
         <Button
           text={t.installButtonText}
           width={'144px'}
