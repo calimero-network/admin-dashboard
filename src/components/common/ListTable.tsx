@@ -11,9 +11,8 @@ const ListWrapper = styled.div<ListWrapperProps>`
   flex-direction: column;
   flex: 1;
   width: 100%;
-  max-height: calc(100vh - 25rem);
-  isolation: isolate; /* Create stacking context */
-  min-height: 0; /* Add this to allow flex child to shrink */
+  min-height: 0;
+  isolation: isolate;
 
   .table-description {
     padding-left: 1rem;
@@ -94,6 +93,30 @@ const ListWrapper = styled.div<ListWrapperProps>`
       font-weight: 500;
       color: #6b7280;
       padding-bottom: 4px;
+    }
+  }
+
+  .list-items {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(155, 155, 155, 0.5);
+      border-radius: 20px;
+      border: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(155, 155, 155, 0.7);
     }
   }
 `;
