@@ -12,6 +12,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
   border-radius: 0.5rem;
   background-color: #212325;
   color: #fff;
+  min-height: 0;
   ${(props) => (props.$isOverflow ? '' : 'height: 100%;')}
 
   .header-back {
@@ -38,6 +39,8 @@ const Container = styled.div<{ $isOverflow: boolean }>`
     flex: 1;
     background-color: #17191b;
     border-radius: 0.5rem;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .options-container {
