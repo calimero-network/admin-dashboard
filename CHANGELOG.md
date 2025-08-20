@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/calimero-network/admin-dashboard/compare/v1.4.1...v1.5.0) (2025-08-20)
+
+
+### Features
+
+* push build ([358701c](https://github.com/calimero-network/admin-dashboard/commit/358701cdef050d46eee7b0f42e16ebff3a6ea5da))
+
 ## [1.4.1](https://github.com/calimero-network/admin-dashboard/compare/v1.4.0...v1.4.1) (2025-08-20)
 
 
