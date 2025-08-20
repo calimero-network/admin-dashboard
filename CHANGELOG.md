@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/calimero-network/admin-dashboard/compare/v1.4.0...v1.4.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* list scroll overflow ([#125](https://github.com/calimero-network/admin-dashboard/issues/125)) ([83fdfc8](https://github.com/calimero-network/admin-dashboard/commit/83fdfc8c5b380172344d2c1aafc8433bed0ea3ba))
+
 # [1.4.0](https://github.com/calimero-network/admin-dashboard/compare/v1.3.0...v1.4.0) (2025-08-19)
 
 
