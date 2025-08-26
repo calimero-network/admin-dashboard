@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/calimero-network/admin-dashboard/compare/v1.5.1...v1.5.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* list scroll for pages ([#128](https://github.com/calimero-network/admin-dashboard/issues/128)) ([69dca21](https://github.com/calimero-network/admin-dashboard/commit/69dca212689b2af07aa3f2c3275c70e758297f39))
+
 ## [1.5.1](https://github.com/calimero-network/admin-dashboard/compare/v1.5.0...v1.5.1) (2025-08-26)
 
 
