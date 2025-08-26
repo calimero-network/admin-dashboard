@@ -227,6 +227,15 @@ export default function ApplicationsPage() {
     setShowActionDialog(true);
   };
 
+  const handleChangeTab = (tab: string) => {
+    setCurrentOption(tab);
+    if (tab === ApplicationOptions.AVAILABLE) {
+      fetchMarketplaceApplications();
+    } else {
+      setApps();
+    }
+  };
+
   return (
     <FlexLayout>
       <Navigation />
@@ -234,7 +243,7 @@ export default function ApplicationsPage() {
         <ApplicationsTable
           applicationsList={applications}
           currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
+          setCurrentOption={handleChangeTab}
           tableOptions={tableOptions}
           navigateToAppDetails={(app: Application | undefined) => {
             if (app) {
