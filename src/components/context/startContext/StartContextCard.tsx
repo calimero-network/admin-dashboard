@@ -9,6 +9,7 @@ import { InstalledApplication } from '@calimero-network/calimero-client/lib/api/
 const Wrapper = styled.div`
   display: flex;
   flex: 1;
+  overflow: scroll;
   flex-direction: column;
   padding: 1rem;
   font-optical-sizing: auto;

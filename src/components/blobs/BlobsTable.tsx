@@ -18,6 +18,10 @@ interface BlobInfo {
 const FlexWrapper = styled.div`
   flex: 1;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 
   .close-button {
     position: absolute;
