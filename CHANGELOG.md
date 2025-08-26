@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/calimero-network/admin-dashboard/compare/v1.5.0...v1.5.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* refetch apps on install ([#127](https://github.com/calimero-network/admin-dashboard/issues/127)) ([491a6b2](https://github.com/calimero-network/admin-dashboard/commit/491a6b2e3e4b5fa080e01f97d7e41b5bbfa85ff7))
+
 # [1.5.0](https://github.com/calimero-network/admin-dashboard/compare/v1.4.1...v1.5.0) (2025-08-20)
 
 
