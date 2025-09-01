@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import translations from '../../constants/en.global.json';
 import { ContentCard } from '../common/ContentCard';
@@ -6,15 +6,18 @@ import OptionsHeader, { TableOptions } from '../common/OptionsHeader';
 import ListTable from '../common/ListTable';
 import applicationRowItem from './ApplicationRowItem';
 import { Options } from '../../constants/ApplicationsConstants';
-import { Applications } from '../../pages/Applications';
-import { Application } from '../../api/dataSource/NodeDataSource';
+import { Application, Applications } from '../../pages/Applications';
 import installedApplicationRowItem from './InstalledApplicationRowItem';
 import StatusModal, { ModalContent } from '../common/StatusModal';
 import ActionDialog from '../common/ActionDialog';
+import marketplaceRowItem from './MarketplaceRowItem';
 
 const FlexWrapper = styled.div`
   flex: 1;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 
   .close-button {
     position: absolute;
@@ -51,7 +54,18 @@ interface ApplicationsTableProps {
 
 export default function ApplicationsTable(props: ApplicationsTableProps) {
   const t = translations.applicationsPage.applicationsTable;
+  const [installAppStatus, setInstallAppStatus] = useState({
+    title: '',
+    message: '',
+    error: false,
+  });
   const headersList = ['NAME', 'ID', 'LATEST VERSION', 'PUBLISHED BY'];
+  const marketplaceHeadersList = [
+    'NAME',
+    'URL',
+    'LATEST VERSION',
+    'PUBLISHED BY',
+  ];
 
   return (
     <ContentCard
@@ -81,19 +95,29 @@ export default function ApplicationsTable(props: ApplicationsTableProps) {
         />
         {props.currentOption === Options.AVAILABLE && (
           <ListTable<Application>
-            listHeaderItems={headersList}
-            numOfColumns={4}
+            listHeaderItems={marketplaceHeadersList}
+            numOfColumns={5}
             listItems={props.applicationsList.available}
-            rowItem={applicationRowItem}
+            rowItem={marketplaceRowItem}
             roundTopItem={true}
             noItemsText={t.noAvailableAppsText}
-            onRowItemClick={(applicationId: string) => {
-              var app = props.applicationsList.available.find(
-                (app) => app.id === applicationId,
-              );
-              props.navigateToAppDetails(app);
-            }}
+            onRowItemClick={() => {}}
+            installAppStatus={installAppStatus}
+            setInstallAppStatus={setInstallAppStatus}
             error={props.errorMessage}
+          />
+        )}
+        {props.currentOption === Options.INSTALLED && (
+          <ListTable<Application>
+            listHeaderItems={headersList}
+            numOfColumns={5}
+            listItems={props.applicationsList.installed}
+            rowItem={installedApplicationRowItem}
+            roundTopItem={true}
+            noItemsText={t.noInstalledAppsText}
+            onRowItemClick={(applicationId: string) =>
+              props.showModal(applicationId)
+            }
           />
         )}
         {props.currentOption === Options.OWNED && (
@@ -111,19 +135,6 @@ export default function ApplicationsTable(props: ApplicationsTableProps) {
               props.navigateToAppDetails(app);
             }}
             error={props.errorMessage}
-          />
-        )}
-        {props.currentOption === Options.INSTALLED && (
-          <ListTable<Application>
-            listHeaderItems={headersList}
-            numOfColumns={5}
-            listItems={props.applicationsList.installed}
-            rowItem={installedApplicationRowItem}
-            roundTopItem={true}
-            noItemsText={t.noInstalledAppsText}
-            onRowItemClick={(applicationId: string) =>
-              props.showModal(applicationId)
-            }
           />
         )}
       </FlexWrapper>

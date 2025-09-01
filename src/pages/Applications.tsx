@@ -12,6 +12,7 @@ import { ModalContent } from '../components/common/StatusModal';
 import { AppMetadata } from './InstallApplication';
 import { apiClient } from '@calimero-network/calimero-client';
 import { InstalledApplication } from '@calimero-network/calimero-client/lib/api/nodeApi';
+import axios from 'axios';
 
 export enum Tabs {
   AVAILABLE,
@@ -53,6 +54,11 @@ const initialOptions = [
     id: ApplicationOptions.INSTALLED,
     count: 0,
   },
+  {
+    name: 'Marketplace',
+    id: ApplicationOptions.AVAILABLE,
+    count: 1,
+  },
 ];
 
 export interface Applications {
@@ -88,8 +94,6 @@ export default function ApplicationsPage() {
       .node()
       .getInstalledApplications();
 
-    console.log('fetchApplicationResponse', fetchApplicationResponse);
-
     if (fetchApplicationResponse.error) {
       setErrorMessage(fetchApplicationResponse.error.message);
       return;
@@ -115,7 +119,6 @@ export default function ApplicationsPage() {
               owner: appMetadata ? appMetadata.applicationOwner : null,
             };
 
-            console.log('application', application);
             return application;
           },
         ),
@@ -131,8 +134,39 @@ export default function ApplicationsPage() {
     }
   };
 
+  const fetchMarketplaceApplications = async () => {
+    try {
+      const fetchResponse = await axios.get(
+        `${import.meta.env['VITE_SERVER_URL']}/get-all-apps`,
+      );
+
+      if (fetchResponse.status === 200) {
+        const apps = fetchResponse.data.apps.map((app: any) => {
+          return {
+            id: app.appName + app.appOwner + app.appVersion,
+            blob: '',
+            version: app.appVersion,
+            source: app.appUrl,
+            contract_app_id: null,
+            name: app.appName,
+            description: app.appDescription,
+            repository: app.appRepositoryUrl,
+            owner: app.appOwner,
+          };
+        });
+        setApplications((prevState: Applications) => ({
+          ...prevState,
+          available: apps,
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     setApps();
+    fetchMarketplaceApplications();
   }, []);
 
   const uninstallApplication = async () => {
@@ -193,6 +227,15 @@ export default function ApplicationsPage() {
     setShowActionDialog(true);
   };
 
+  const handleChangeTab = (tab: string) => {
+    setCurrentOption(tab);
+    if (tab === ApplicationOptions.AVAILABLE) {
+      fetchMarketplaceApplications();
+    } else {
+      setApps();
+    }
+  };
+
   return (
     <FlexLayout>
       <Navigation />
@@ -200,7 +243,7 @@ export default function ApplicationsPage() {
         <ApplicationsTable
           applicationsList={applications}
           currentOption={currentOption}
-          setCurrentOption={setCurrentOption}
+          setCurrentOption={handleChangeTab}
           tableOptions={tableOptions}
           navigateToAppDetails={(app: Application | undefined) => {
             if (app) {

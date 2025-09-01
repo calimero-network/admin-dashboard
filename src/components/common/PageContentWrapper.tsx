@@ -5,6 +5,8 @@ const PageWrapper = styled.div<{ $isOverflow: boolean }>`
   padding: 4.705rem 2rem 2rem;
   ${(props) => (props.$isOverflow ? 'overflow-y: scroll;' : 'display: flex;')}
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 interface PageContentWrapperProps {

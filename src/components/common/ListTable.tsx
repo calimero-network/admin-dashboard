@@ -11,9 +11,8 @@ const ListWrapper = styled.div<ListWrapperProps>`
   flex-direction: column;
   flex: 1;
   width: 100%;
-  max-height: calc(100vh - 25rem);
-  isolation: isolate; /* Create stacking context */
-  min-height: 0; /* Add this to allow flex child to shrink */
+  min-height: 0;
+  isolation: isolate;
 
   .table-description {
     padding-left: 1rem;
@@ -96,6 +95,30 @@ const ListWrapper = styled.div<ListWrapperProps>`
       padding-bottom: 4px;
     }
   }
+
+  .list-items {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(155, 155, 155, 0.5);
+      border-radius: 20px;
+      border: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(155, 155, 155, 0.7);
+    }
+  }
 `;
 
 interface TableHeaderProps {
@@ -126,11 +149,23 @@ interface ListTableProps<T> {
     id: number,
     lastIndex: number,
     onRowItemClick?: (id: string) => void,
+    installAppStatus?: { title: string; message: string; error: boolean },
+    setInstallAppStatus?: (status: {
+      title: string;
+      message: string;
+      error: boolean;
+    }) => void,
   ) => JSX.Element;
   numOfColumns: number;
   roundTopItem: boolean;
   noItemsText: string;
   onRowItemClick?: (id: string, isAccepted?: boolean) => void;
+  installAppStatus?: { title: string; message: string; error: boolean };
+  setInstallAppStatus?: (status: {
+    title: string;
+    message: string;
+    error: boolean;
+  }) => void;
 }
 
 export default function ListTable<T>(props: ListTableProps<T>) {
@@ -157,6 +192,8 @@ export default function ListTable<T>(props: ListTableProps<T>) {
               id,
               props.listItems.length - 1,
               props?.onRowItemClick,
+              props.installAppStatus,
+              props.setInstallAppStatus,
             ),
           )}
           {props.listItems?.length === 0 && (

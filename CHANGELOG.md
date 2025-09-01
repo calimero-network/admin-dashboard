@@ -1,3 +1,45 @@
+## [1.5.2](https://github.com/calimero-network/admin-dashboard/compare/v1.5.1...v1.5.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* list scroll for pages ([#128](https://github.com/calimero-network/admin-dashboard/issues/128)) ([69dca21](https://github.com/calimero-network/admin-dashboard/commit/69dca212689b2af07aa3f2c3275c70e758297f39))
+
+## [1.5.1](https://github.com/calimero-network/admin-dashboard/compare/v1.5.0...v1.5.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* refetch apps on install ([#127](https://github.com/calimero-network/admin-dashboard/issues/127)) ([491a6b2](https://github.com/calimero-network/admin-dashboard/commit/491a6b2e3e4b5fa080e01f97d7e41b5bbfa85ff7))
+
+# [1.5.0](https://github.com/calimero-network/admin-dashboard/compare/v1.4.1...v1.5.0) (2025-08-20)
+
+
+### Features
+
+* push build ([358701c](https://github.com/calimero-network/admin-dashboard/commit/358701cdef050d46eee7b0f42e16ebff3a6ea5da))
+
+## [1.4.1](https://github.com/calimero-network/admin-dashboard/compare/v1.4.0...v1.4.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* list scroll overflow ([#125](https://github.com/calimero-network/admin-dashboard/issues/125)) ([83fdfc8](https://github.com/calimero-network/admin-dashboard/commit/83fdfc8c5b380172344d2c1aafc8433bed0ea3ba))
+
+# [1.4.0](https://github.com/calimero-network/admin-dashboard/compare/v1.3.0...v1.4.0) (2025-08-19)
+
+
+### Features
+
+* **apps:** install application and listing ([#124](https://github.com/calimero-network/admin-dashboard/issues/124)) ([11c3f52](https://github.com/calimero-network/admin-dashboard/commit/11c3f52b7b64488307bb6ea73e1141841fa72bae))
+
+# [1.3.0](https://github.com/calimero-network/admin-dashboard/compare/v1.2.0...v1.3.0) (2025-08-11)
+
+
+### Features
+
+* bump calimero sdk version v1.12.1 ([#123](https://github.com/calimero-network/admin-dashboard/issues/123)) ([9c81282](https://github.com/calimero-network/admin-dashboard/commit/9c81282daf241f6b120ad0a4d6728a29ee072087))
+
 # [1.2.0](https://github.com/calimero-network/admin-dashboard/compare/v1.1.1...v1.2.0) (2025-08-06)
 
 

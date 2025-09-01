@@ -7,6 +7,7 @@ import { ContentCard } from '../components/common/ContentCard';
 import translations from '../constants/en.global.json';
 import InstallApplicationCard from '../components/applications/InstallApplicationCard';
 import { apiClient } from '@calimero-network/calimero-client';
+import { createAppMetadata } from '../utils/metadata';
 
 export interface Application {
   appId: string;
@@ -59,9 +60,21 @@ export default function InstallApplication() {
   };
 
   const installApplicationHandler = async (): Promise<string | null> => {
+    const appMetadata: AppMetadata = {
+      applicationUrl: application.applicationUrl,
+      applicationName: application.applicationName,
+      applicationOwner: application.applicationOwner,
+      applicationVersion: application.applicationVersion,
+      description: application.description,
+      contractAppId: application.contractAppId,
+      repositoryUrl: application.repositoryUrl,
+    };
     const response = await apiClient
       .node()
-      .installApplication(application.applicationUrl);
+      .installApplication(
+        application.applicationUrl,
+        createAppMetadata(appMetadata),
+      );
     if (response.error) {
       setInstallAppStatus({
         title: t.failInstallTitle,
@@ -81,15 +94,15 @@ export default function InstallApplication() {
 
   const closeModal = () => {
     setShowStatusModal(false);
-    if (installAppStatus.error) {
-      setInstallAppStatus({
-        title: '',
-        message: '',
-        error: false,
-      });
-      return;
+    setInstallAppStatus({
+      title: '',
+      message: '',
+      error: false,
+    });
+
+    if (!installAppStatus.error) {
+      navigate('/applications');
     }
-    navigate('/applications');
   };
 
   return (
@@ -108,6 +121,8 @@ export default function InstallApplication() {
             showStatusModal={showStatusModal}
             closeModal={closeModal}
             installAppStatus={installAppStatus}
+            setInstallAppStatus={setInstallAppStatus}
+            setShowStatusModal={setShowStatusModal}
           />
         </ContentCard>
       </PageContentWrapper>

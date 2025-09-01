@@ -11,6 +11,10 @@ import { ContextObject, ContextsList } from '../../types/context';
 
 const FlexWrapper = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 interface ContextTableProps {

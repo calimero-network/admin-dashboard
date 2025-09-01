@@ -55,6 +55,10 @@ const Tab = styled.button<{ $isActive: boolean }>`
 
 const FlexWrapper = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 const RowItem = styled.div`

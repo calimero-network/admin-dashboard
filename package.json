@@ -18,7 +18,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@calimero-network/calimero-client": "github:calimero-network/calimero-client-js#feat/auth-url",
+    "@calimero-network/calimero-client": "1.15.0",
     "@dfinity/identity": "^2.0.0",
     "@floating-ui/react-native": "^0.10.4",
     "@heroicons/react": "^2.1.3",
