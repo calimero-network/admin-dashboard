@@ -3,6 +3,7 @@ import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import {
   ProtectedRoutesWrapper,
   getAppEndpointKey,
+  getAuthEndpointURL,
 } from '@calimero-network/calimero-client';
 
 import Identity from './pages/Identity';
@@ -31,7 +32,7 @@ export default function App() {
   useEffect(() => {
     const checkAdminApiAvailability = async () => {
       try {
-        const baseUrl = getAppEndpointKey();
+        const baseUrl = getAuthEndpointURL();
         if (!baseUrl) {
           setIsAdminApiAvailable(false);
           return;
@@ -57,8 +58,19 @@ export default function App() {
     checkAdminApiAvailability();
   }, []);
 
+  const getBasePath = () => {
+    const path = window.location.pathname;
+    if (path.includes('/admin-dashboard')) {
+      return path.substring(
+        0,
+        path.indexOf('/admin-dashboard') + '/admin-dashboard'.length,
+      );
+    }
+    return '/admin-dashboard';
+  };
+
   return (
-    <BrowserRouter basename="/admin-dashboard">
+    <BrowserRouter basename={getBasePath()}>
       <ProtectedRoutesWrapper permissions={['admin']}>
         <Routes>
           {isAdminApiAvailable ? (
