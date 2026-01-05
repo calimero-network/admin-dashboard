@@ -1,3 +1,16 @@
+# [1.6.0](https://github.com/calimero-network/admin-dashboard/compare/v1.5.2...v1.6.0) (2026-01-05)
+
+
+### Bug Fixes
+
+* lint ([9afd1ad](https://github.com/calimero-network/admin-dashboard/commit/9afd1adb6080f4064572b5c7d24b3aec0991cad7))
+
+
+### Features
+
+* **BasePaths:** Dynamic basepath, optimized logout process  ([#122](https://github.com/calimero-network/admin-dashboard/issues/122)) ([1bf940a](https://github.com/calimero-network/admin-dashboard/commit/1bf940a6775414e3573bc9de5e5db03dec3dc34b))
+* bump build + aws upload url ([52b02fd](https://github.com/calimero-network/admin-dashboard/commit/52b02fdcb4366f5c19b2cfa3c35d54bc8cb3a79b))
+
 ## [1.5.2](https://github.com/calimero-network/admin-dashboard/compare/v1.5.1...v1.5.2) (2025-08-26)
 
 
