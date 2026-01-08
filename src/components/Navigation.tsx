@@ -6,15 +6,13 @@ import { useLocation } from 'react-router-dom';
 import {
   getAccessToken,
   getRefreshToken,
-  getAppEndpointKey,
   clearAccessToken,
   clearApplicationId,
   clearContextId,
   clearExecutorPublicKey,
+  clearAppEndpoint,
 } from '@calimero-network/calimero-client';
-
-// Use a public URL that works regardless of the application path
-const CalimeroLogo = '/assets/calimero-logo.svg';
+import CalimeroLogo from '../assets/calimero-logo.svg?url';
 
 const NavigationWrapper = styled.div`
   background-color: #111111;
@@ -145,43 +143,23 @@ export function Navigation() {
   });
 
   const logout = () => {
-    // Get the stored app URL to determine the correct redirect path
-    const appUrl = getAppEndpointKey();
-
-    // Determine the correct admin dashboard URL
-    let adminDashboardUrl = '/admin-dashboard/';
-
-    if (appUrl) {
-      try {
-        const url = new URL(appUrl);
-        // Extract the path from the app URL (e.g., /node1, /myapp, etc.)
-        const pathSegments = url.pathname
-          .split('/')
-          .filter((segment) => segment.length > 0);
-        if (pathSegments.length > 0) {
-          const nodePath = pathSegments[0];
-          adminDashboardUrl = `/${nodePath}/admin-dashboard/`;
-        }
-      } catch (error) {
-        console.error('Error parsing app URL:', error);
-      }
-    }
-
-    // Clear auth data using the same methods as clientLogout but without the reload
+    // Clear auth data
     clearAccessToken();
     clearApplicationId();
     clearContextId();
     clearExecutorPublicKey();
+    clearAppEndpoint();
 
-    // Redirect to the correct admin dashboard URL
-    window.location.href = adminDashboardUrl;
+    // Reload the page - ProtectedRoutesWrapper will detect missing tokens
+    // and automatically redirect to the login page
+    window.location.reload();
   };
   return (
     <NavigationWrapper>
       <div className="logo-wrapper">
         <div className="logo-container">
           <img
-            src={CalimeroLogo as unknown as string}
+            src={CalimeroLogo}
             className="calimero-logo"
             alt="Calimero Logo"
           />
