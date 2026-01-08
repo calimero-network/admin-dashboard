@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/calimero-network/admin-dashboard/compare/v1.6.0...v1.6.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* svg load + logout error ([#133](https://github.com/calimero-network/admin-dashboard/issues/133)) ([99a0ea5](https://github.com/calimero-network/admin-dashboard/commit/99a0ea58ba80b9c4c40c7cc70bc20ee61d2cefbd))
+
 # [1.6.0](https://github.com/calimero-network/admin-dashboard/compare/v1.5.2...v1.6.0) (2026-01-05)
 
 
