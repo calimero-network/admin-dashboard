@@ -1,3 +1,5 @@
+## [1.6.2](https://github.com/calimero-network/admin-dashboard/compare/v1.6.1...v1.6.2) (2026-02-11)
+
 ## [1.6.1](https://github.com/calimero-network/admin-dashboard/compare/v1.6.0...v1.6.1) (2026-01-08)
 
 
