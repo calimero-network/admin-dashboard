@@ -1,0 +1,22 @@
+.identity-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.identity-toast.success {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.identity-toast.error {
+  border-color: var(--error);
+  color: var(--error);
+}

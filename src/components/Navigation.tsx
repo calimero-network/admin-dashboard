@@ -1,8 +1,14 @@
 import React from 'react';
-import styled from 'styled-components';
-import translations from '../constants/en.global.json';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  HomeIcon,
+  ShoppingBagIcon,
+  CubeIcon,
+  RectangleGroupIcon,
+  KeyIcon,
+  DocumentTextIcon,
+  ArrowRightStartOnRectangleIcon,
+} from '@heroicons/react/24/outline';
 import {
   getAccessToken,
   getRefreshToken,
@@ -12,184 +18,65 @@ import {
   clearExecutorPublicKey,
   clearAppEndpoint,
 } from '@calimero-network/calimero-client';
-import CalimeroLogo from '../assets/calimero-logo.svg?url';
+import './Navigation.css';
 
-const NavigationWrapper = styled.div`
-  background-color: #111111;
-  width: fit-content;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 2rem;
-  height: 100vh;
-
-  .logo-wrapper {
-    display: flex;
-    -webkit-box-pack: justify;
-    justify-content: space-between;
-  }
-
-  .logo-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-  }
-
-  .calimero-logo {
-    width: 8.75rem;
-    height: 2.706rem;
-  }
-
-  .dashboard-text {
-    position: absolute;
-    left: 2.8rem;
-    top: 2rem;
-    width: max-content;
-    font-size: 0.625rem;
-    color: #fff;
-  }
-
-  .items-wrapper {
-    margin-top: 4.5rem;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .navigation-items-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 100%;
-    gap: 0.25rem;
-  }
-
-  .nav-item-active {
-    color: #fff !important;
-    background-color: rgb(255, 255, 255, 0.05);
-  }
-
-  .nav-item,
-  .nav-item-active {
-    color: #9ca3af;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25rem;
-    text-align: left;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    width: 14.5rem;
-  }
-
-  .nav-item:hover {
-    color: #fff;
-  }
-
-  .logout:hover {
-    color: #4cfafc;
-  }
-`;
-
-const NavigationItems = [
-  {
-    id: 0,
-    title: 'Identity',
-    path: '/identity',
-  },
-  {
-    id: 1,
-    title: 'Contexts',
-    path: '/contexts',
-  },
-  {
-    id: 2,
-    title: 'Applications',
-    path: '/applications',
-  },
-  {
-    id: 3,
-    title: 'Blobs',
-    path: '/blobs',
-  },
-  {
-    id: 4,
-    title: 'Export',
-    path: '/export',
-  },
-  {
-    id: 5,
-    title: 'Logout',
-    path: '',
-  },
+const navItems = [
+  { path: '/dashboard', label: 'Dashboard', Icon: HomeIcon },
+  { path: '/marketplace', label: 'Marketplace', Icon: ShoppingBagIcon },
+  { path: '/applications', label: 'Applications', Icon: CubeIcon },
+  { path: '/blobs', label: 'Blobs', Icon: DocumentTextIcon },
+  { path: '/contexts', label: 'Contexts', Icon: RectangleGroupIcon },
+  { path: '/identity', label: 'Identity', Icon: KeyIcon },
 ];
 
 export function Navigation() {
-  const t = translations.navigation;
   const location = useLocation();
 
-  // Check if user is authenticated by checking for tokens
   const hasTokens = () => {
-    const accessToken = getAccessToken();
-    const refreshToken = getRefreshToken();
-    return !!(accessToken && refreshToken);
+    return !!(getAccessToken() && getRefreshToken());
   };
 
-  // Filter navigation items based on authentication status
-  const filteredNavigationItems = NavigationItems.filter((item) => {
-    if (item.id === 0 && !hasTokens()) {
-      return false;
-    }
-    return true;
-  });
-
   const logout = () => {
-    // Clear auth data
     clearAccessToken();
     clearApplicationId();
     clearContextId();
     clearExecutorPublicKey();
     clearAppEndpoint();
-
-    // Reload the page - ProtectedRoutesWrapper will detect missing tokens
-    // and automatically redirect to the login page
     window.location.reload();
   };
+
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(path + '/');
+
   return (
-    <NavigationWrapper>
-      <div className="logo-wrapper">
-        <div className="logo-container">
-          <img
-            src={CalimeroLogo}
-            className="calimero-logo"
-            alt="Calimero Logo"
-          />
-          <h4 className="dashboard-text">{t.logoDashboardText}</h4>
-        </div>
+    <nav className="sidebar">
+      <div className="sidebar-logo">
+        <span className="sidebar-logo-dot" />
+        <span className="sidebar-logo-text">Calimero</span>
+        <span className="sidebar-logo-sub">Admin</span>
       </div>
-      <div className="items-wrapper">
-        <div className="navigation-items-wrapper">
-          {filteredNavigationItems.map((item) =>
-            item.id === 5 ? (
-              <div key={item.id} className="nav-item logout" onClick={logout}>
-                {item.title}
-              </div>
-            ) : (
-              <Link
-                to={item.path}
-                key={item.id}
-                className={
-                  location.pathname === item.path ||
-                  location.pathname.includes(item.path)
-                    ? 'nav-item-active'
-                    : 'nav-item'
-                }
-              >
-                {item.title}
-              </Link>
-            ),
-          )}
-        </div>
+
+      <div className="sidebar-nav">
+        {navItems
+          .filter(item => item.path !== '/identity' || hasTokens())
+          .map(({ path, label, Icon }) => (
+            <Link
+              key={path}
+              to={path}
+              className={`sidebar-nav-item${isActive(path) ? ' active' : ''}`}
+            >
+              <Icon className="sidebar-nav-icon" />
+              {label}
+            </Link>
+          ))}
       </div>
-    </NavigationWrapper>
+
+      <div className="sidebar-footer">
+        <button className="sidebar-logout" onClick={logout}>
+          <ArrowRightStartOnRectangleIcon className="sidebar-nav-icon" />
+          Logout
+        </button>
+      </div>
+    </nav>
   );
 }

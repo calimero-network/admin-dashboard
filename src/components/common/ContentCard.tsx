@@ -8,10 +8,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
   flex: 1;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  background-color: #212325;
-  color: #fff;
+  color: var(--text-primary);
   min-height: 0;
   ${(props) => (props.$isOverflow ? '' : 'height: 100%;')}
 
@@ -22,7 +19,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
     height: 1.75rem;
     margin-top: 0.125rem;
     gap: 1rem;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
     line-height: 1.25rem;
@@ -37,8 +34,9 @@ const Container = styled.div<{ $isOverflow: boolean }>`
   .main-wrapper {
     display: flex;
     flex: 1;
-    background-color: #17191b;
-    border-radius: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
     min-height: 0;
     overflow: hidden;
   }
@@ -65,6 +63,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
         font-weight: 500;
         line-height: 1.25rem;
         text-align: left;
+        color: var(--text-primary);
       }
     }
 
@@ -73,7 +72,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
       font-weight: 500;
       line-height: 1.25rem;
       text-align: left;
-      color: #6b7280;
+      color: var(--text-secondary);
       word-break: break-all;
     }
   }
