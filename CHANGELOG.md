@@ -1,3 +1,16 @@
+# [1.7.0](https://github.com/calimero-network/admin-dashboard/compare/v1.6.2...v1.7.0) (2026-03-20)
+
+
+### Bug Fixes
+
+* blobs css lint ([6173d50](https://github.com/calimero-network/admin-dashboard/commit/6173d500054ba23870b855effd518d4515573b34))
+* lint rebuild v2 ([#137](https://github.com/calimero-network/admin-dashboard/issues/137)) ([1e452e1](https://github.com/calimero-network/admin-dashboard/commit/1e452e18bec1f6109916d31511b5d88201a2dc29))
+
+
+### Features
+
+* rebuild admin dashboard ([#135](https://github.com/calimero-network/admin-dashboard/issues/135)) ([ea57182](https://github.com/calimero-network/admin-dashboard/commit/ea57182e58fb71a5d77cd40b1bb35f050d168d4b))
+
 ## [1.6.2](https://github.com/calimero-network/admin-dashboard/compare/v1.6.1...v1.6.2) (2026-02-11)
 
 ## [1.6.1](https://github.com/calimero-network/admin-dashboard/compare/v1.6.0...v1.6.1) (2026-01-08)
