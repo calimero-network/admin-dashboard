@@ -22,7 +22,14 @@ export default function LoginPage({ onLogin, onReset }: LoginPageProps) {
             Authenticate with your Calimero node to access the admin dashboard.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              marginTop: 8,
+            }}
+          >
             <button className="connect-btn" onClick={onLogin}>
               Login with Node
             </button>
@@ -40,8 +47,12 @@ export default function LoginPage({ onLogin, onReset }: LoginPageProps) {
                 fontFamily: 'inherit',
                 transition: 'all 0.15s',
               }}
-              onMouseOver={e => (e.currentTarget.style.borderColor = 'var(--border-hover)')}
-              onMouseOut={e => (e.currentTarget.style.borderColor = 'var(--border-color)')}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.borderColor = 'var(--border-hover)')
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.borderColor = 'var(--border-color)')
+              }
             >
               Change Node URL
             </button>

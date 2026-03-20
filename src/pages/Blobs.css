@@ -106,7 +106,10 @@
 .blobs-table-head,
 .blob-row {
   display: grid;
-  grid-template-columns: minmax(0, 2.5fr) minmax(120px, 0.8fr) minmax(160px, 1fr) minmax(240px, 1.4fr);
+  grid-template-columns: minmax(0, 2.5fr) minmax(120px, 0.8fr) minmax(
+      160px,
+      1fr
+    ) minmax(240px, 1.4fr);
   gap: 16px;
   align-items: center;
   padding: 14px 18px;
@@ -152,7 +155,8 @@
 }
 
 .blob-id-cell {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
 }
 
 .blob-id-cell span {

@@ -13,7 +13,10 @@ import {
   CubeTransparentIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { getAppEndpointKey, getAccessToken } from '@calimero-network/calimero-client';
+import {
+  getAppEndpointKey,
+  getAccessToken,
+} from '@calimero-network/calimero-client';
 import { Navigation } from '../components/Navigation';
 import './Blobs.css';
 
@@ -59,7 +62,10 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const url = `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
   const res = await fetch(url, {
     ...init,
-    headers: { ...authHeaders(), ...(init?.headers as Record<string, string> || {}) },
+    headers: {
+      ...authHeaders(),
+      ...((init?.headers as Record<string, string>) || {}),
+    },
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
@@ -103,14 +109,18 @@ export default function BlobsPage() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const handleUploadClick = () => {
     if (isUploading) return;
     inputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -125,30 +135,33 @@ export default function BlobsPage() {
       if (!base) throw new Error('Node URL not configured');
       const url = `${base.replace(/\/+$/, '')}/admin-api/blobs`;
 
-      const uploadedBlobId = await new Promise<string | null>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', url);
-        const token = getAccessToken();
-        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) setUploadProgress((e.loaded / e.total) * 100);
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const json = JSON.parse(xhr.responseText);
-              resolve(json?.data?.blob_id ?? json?.blob_id ?? null);
-            } catch {
-              resolve(null);
+      const uploadedBlobId = await new Promise<string | null>(
+        (resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', url);
+          const token = getAccessToken();
+          if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable)
+              setUploadProgress((e.loaded / e.total) * 100);
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const json = JSON.parse(xhr.responseText);
+                resolve(json?.data?.blob_id ?? json?.blob_id ?? null);
+              } catch {
+                resolve(null);
+              }
+            } else {
+              reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
             }
-          } else {
-            reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(file);
-      });
+          };
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.send(file);
+        },
+      );
 
       showToast(
         uploadedBlobId
@@ -171,9 +184,12 @@ export default function BlobsPage() {
     setError('');
     try {
       const res = await apiFetch(`admin-api/blobs/${blobId}`);
-      const contentType = res.headers.get('content-type') || 'application/octet-stream';
+      const contentType =
+        res.headers.get('content-type') || 'application/octet-stream';
       const arrayBuffer = await res.arrayBuffer();
-      const url = window.URL.createObjectURL(new Blob([arrayBuffer], { type: contentType }));
+      const url = window.URL.createObjectURL(
+        new Blob([arrayBuffer], { type: contentType }),
+      );
       const link = document.createElement('a');
       link.href = url;
       link.download = blobId;
@@ -224,10 +240,16 @@ export default function BlobsPage() {
         <div className="page-header">
           <div className="page-header-left">
             <h1>Blobs</h1>
-            <p>Browse, download, upload, and delete blobs stored on this node</p>
+            <p>
+              Browse, download, upload, and delete blobs stored on this node
+            </p>
           </div>
           <div className="blobs-header-actions">
-            <button className="btn" onClick={() => void load()} disabled={loading}>
+            <button
+              className="btn"
+              onClick={() => void load()}
+              disabled={loading}
+            >
               <ArrowPathIcon
                 style={{ width: 16, height: 16 }}
                 className={loading ? 'spin' : ''}
@@ -251,7 +273,9 @@ export default function BlobsPage() {
           </div>
         </div>
 
-        {toast && <div className={`alert alert-${toast.type}`}>{toast.msg}</div>}
+        {toast && (
+          <div className={`alert alert-${toast.type}`}>{toast.msg}</div>
+        )}
         {error && <div className="alert alert-error">{error}</div>}
 
         <div className="blobs-stats">
@@ -261,7 +285,9 @@ export default function BlobsPage() {
           </div>
           <div className="card blobs-stat-card">
             <span className="blobs-stat-label">Total storage</span>
-            <strong className="blobs-stat-value">{formatFileSize(totalStorage)}</strong>
+            <strong className="blobs-stat-value">
+              {formatFileSize(totalStorage)}
+            </strong>
           </div>
         </div>
 
@@ -273,7 +299,9 @@ export default function BlobsPage() {
                 <p>{uploadFileName}</p>
               </div>
               <span className="blobs-upload-percent">
-                {uploadProgress > 0 ? `${uploadProgress.toFixed(0)}%` : 'In progress'}
+                {uploadProgress > 0
+                  ? `${uploadProgress.toFixed(0)}%`
+                  : 'In progress'}
               </span>
             </div>
             <div className="blobs-progress-track">
@@ -281,7 +309,9 @@ export default function BlobsPage() {
                 className={`blobs-progress-bar ${
                   uploadProgress === 0 ? 'blobs-progress-indeterminate' : ''
                 }`}
-                style={{ width: uploadProgress > 0 ? `${uploadProgress}%` : '35%' }}
+                style={{
+                  width: uploadProgress > 0 ? `${uploadProgress}%` : '35%',
+                }}
               />
             </div>
           </div>
@@ -300,7 +330,9 @@ export default function BlobsPage() {
           <div className="empty-state">
             <CubeTransparentIcon />
             <h3>No blobs found</h3>
-            <p>Upload a file to store it on the node and manage it from here.</p>
+            <p>
+              Upload a file to store it on the node and manage it from here.
+            </p>
           </div>
         ) : (
           <div className="card blobs-table-card">
@@ -320,13 +352,21 @@ export default function BlobsPage() {
                       onClick={() => void handleCopy(blob.blobId)}
                       title="Copy blob ID"
                     >
-                      <ClipboardDocumentIcon style={{ width: 15, height: 15 }} />
+                      <ClipboardDocumentIcon
+                        style={{ width: 15, height: 15 }}
+                      />
                     </button>
-                    <span title={blob.blobId}>{truncateMiddle(blob.blobId, 16, 10)}</span>
+                    <span title={blob.blobId}>
+                      {truncateMiddle(blob.blobId, 16, 10)}
+                    </span>
                   </div>
 
-                  <div className="blob-cell blob-muted">{formatFileSize(blob.size)}</div>
-                  <div className="blob-cell blob-type">{formatFileType(blob.fileType, blob.isDetecting)}</div>
+                  <div className="blob-cell blob-muted">
+                    {formatFileSize(blob.size)}
+                  </div>
+                  <div className="blob-cell blob-type">
+                    {formatFileType(blob.fileType, blob.isDetecting)}
+                  </div>
 
                   <div className="blob-actions">
                     {confirmId === blob.blobId ? (
@@ -336,7 +376,9 @@ export default function BlobsPage() {
                           onClick={() => void handleDelete(blob.blobId)}
                           disabled={busyBlobId === blob.blobId}
                         >
-                          {busyBlobId === blob.blobId ? 'Deleting...' : 'Confirm'}
+                          {busyBlobId === blob.blobId
+                            ? 'Deleting...'
+                            : 'Confirm'}
                         </button>
                         <button
                           className="btn btn-sm"
@@ -353,8 +395,12 @@ export default function BlobsPage() {
                           onClick={() => void handleDownload(blob.blobId)}
                           disabled={busyBlobId === blob.blobId}
                         >
-                          <ArrowDownTrayIcon style={{ width: 14, height: 14 }} />
-                          {busyBlobId === blob.blobId ? 'Working...' : 'Download'}
+                          <ArrowDownTrayIcon
+                            style={{ width: 14, height: 14 }}
+                          />
+                          {busyBlobId === blob.blobId
+                            ? 'Working...'
+                            : 'Download'}
                         </button>
                         <button
                           className="btn btn-sm"
