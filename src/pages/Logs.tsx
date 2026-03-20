@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { getAuthEndpointURL } from '@calimero-network/calimero-client';
-import { ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowPathIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import './Logs.css';
 
 interface LogEntry {
@@ -15,8 +18,10 @@ function parseLine(line: string): LogEntry {
   if (upper.includes('[ERROR]') || upper.includes(' ERROR ')) level = 'ERROR';
   else if (upper.includes('[WARN]') || upper.includes(' WARN ')) level = 'WARN';
   else if (upper.includes('[INFO]') || upper.includes(' INFO ')) level = 'INFO';
-  else if (upper.includes('[DEBUG]') || upper.includes(' DEBUG ')) level = 'DEBUG';
-  else if (upper.includes('[TRACE]') || upper.includes(' TRACE ')) level = 'TRACE';
+  else if (upper.includes('[DEBUG]') || upper.includes(' DEBUG '))
+    level = 'DEBUG';
+  else if (upper.includes('[TRACE]') || upper.includes(' TRACE '))
+    level = 'TRACE';
   return { raw: line, level };
 }
 
@@ -64,7 +69,9 @@ export default function Logs() {
       }
 
       if (!found) {
-        setError('No logs endpoint available on this node. Logs are typically only accessible through the Calimero Desktop application.');
+        setError(
+          'No logs endpoint available on this node. Logs are typically only accessible through the Calimero Desktop application.',
+        );
       }
     } catch (e: any) {
       setError(e.message);
@@ -73,7 +80,9 @@ export default function Logs() {
     }
   }, []);
 
-  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
@@ -81,8 +90,9 @@ export default function Logs() {
     }
   }, [logs, autoScroll]);
 
-  const filtered = logs.filter(entry => {
-    const matchSearch = !search || entry.raw.toLowerCase().includes(search.toLowerCase());
+  const filtered = logs.filter((entry) => {
+    const matchSearch =
+      !search || entry.raw.toLowerCase().includes(search.toLowerCase());
     const matchLevel = !levelFilter || entry.level === levelFilter;
     return matchSearch && matchLevel;
   });
@@ -101,12 +111,15 @@ export default function Logs() {
               <input
                 type="checkbox"
                 checked={autoScroll}
-                onChange={e => setAutoScroll(e.target.checked)}
+                onChange={(e) => setAutoScroll(e.target.checked)}
               />
               Auto-scroll
             </label>
             <button className="btn" onClick={fetchLogs} disabled={loading}>
-              <ArrowPathIcon style={{ width: 16, height: 16 }} className={loading ? 'spin' : ''} />
+              <ArrowPathIcon
+                style={{ width: 16, height: 16 }}
+                className={loading ? 'spin' : ''}
+              />
               {loading ? 'Loading...' : 'Refresh'}
             </button>
           </div>
@@ -119,13 +132,13 @@ export default function Logs() {
               type="text"
               placeholder="Filter logs..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               className="logs-search-input"
             />
           </div>
           <select
             value={levelFilter}
-            onChange={e => setLevelFilter(e.target.value)}
+            onChange={(e) => setLevelFilter(e.target.value)}
             className="logs-level-select"
           >
             <option value="">All levels</option>
@@ -136,7 +149,9 @@ export default function Logs() {
             <option value="TRACE">Trace</option>
           </select>
           {(search || levelFilter) && (
-            <span className="logs-count">{filtered.length} / {logs.length} lines</span>
+            <span className="logs-count">
+              {filtered.length} / {logs.length} lines
+            </span>
           )}
         </div>
 
@@ -145,20 +160,34 @@ export default function Logs() {
             <div className="logs-unavail-icon">📋</div>
             <h3>Logs Unavailable via HTTP</h3>
             <p>{error}</p>
-            <p style={{ marginTop: 8 }}>Use the <strong>Calimero Desktop</strong> app to view real-time node logs.</p>
-            <button className="btn" style={{ marginTop: 16 }} onClick={fetchLogs}>Try Again</button>
+            <p style={{ marginTop: 8 }}>
+              Use the <strong>Calimero Desktop</strong> app to view real-time
+              node logs.
+            </p>
+            <button
+              className="btn"
+              style={{ marginTop: 16 }}
+              onClick={fetchLogs}
+            >
+              Try Again
+            </button>
           </div>
         ) : (
           <div ref={scrollRef} className="logs-terminal">
             {loading && logs.length === 0 ? (
               <span className="logs-placeholder">Loading logs...</span>
             ) : filtered.length === 0 ? (
-              <span className="logs-placeholder">No log entries{search || levelFilter ? ' matching filter' : ''}.</span>
+              <span className="logs-placeholder">
+                No log entries{search || levelFilter ? ' matching filter' : ''}.
+              </span>
             ) : (
               filtered.map((entry, i) => (
                 <div key={i} className="log-line">
                   {entry.level && (
-                    <span className="log-level" style={{ color: LEVEL_COLORS[entry.level] }}>
+                    <span
+                      className="log-level"
+                      style={{ color: LEVEL_COLORS[entry.level] }}
+                    >
                       [{entry.level}]
                     </span>
                   )}

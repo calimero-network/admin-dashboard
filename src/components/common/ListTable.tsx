@@ -29,8 +29,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
   .header-items-grid {
     display: grid;
     grid-template-columns: ${(props) =>
-      props.$gridTemplateColumns ||
-      `repeat(${props.$numOfColumns}, 1fr)`};
+      props.$gridTemplateColumns || `repeat(${props.$numOfColumns}, 1fr)`};
     grid-template-rows: auto;
     padding: 0.75rem 1.5rem;
     background-color: var(--bg-primary);

@@ -19,7 +19,12 @@ export default function IdentityPage() {
 
   const toKeyArray = <T,>(raw: unknown): T[] => {
     if (Array.isArray(raw)) return raw as T[];
-    if (raw && typeof raw === 'object' && 'data' in raw && Array.isArray((raw as { data: T[] }).data)) {
+    if (
+      raw &&
+      typeof raw === 'object' &&
+      'data' in raw &&
+      Array.isArray((raw as { data: T[] }).data)
+    ) {
       return (raw as { data: T[] }).data;
     }
     return [];
@@ -83,13 +88,19 @@ export default function IdentityPage() {
             <h1>Identity</h1>
             <p>Root and client keys for this node</p>
           </div>
-          <button type="button" className="btn btn-primary" onClick={handleExportDID}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleExportDID}
+          >
             <ArrowDownTrayIcon style={{ width: 16, height: 16 }} />
             Export DID
           </button>
         </div>
         {exportToast && (
-          <div className={`identity-toast ${exportToast.includes('Failed') ? 'error' : 'success'}`}>
+          <div
+            className={`identity-toast ${exportToast.includes('Failed') ? 'error' : 'success'}`}
+          >
             {exportToast}
           </div>
         )}

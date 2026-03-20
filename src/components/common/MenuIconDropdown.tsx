@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/solid';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
@@ -92,7 +98,8 @@ export default function MenuIconDropdown({ options }: MenuIconDropdownProps) {
     const menuWidth = 200;
     const estimatedHeight = Math.max(56, options.length * 44 + 12);
     const spaceBelow = window.innerHeight - rect.bottom;
-    const shouldOpenUp = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+    const shouldOpenUp =
+      spaceBelow < estimatedHeight && rect.top > estimatedHeight;
 
     const top = shouldOpenUp
       ? Math.max(8, rect.top - estimatedHeight - 8)

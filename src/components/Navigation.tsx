@@ -58,7 +58,7 @@ export function Navigation() {
 
       <div className="sidebar-nav">
         {navItems
-          .filter(item => item.path !== '/identity' || hasTokens())
+          .filter((item) => item.path !== '/identity' || hasTokens())
           .map(({ path, label, Icon }) => (
             <Link
               key={path}

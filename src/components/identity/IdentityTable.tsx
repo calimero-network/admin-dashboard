@@ -27,10 +27,9 @@ const Tab = styled.button<{ $isActive: boolean }>`
     props.$isActive ? 'var(--accent-light)' : 'transparent'};
   border: 1px solid
     ${(props) =>
-      props.$isActive
-        ? 'rgba(165, 255, 17, 0.35)'
-        : 'var(--border-color)'};
-  color: ${(props) => (props.$isActive ? 'var(--accent-primary)' : 'var(--text-secondary)')};
+      props.$isActive ? 'rgba(165, 255, 17, 0.35)' : 'var(--border-color)'};
+  color: ${(props) =>
+    props.$isActive ? 'var(--accent-primary)' : 'var(--text-secondary)'};
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -168,10 +167,7 @@ export default function IdentityTable({
             </Tab>
           </TabsContainer>
           <TabsContainer>
-            <Tab
-              $isActive={true}
-              onClick={() => undefined}
-            >
+            <Tab $isActive={true} onClick={() => undefined}>
               Active ({keysList.length})
             </Tab>
           </TabsContainer>

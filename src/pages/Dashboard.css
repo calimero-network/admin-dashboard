@@ -17,12 +17,23 @@
   flex-shrink: 0;
 }
 
-.dash-status-dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
-.dash-status-dot.offline { background: var(--error); }
-.dash-status-dot.checking { background: var(--warning); }
+.dash-status-dot.online {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+.dash-status-dot.offline {
+  background: var(--error);
+}
+.dash-status-dot.checking {
+  background: var(--warning);
+}
 
-.dash-status-banner.online { border-color: rgba(34, 197, 94, 0.2); }
-.dash-status-banner.offline { border-color: rgba(239, 68, 68, 0.2); }
+.dash-status-banner.online {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.dash-status-banner.offline {
+  border-color: rgba(239, 68, 68, 0.2);
+}
 
 .dash-status-label {
   font-weight: 500;

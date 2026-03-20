@@ -16,8 +16,14 @@ export default function NotFound() {
             <ExclamationTriangleIcon className="not-found-icon" />
           </div>
           <h1 className="not-found-title">404</h1>
-          <p className="not-found-message">This page doesn’t exist or you don’t have access to it.</p>
-          <button type="button" className="btn btn-primary not-found-btn" onClick={() => navigate('/dashboard')}>
+          <p className="not-found-message">
+            This page doesn’t exist or you don’t have access to it.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary not-found-btn"
+            onClick={() => navigate('/dashboard')}
+          >
             <HomeIcon className="not-found-btn-icon" />
             Back to Dashboard
           </button>
