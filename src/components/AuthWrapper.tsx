@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  getAppEndpointKey, setAppEndpointKey,
-  getAccessToken, getRefreshToken,
-  setAccessToken, setRefreshToken,
+  getAppEndpointKey,
+  setAppEndpointKey,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
   setContextAndIdentityFromJWT,
-  clearAppEndpoint, clearAccessToken, clearRefreshToken,
-  clearApplicationId, clearContextId, clearExecutorPublicKey,
+  clearAppEndpoint,
+  clearAccessToken,
+  clearRefreshToken,
+  clearApplicationId,
+  clearContextId,
+  clearExecutorPublicKey,
   apiClient,
 } from '@calimero-network/calimero-client';
 import ConnectPage from '../pages/ConnectPage';
@@ -13,7 +20,11 @@ import LoginPage from '../pages/LoginPage';
 
 type AuthState = 'loading' | 'no-url' | 'needs-login' | 'authenticated';
 
-export default function AuthWrapper({ children }: { children: React.ReactNode }) {
+export default function AuthWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [state, setState] = useState<AuthState>('loading');
 
   const checkAuth = useCallback(async () => {
@@ -37,7 +48,9 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
       window.history.replaceState(
         {},
         '',
-        window.location.pathname + window.location.search + (newFragment ? `#${newFragment}` : ''),
+        window.location.pathname +
+          window.location.search +
+          (newFragment ? `#${newFragment}` : ''),
       );
       setState('authenticated');
       return;
@@ -108,16 +121,26 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
   if (state === 'loading') {
     return (
-      <div style={{
-        width: '100vw', height: '100vh',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#09090b',
-      }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          border: '3px solid #27272a', borderTopColor: '#a5ff11',
-          animation: 'spin 0.8s linear infinite',
-        }} />
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#09090b',
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: '3px solid #27272a',
+            borderTopColor: '#a5ff11',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
         <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
       </div>
     );

@@ -25,12 +25,16 @@ export default function ConnectPage({ onConnect }: ConnectPageProps) {
     try {
       const res = await fetch(`${normalized}/admin-api/health`);
       if (!res.ok) {
-        setError(`Node returned ${res.status}. Check the URL and make sure the node is running.`);
+        setError(
+          `Node returned ${res.status}. Check the URL and make sure the node is running.`,
+        );
         return;
       }
       onConnect(normalized);
     } catch {
-      setError('Could not reach node. Make sure it is running and the URL is correct.');
+      setError(
+        'Could not reach node. Make sure it is running and the URL is correct.',
+      );
     } finally {
       setLoading(false);
     }
@@ -47,7 +51,9 @@ export default function ConnectPage({ onConnect }: ConnectPageProps) {
 
         <div className="connect-body">
           <h1 className="connect-title">Connect to Node</h1>
-          <p className="connect-subtitle">Enter your Calimero node URL to access the admin dashboard</p>
+          <p className="connect-subtitle">
+            Enter your Calimero node URL to access the admin dashboard
+          </p>
 
           <form onSubmit={handleSubmit} className="connect-form">
             <div className="connect-field">
@@ -55,7 +61,10 @@ export default function ConnectPage({ onConnect }: ConnectPageProps) {
               <input
                 type="text"
                 value={url}
-                onChange={e => { setUrl(e.target.value); setError(''); }}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setError('');
+                }}
                 placeholder="http://localhost:2428"
                 className={`connect-input${error ? ' connect-input-error' : ''}`}
                 autoFocus
@@ -70,8 +79,12 @@ export default function ConnectPage({ onConnect }: ConnectPageProps) {
               disabled={!url.trim() || loading}
             >
               {loading ? (
-                <><span className="connect-spinner" /> Connecting...</>
-              ) : 'Connect'}
+                <>
+                  <span className="connect-spinner" /> Connecting...
+                </>
+              ) : (
+                'Connect'
+              )}
             </button>
           </form>
 
