@@ -1,25 +1,29 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Navigation } from '../components/Navigation';
-import { FlexLayout } from '../components/layout/FlexLayout';
-import { useNavigate } from 'react-router-dom';
-import PageContentWrapper from '../components/common/PageContentWrapper';
 import IdentityTable from '../components/identity/IdentityTable';
 import { apiClient } from '@calimero-network/calimero-client';
 import {
   ClientKey,
   RootKey,
 } from '@calimero-network/calimero-client/lib/api/adminApi';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import './IdentityPage.css';
 
 type KeyType = 'root' | 'client';
-type KeyStatus = 'active' | 'revoked';
 
 export default function IdentityPage() {
-  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
   const [rootKeys, setRootKeys] = useState<RootKey[]>([]);
   const [clientKeys, setClientKeys] = useState<ClientKey[]>([]);
   const [keyType, setKeyType] = useState<KeyType>('root');
-  const [keyStatus, setKeyStatus] = useState<KeyStatus>('active');
+
+  const toKeyArray = <T,>(raw: unknown): T[] => {
+    if (Array.isArray(raw)) return raw as T[];
+    if (raw && typeof raw === 'object' && 'data' in raw && Array.isArray((raw as { data: T[] }).data)) {
+      return (raw as { data: T[] }).data;
+    }
+    return [];
+  };
 
   const fetchRootKeys = useCallback(async () => {
     setErrorMessage('');
@@ -27,9 +31,8 @@ export default function IdentityPage() {
     if (rootKeysResponse.error) {
       setErrorMessage(rootKeysResponse.error.message);
       return;
-    } else if (rootKeysResponse.data) {
-      setRootKeys(rootKeysResponse.data);
     }
+    setRootKeys(toKeyArray<RootKey>(rootKeysResponse.data));
   }, []);
 
   const fetchClientKeys = useCallback(async () => {
@@ -38,9 +41,8 @@ export default function IdentityPage() {
     if (clientKeysResponse.error) {
       setErrorMessage(clientKeysResponse.error.message);
       return;
-    } else if (clientKeysResponse.data) {
-      setClientKeys(clientKeysResponse.data);
     }
+    setClientKeys(toKeyArray<ClientKey>(clientKeysResponse.data));
   }, []);
 
   useEffect(() => {
@@ -51,45 +53,53 @@ export default function IdentityPage() {
     }
   }, [keyType, fetchRootKeys, fetchClientKeys]);
 
-  const activeRootKeys = rootKeys.filter((key) => !key.revoked_at);
-  const revokedRootKeys = rootKeys.filter((key) => key.revoked_at);
-  const activeClientKeys = clientKeys.filter((key) => !key.revoked_at);
-  const revokedClientKeys = clientKeys.filter((key) => key.revoked_at);
+  const safeRootKeys = Array.isArray(rootKeys) ? rootKeys : [];
+  const safeClientKeys = Array.isArray(clientKeys) ? clientKeys : [];
+  const activeRootKeys = safeRootKeys.filter((key) => !key.revoked_at);
+  const activeClientKeys = safeClientKeys.filter((key) => !key.revoked_at);
+  const currentKeys = keyType === 'root' ? activeRootKeys : activeClientKeys;
 
-  const currentKeys =
-    keyType === 'root'
-      ? keyStatus === 'active'
-        ? activeRootKeys
-        : revokedRootKeys
-      : keyStatus === 'active'
-        ? activeClientKeys
-        : revokedClientKeys;
+  const [exportToast, setExportToast] = useState<string | null>(null);
 
-  const activeCount =
-    keyType === 'root' ? activeRootKeys.length : activeClientKeys.length;
-  const revokedCount =
-    keyType === 'root' ? revokedRootKeys.length : revokedClientKeys.length;
+  const handleExportDID = async () => {
+    try {
+      const res = await apiClient.admin().getRootKeys();
+      const keys = toKeyArray<RootKey>(res.data);
+      const did = JSON.stringify(keys, null, 2);
+      await navigator.clipboard.writeText(did);
+      setExportToast('DID copied to clipboard');
+    } catch {
+      setExportToast('Failed to export DID');
+    }
+    setTimeout(() => setExportToast(null), 3000);
+  };
 
   return (
-    <FlexLayout>
+    <div className="app-shell">
       <Navigation />
-      <PageContentWrapper>
+      <main className="page-content">
+        <div className="page-header">
+          <div className="page-header-left">
+            <h1>Identity</h1>
+            <p>Root and client keys for this node</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={handleExportDID}>
+            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} />
+            Export DID
+          </button>
+        </div>
+        {exportToast && (
+          <div className={`identity-toast ${exportToast.includes('Failed') ? 'error' : 'success'}`}>
+            {exportToast}
+          </div>
+        )}
         <IdentityTable
-          onAddRootKey={() => navigate('/identity/root-key')}
           keysList={currentKeys}
           keyType={keyType}
           onKeyTypeChange={setKeyType}
-          onCopyKeyClick={(publicKey: string) =>
-            navigator.clipboard.writeText(publicKey)
-          }
           errorMessage={errorMessage}
-          keyStatus={keyStatus}
-          onKeyStatusChange={setKeyStatus}
-          activeKeysCount={activeCount}
-          revokedKeysCount={revokedCount}
-          onRefresh={keyType === 'root' ? fetchRootKeys : fetchClientKeys}
         />
-      </PageContentWrapper>
-    </FlexLayout>
+      </main>
+    </div>
   );
 }

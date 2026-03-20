@@ -1,221 +1,179 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ClipboardDocumentIcon,
+  CloudArrowUpIcon,
+  CubeTransparentIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
+import { getAppEndpointKey, getAccessToken } from '@calimero-network/calimero-client';
 import { Navigation } from '../components/Navigation';
-import { FlexLayout } from '../components/layout/FlexLayout';
-import PageContentWrapper from '../components/common/PageContentWrapper';
-import BlobsTable from '../components/blobs/BlobsTable';
-import { ModalContent } from '../components/common/StatusModal';
-import { apiClient } from '@calimero-network/calimero-client';
+import './Blobs.css';
 
-// Define BlobInfo interface to match BlobsTable expectations
-export interface BlobInfo {
+interface BlobInfo {
   blobId: string;
   size: number;
   fileType?: string;
   isDetecting?: boolean;
 }
 
+type Toast = {
+  type: 'success' | 'error';
+  msg: string;
+};
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
+
+function truncateMiddle(value: string, start = 12, end = 8): string {
+  if (value.length <= start + end + 1) return value;
+  return `${value.slice(0, start)}...${value.slice(-end)}`;
+}
+
+function formatFileType(type?: string, isDetecting?: boolean): string {
+  if (isDetecting) return 'Detecting...';
+  if (!type || type === 'unknown') return 'Unknown';
+  return type;
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const base = getAppEndpointKey();
+  if (!base) throw new Error('Node URL not configured');
+  const url = `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+  const res = await fetch(url, {
+    ...init,
+    headers: { ...authHeaders(), ...(init?.headers as Record<string, string> || {}) },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return res;
+}
+
 export default function BlobsPage() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showActionDialog, setShowActionDialog] = useState(false);
-  const [selectedBlobId, setSelectedBlobId] = useState('');
-  const [deleteStatus, setDeleteStatus] = useState<ModalContent>({
-    title: '',
-    message: '',
-    error: false,
-  });
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [error, setError] = useState('');
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busyBlobId, setBusyBlobId] = useState<string | null>(null);
 
-  // Function to detect file types for multiple blobs efficiently
-  const detectFileTypesForBlobs = useCallback(
-    async (blobsToDetect: BlobInfo[]) => {
-      // Mark all blobs as detecting
-      setBlobs((prevBlobs) =>
-        prevBlobs.map((blob) => ({ ...blob, isDetecting: true })),
-      );
+  const showToast = useCallback((msg: string, type: Toast['type']) => {
+    setToast({ msg, type });
+    window.setTimeout(() => {
+      setToast((current) => (current?.msg === msg ? null : current));
+    }, 3500);
+  }, []);
 
-      // Process blobs in parallel but limit concurrent requests
-      const batchSize = 5; // Process 5 blobs at a time to avoid overwhelming the server
-
-      for (let i = 0; i < blobsToDetect.length; i += batchSize) {
-        const batch = blobsToDetect.slice(i, i + batchSize);
-
-        await Promise.all(
-          batch.map(async (blob) => {
-            try {
-              const fileType = await detectFileTypeFromBlobId(blob.blobId);
-
-              setBlobs((prevBlobs) =>
-                prevBlobs.map((b) =>
-                  b.blobId === blob.blobId
-                    ? { ...b, fileType, isDetecting: false }
-                    : b,
-                ),
-              );
-            } catch (error) {
-              console.warn(
-                `Failed to detect type for blob ${blob.blobId}:`,
-                error,
-              );
-
-              setBlobs((prevBlobs) =>
-                prevBlobs.map((b) =>
-                  b.blobId === blob.blobId
-                    ? { ...b, fileType: 'unknown', isDetecting: false }
-                    : b,
-                ),
-              );
-            }
-          }),
-        );
-      }
-    },
-    [],
-  );
-
-  const fetchBlobs = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    setErrorMessage('');
-
+    setError('');
     try {
-      const response = await apiClient.blob().listBlobs();
-
-      if (response.error) {
-        setErrorMessage(response.error.message);
-        return;
-      }
-
-      const blobsData = (response.data.blobs || []).map((blob) => ({
-        ...blob,
-        isDetecting: false,
-      }));
-
-      setBlobs(blobsData);
-
-      // Start detecting file types for all blobs
-      detectFileTypesForBlobs(blobsData);
-    } catch (error) {
-      setErrorMessage('Network error while fetching blobs');
+      const res = await apiFetch('admin-api/blobs');
+      const json = await res.json();
+      const rawBlobs: Array<{ blob_id: string; size: number }> =
+        json?.data?.blobs ?? json?.blobs ?? [];
+      setBlobs(rawBlobs.map((b) => ({ blobId: b.blob_id, size: b.size })));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch blobs');
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    setLoading(false);
-  }, [detectFileTypesForBlobs]);
+  useEffect(() => { void load(); }, [load]);
 
-  // Function to detect file type from blob ID using HEAD request for efficiency
-  const detectFileTypeFromBlobId = async (blobId: string): Promise<string> => {
-    try {
-      const response = await apiClient.blob().getBlobMetadata(blobId);
-
-      if (response.error) {
-        throw new Error(`HTTP ${response.error.code}`);
-      }
-
-      const mimeType = response.data.fileType;
-      return mimeType;
-    } catch (error) {
-      console.warn('File type detection failed:', error);
-      return 'unknown';
-    }
+  const handleUploadClick = () => {
+    if (isUploading) return;
+    inputRef.current?.click();
   };
 
-  const uploadBlob = async (file: File) => {
-    setLoading(true);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
     setIsUploading(true);
     setUploadProgress(0);
-    setErrorMessage('');
+    setUploadFileName(file.name);
+    setError('');
 
     try {
-      const response = await apiClient.blob().uploadBlob(file, (progress) => {
-        setUploadProgress(progress);
+      const base = getAppEndpointKey();
+      if (!base) throw new Error('Node URL not configured');
+      const url = `${base.replace(/\/+$/, '')}/admin-api/blobs`;
+
+      const uploadedBlobId = await new Promise<string | null>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', url);
+        const token = getAccessToken();
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setUploadProgress((e.loaded / e.total) * 100);
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              resolve(json?.data?.blob_id ?? json?.blob_id ?? null);
+            } catch {
+              resolve(null);
+            }
+          } else {
+            reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(file);
       });
 
-      if (response.error) {
-        setDeleteStatus({
-          title: 'Upload Failed',
-          message: response.error.message || 'Failed to upload blob',
-          error: true,
-        });
-        setShowStatusModal(true);
-      } else {
-        setDeleteStatus({
-          title: 'Upload Successful',
-          message: `File "${file.name}" uploaded successfully. Blob ID: ${response.data.blobId}`,
-          error: false,
-        });
-        setShowStatusModal(true);
-
-        // Refresh the blob list to show the new upload
-        await fetchBlobs();
-      }
-    } catch (error) {
-      setDeleteStatus({
-        title: 'Upload Failed',
-        message: `Network error while uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error: true,
-      });
-      setShowStatusModal(true);
-    }
-
-    setLoading(false);
-    setIsUploading(false);
-    setUploadProgress(0);
-  };
-
-  const deleteBlob = async () => {
-    if (!selectedBlobId) return;
-
-    setShowActionDialog(false);
-    setLoading(true);
-
-    try {
-      // Use the calimero client deleteBlob method
-      const response = await apiClient.blob().deleteBlob(selectedBlobId);
-
-      if (response.error) {
-        setDeleteStatus({
-          title: 'Delete Failed',
-          message: response.error.message || 'Failed to delete blob',
-          error: true,
-        });
-      } else {
-        setDeleteStatus({
-          title: 'Delete Successful',
-          message: 'Blob and its metadata have been successfully deleted.',
-          error: false,
-        });
-        // Refresh the blob list
-        await fetchBlobs();
-      }
-    } catch (error) {
-      setDeleteStatus({
-        title: 'Delete Failed',
-        message: 'Network error while deleting blob',
-        error: true,
-      });
-    }
-
-    setShowStatusModal(true);
-    setLoading(false);
-    setSelectedBlobId('');
-  };
-
-  const downloadBlob = async (blobId: string) => {
-    try {
-      setLoading(true);
-
-      // Use the calimero client downloadBlob method
-      const blob = await apiClient.blob().downloadBlob(blobId);
-
-      // Try to detect file type from blob content
-      const mimeType = await detectFileTypeFromBlobId(blobId);
-
-      // Create a download link with proper MIME type
-      const url = window.URL.createObjectURL(
-        new Blob([blob], { type: mimeType }),
+      showToast(
+        uploadedBlobId
+          ? `Uploaded "${file.name}". Blob ID: ${uploadedBlobId}`
+          : `Uploaded "${file.name}" successfully.`,
+        'success',
       );
+      await load();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Upload failed', 'error');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadFileName('');
+    }
+  };
+
+  const handleDownload = async (blobId: string) => {
+    setBusyBlobId(blobId);
+    setError('');
+    try {
+      const res = await apiFetch(`admin-api/blobs/${blobId}`);
+      const contentType = res.headers.get('content-type') || 'application/octet-stream';
+      const arrayBuffer = await res.arrayBuffer();
+      const url = window.URL.createObjectURL(new Blob([arrayBuffer], { type: contentType }));
       const link = document.createElement('a');
       link.href = url;
       link.download = blobId;
@@ -223,59 +181,198 @@ export default function BlobsPage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      setErrorMessage(
-        `Failed to download blob: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Download failed', 'error');
     } finally {
-      setLoading(false);
+      setBusyBlobId(null);
     }
   };
 
-  const showDeleteDialog = (blobId: string) => {
-    setSelectedBlobId(blobId);
-    setShowActionDialog(true);
+  const handleDelete = async (blobId: string) => {
+    setBusyBlobId(blobId);
+    setError('');
+    try {
+      await apiFetch(`admin-api/blobs/${blobId}`, { method: 'DELETE' });
+      showToast('Blob deleted', 'success');
+      setConfirmId(null);
+      await load();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Delete failed', 'error');
+    } finally {
+      setBusyBlobId(null);
+    }
   };
 
-  const closeModal = () => {
-    setShowStatusModal(false);
+  const handleCopy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast('Blob ID copied to clipboard', 'success');
+    } catch {
+      showToast('Failed to copy Blob ID', 'error');
+    }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  useEffect(() => {
-    fetchBlobs();
-  }, [fetchBlobs]);
+  const totalStorage = useMemo(
+    () => blobs.reduce((sum, blob) => sum + blob.size, 0),
+    [blobs],
+  );
 
   return (
-    <FlexLayout>
+    <div className="app-shell">
       <Navigation />
-      <PageContentWrapper>
-        <BlobsTable
-          blobs={blobs}
-          loading={loading}
-          errorMessage={errorMessage}
-          showStatusModal={showStatusModal}
-          closeModal={closeModal}
-          deleteStatus={deleteStatus}
-          showActionDialog={showActionDialog}
-          setShowActionDialog={setShowActionDialog}
-          showDeleteDialog={showDeleteDialog}
-          deleteBlob={deleteBlob}
-          downloadBlob={downloadBlob}
-          formatFileSize={formatFileSize}
-          uploadBlob={uploadBlob}
-          refreshBlobs={fetchBlobs}
-          isUploading={isUploading}
-          uploadProgress={uploadProgress}
-        />
-      </PageContentWrapper>
-    </FlexLayout>
+      <main className="page-content">
+        <div className="page-header">
+          <div className="page-header-left">
+            <h1>Blobs</h1>
+            <p>Browse, download, upload, and delete blobs stored on this node</p>
+          </div>
+          <div className="blobs-header-actions">
+            <button className="btn" onClick={() => void load()} disabled={loading}>
+              <ArrowPathIcon
+                style={{ width: 16, height: 16 }}
+                className={loading ? 'spin' : ''}
+              />
+              Refresh
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleUploadClick}
+              disabled={isUploading}
+            >
+              <CloudArrowUpIcon style={{ width: 16, height: 16 }} />
+              {isUploading ? 'Uploading...' : 'Upload Blob'}
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              className="blobs-file-input"
+              onChange={handleFileChange}
+            />
+          </div>
+        </div>
+
+        {toast && <div className={`alert alert-${toast.type}`}>{toast.msg}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <div className="blobs-stats">
+          <div className="card blobs-stat-card">
+            <span className="blobs-stat-label">Total blobs</span>
+            <strong className="blobs-stat-value">{blobs.length}</strong>
+          </div>
+          <div className="card blobs-stat-card">
+            <span className="blobs-stat-label">Total storage</span>
+            <strong className="blobs-stat-value">{formatFileSize(totalStorage)}</strong>
+          </div>
+        </div>
+
+        {isUploading && (
+          <div className="card blobs-upload-card">
+            <div className="blobs-upload-header">
+              <div>
+                <h3>Uploading blob</h3>
+                <p>{uploadFileName}</p>
+              </div>
+              <span className="blobs-upload-percent">
+                {uploadProgress > 0 ? `${uploadProgress.toFixed(0)}%` : 'In progress'}
+              </span>
+            </div>
+            <div className="blobs-progress-track">
+              <div
+                className={`blobs-progress-bar ${
+                  uploadProgress === 0 ? 'blobs-progress-indeterminate' : ''
+                }`}
+                style={{ width: uploadProgress > 0 ? `${uploadProgress}%` : '35%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {loading && blobs.length === 0 ? (
+          <div className="blobs-list">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="blob-row blob-row-skeleton">
+                <div className="skel-line skel-title" />
+                <div className="skel-line skel-short" />
+              </div>
+            ))}
+          </div>
+        ) : blobs.length === 0 ? (
+          <div className="empty-state">
+            <CubeTransparentIcon />
+            <h3>No blobs found</h3>
+            <p>Upload a file to store it on the node and manage it from here.</p>
+          </div>
+        ) : (
+          <div className="card blobs-table-card">
+            <div className="blobs-table-head">
+              <div>Blob ID</div>
+              <div>Size</div>
+              <div>Type</div>
+              <div className="blobs-table-actions-head">Actions</div>
+            </div>
+
+            <div className="blobs-list">
+              {blobs.map((blob) => (
+                <div key={blob.blobId} className="blob-row">
+                  <div className="blob-cell blob-id-cell">
+                    <button
+                      className="blob-copy-btn"
+                      onClick={() => void handleCopy(blob.blobId)}
+                      title="Copy blob ID"
+                    >
+                      <ClipboardDocumentIcon style={{ width: 15, height: 15 }} />
+                    </button>
+                    <span title={blob.blobId}>{truncateMiddle(blob.blobId, 16, 10)}</span>
+                  </div>
+
+                  <div className="blob-cell blob-muted">{formatFileSize(blob.size)}</div>
+                  <div className="blob-cell blob-type">{formatFileType(blob.fileType, blob.isDetecting)}</div>
+
+                  <div className="blob-actions">
+                    {confirmId === blob.blobId ? (
+                      <>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => void handleDelete(blob.blobId)}
+                          disabled={busyBlobId === blob.blobId}
+                        >
+                          {busyBlobId === blob.blobId ? 'Deleting...' : 'Confirm'}
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => setConfirmId(null)}
+                          disabled={busyBlobId === blob.blobId}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => void handleDownload(blob.blobId)}
+                          disabled={busyBlobId === blob.blobId}
+                        >
+                          <ArrowDownTrayIcon style={{ width: 14, height: 14 }} />
+                          {busyBlobId === blob.blobId ? 'Working...' : 'Download'}
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => setConfirmId(blob.blobId)}
+                          disabled={busyBlobId === blob.blobId}
+                        >
+                          <TrashIcon style={{ width: 14, height: 14 }} />
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }

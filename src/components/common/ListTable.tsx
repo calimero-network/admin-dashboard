@@ -4,6 +4,7 @@ import styled from 'styled-components';
 interface ListWrapperProps {
   $numOfColumns: number;
   $roundTopItem: boolean;
+  $gridTemplateColumns?: string;
 }
 
 const ListWrapper = styled.div<ListWrapperProps>`
@@ -22,15 +23,18 @@ const ListWrapper = styled.div<ListWrapperProps>`
     font-weight: 400;
     line-height: 1.25rem;
     text-align: left;
-    color: #9c9da3;
+    color: var(--text-secondary);
   }
 
   .header-items-grid {
     display: grid;
-    grid-template-columns: repeat(${(props) => props.$numOfColumns}, 1fr);
+    grid-template-columns: ${(props) =>
+      props.$gridTemplateColumns ||
+      `repeat(${props.$numOfColumns}, 1fr)`};
     grid-template-rows: auto;
     padding: 0.75rem 1.5rem;
-    background-color: #15181f;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
     ${(props) =>
       props.$roundTopItem &&
       `
@@ -44,9 +48,8 @@ const ListWrapper = styled.div<ListWrapperProps>`
       line-height: 1rem;
       text-align: left;
       letter-spacing: 0.05em;
-      color: #6b7280;
+      color: var(--text-tertiary);
       grid-column: span 1;
-      cursor: pointer;
     }
   }
 
@@ -56,7 +59,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
     font-weight: 400;
     line-height: 1rem;
     text-align: center;
-    color: #9c9da3;
+    color: var(--text-secondary);
   }
 
   // .list-items {
@@ -91,7 +94,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
 
     .error-text {
       font-weight: 500;
-      color: #6b7280;
+      color: var(--error);
       padding-bottom: 4px;
     }
   }
@@ -110,13 +113,13 @@ const ListWrapper = styled.div<ListWrapperProps>`
     }
 
     &::-webkit-scrollbar-thumb {
-      background-color: rgba(155, 155, 155, 0.5);
+      background-color: var(--bg-tertiary);
       border-radius: 20px;
       border: transparent;
     }
 
     &::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(155, 155, 155, 0.7);
+      background-color: var(--border-hover);
     }
   }
 `;
@@ -159,6 +162,7 @@ interface ListTableProps<T> {
   numOfColumns: number;
   roundTopItem: boolean;
   noItemsText: string;
+  gridTemplateColumns?: string;
   onRowItemClick?: (id: string, isAccepted?: boolean) => void;
   installAppStatus?: { title: string; message: string; error: boolean };
   setInstallAppStatus?: (status: {
@@ -173,6 +177,7 @@ export default function ListTable<T>(props: ListTableProps<T>) {
     <ListWrapper
       $numOfColumns={props.numOfColumns ?? 0}
       $roundTopItem={props.roundTopItem}
+      $gridTemplateColumns={props.gridTemplateColumns}
     >
       {props.listDescription && (
         <div className="table-description">{props.listDescription}</div>

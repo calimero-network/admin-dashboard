@@ -1,0 +1,53 @@
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.not-found-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  background: var(--accent-light);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.not-found-icon {
+  width: 40px;
+  height: 40px;
+  color: var(--accent-primary);
+}
+
+.not-found-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+}
+
+.not-found-message {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 0 0 28px 0;
+  max-width: 360px;
+}
+
+.not-found-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.not-found-btn-icon {
+  width: 18px;
+  height: 18px;
+}
