@@ -105,9 +105,15 @@
 }
 
 @keyframes blobs-progress-slide {
-  0% { transform: translateX(-50%); }
-  50% { transform: translateX(120%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(-50%);
+  }
+  50% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .blobs-table-card {
@@ -174,7 +180,8 @@
 }
 
 .blob-id-cell {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
 }
 
 .blob-id-cell span {

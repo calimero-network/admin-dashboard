@@ -108,7 +108,9 @@
 
 .connect-input:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-light), 0 0 15px rgba(165, 255, 17, 0.1);
+  box-shadow:
+    0 0 0 3px var(--accent-light),
+    0 0 15px rgba(165, 255, 17, 0.1);
 }
 
 .connect-input-error {

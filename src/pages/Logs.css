@@ -97,7 +97,8 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 14px 16px;
-  font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code',
+    'Source Code Pro', Menlo, monospace;
   font-size: 12px;
   line-height: 1.6;
   backdrop-filter: blur(12px);
