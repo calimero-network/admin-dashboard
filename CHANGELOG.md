@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/calimero-network/admin-dashboard/compare/v1.7.0...v1.8.0) (2026-03-31)
+
+
+### Features
+
+* update UI ([#138](https://github.com/calimero-network/admin-dashboard/issues/138)) ([f3d0f9f](https://github.com/calimero-network/admin-dashboard/commit/f3d0f9fd319e17ce462d34576c3c0cc503f6761b))
+
 # [1.7.0](https://github.com/calimero-network/admin-dashboard/compare/v1.6.2...v1.7.0) (2026-03-20)
 
 
