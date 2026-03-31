@@ -4,19 +4,24 @@
   right: 20px;
   z-index: 9999;
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .identity-toast.success {
-  border-color: var(--accent-primary);
+  border-color: rgba(165, 255, 17, 0.3);
   color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(165, 255, 17, 0.1);
 }
 
 .identity-toast.error {
-  border-color: var(--error);
+  border-color: rgba(248, 81, 73, 0.3);
   color: var(--error);
+  box-shadow: 0 0 20px rgba(248, 81, 73, 0.1);
 }
