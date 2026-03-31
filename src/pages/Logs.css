@@ -35,14 +35,17 @@
   font-size: 13px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logs-search-input:focus {
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .logs-search-input::placeholder {
   color: var(--text-tertiary);
@@ -53,10 +56,12 @@
   font-size: 13px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   cursor: pointer;
   font-family: inherit;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s;
 }
 
 .logs-level-select:focus {
@@ -88,14 +93,14 @@
   min-height: 400px;
   max-height: calc(100vh - 260px);
   overflow-y: auto;
-  background: var(--bg-primary);
+  background: rgba(13, 17, 23, 0.9);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 14px 16px;
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo,
-    monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   font-size: 12px;
   line-height: 1.6;
+  backdrop-filter: blur(12px);
 }
 
 .log-line {
@@ -143,17 +148,4 @@
   font-size: 14px;
   color: var(--text-secondary);
   max-width: 420px;
-}
-
-.spin {
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

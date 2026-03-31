@@ -6,6 +6,7 @@
   min-height: 60vh;
   padding: 40px 20px;
   text-align: center;
+  animation: fadeIn 0.4s ease;
 }
 
 .not-found-icon-wrap {
@@ -16,8 +17,9 @@
   height: 80px;
   margin-bottom: 24px;
   background: var(--accent-light);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: 1px solid rgba(165, 255, 17, 0.15);
+  border-radius: var(--radius-lg);
+  animation: glowPulse 3s ease-in-out infinite;
 }
 
 .not-found-icon {
@@ -31,7 +33,7 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 12px 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .not-found-message {

@@ -2,7 +2,8 @@
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
   height: 100vh;
-  background: var(--bg-secondary);
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -12,36 +13,23 @@
 
 .sidebar-logo {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
   padding: 8px 12px 20px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 16px;
 }
 
-.sidebar-logo-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  flex-shrink: 0;
-}
-
-.sidebar-logo-text {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+.sidebar-logo-svg {
+  width: 140px;
+  height: auto;
 }
 
 .sidebar-logo-sub {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent-primary);
-  background: var(--accent-light);
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -57,24 +45,25 @@
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid transparent;
 }
 
 .sidebar-nav-item:hover {
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .sidebar-nav-item.active {
   color: var(--accent-primary);
   background: var(--accent-light);
   border-color: rgba(165, 255, 17, 0.15);
+  box-shadow: 0 0 12px rgba(165, 255, 17, 0.06);
 }
 
 .sidebar-nav-icon {
@@ -94,18 +83,18 @@
   gap: 10px;
   padding: 9px 12px;
   width: 100%;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
 }
 
 .sidebar-logout:hover {
   color: var(--error);
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(248, 81, 73, 0.08);
 }

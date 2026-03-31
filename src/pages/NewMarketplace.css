@@ -20,15 +20,17 @@
   font-size: 14px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
 }
 
 .mkt-search-input:focus {
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .mkt-search-input::placeholder {
@@ -44,16 +46,20 @@
 .mkt-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.15s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  animation: slideUp 0.3s ease backwards;
 }
 
 .mkt-card:hover {
   border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
 }
 
 .mkt-card-header {
@@ -65,7 +71,7 @@
 .mkt-card-icon {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--accent-light);
   color: var(--accent-primary);
   display: flex;
@@ -95,7 +101,7 @@
 .mkt-card-version {
   font-size: 11px;
   color: var(--text-tertiary);
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .mkt-installed-icon {
@@ -126,7 +132,7 @@
 .mkt-meta-item {
   font-size: 11px;
   color: var(--text-tertiary);
-  background: var(--bg-tertiary);
+  background: rgba(255, 255, 255, 0.04);
   padding: 2px 8px;
   border-radius: 4px;
   overflow: hidden;
@@ -143,53 +149,4 @@
 .mkt-card-actions {
   padding-top: 10px;
   border-top: 1px solid var(--border-color);
-}
-
-/* Skeleton */
-.mkt-card-skeleton {
-  gap: 12px;
-}
-
-.skel-line {
-  height: 14px;
-  border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-tertiary) 0%,
-    var(--border-hover) 50%,
-    var(--bg-tertiary) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skel-title {
-  height: 18px;
-  width: 60%;
-}
-.skel-short {
-  width: 40%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Spinner */
-.spin {
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
