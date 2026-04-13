@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     branches: [master, main]
-    paths: ["docs/**"]
+    paths: ['docs/**']
   workflow_dispatch:
 
 permissions:

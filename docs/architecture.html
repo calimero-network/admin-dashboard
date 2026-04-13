@@ -1,114 +1,499 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calimero | Admin Dashboard — Architecture</title>
-<link rel="stylesheet" href="styles.css">
-<meta name="theme-color" content="#0d1117">
-</head>
-<body>
-<div class="main">
-<div class="content">
-<div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Architecture</span></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Admin Dashboard — Architecture</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>Architecture</span>
+        </div>
 
-<h1>Architecture</h1>
-<p class="page-subtitle">React 19 + TypeScript SPA connecting to a Calimero node via HTTP REST</p>
+        <h1>Architecture</h1>
+        <p class="page-subtitle">
+          React 19 + TypeScript SPA connecting to a Calimero node via HTTP REST
+        </p>
 
-<div class="g4" style="margin-bottom:36px;">
-  <div class="stat"><div class="v">React</div><div class="l">19</div></div>
-  <div class="stat"><div class="v">Vite</div><div class="l">build</div></div>
-  <div class="stat"><div class="v">pnpm</div><div class="l">package manager</div></div>
-  <div class="stat"><div class="v">6+</div><div class="l">page views</div></div>
-</div>
+        <div class="g4" style="margin-bottom: 36px">
+          <div class="stat">
+            <div class="v">React</div>
+            <div class="l">19</div>
+          </div>
+          <div class="stat">
+            <div class="v">Vite</div>
+            <div class="l">build</div>
+          </div>
+          <div class="stat">
+            <div class="v">pnpm</div>
+            <div class="l">package manager</div>
+          </div>
+          <div class="stat">
+            <div class="v">6+</div>
+            <div class="l">page views</div>
+          </div>
+        </div>
 
-<div class="card ga">
-<h2>Component Tree</h2>
-<svg viewBox="0 0 820 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- App root -->
-  <rect x="330" y="20" width="160" height="40" rx="8" fill="#a5ff1112" stroke="#a5ff11" stroke-width="1.4"/>
-  <text x="410" y="45" text-anchor="middle" fill="#a5ff11" font-family="JetBrains Mono" font-size="11" font-weight="700">App.tsx</text>
+        <div class="card ga">
+          <h2>Component Tree</h2>
+          <svg
+            viewBox="0 0 820 400"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- App root -->
+            <rect
+              x="330"
+              y="20"
+              width="160"
+              height="40"
+              rx="8"
+              fill="#a5ff1112"
+              stroke="#a5ff11"
+              stroke-width="1.4"
+            />
+            <text
+              x="410"
+              y="45"
+              text-anchor="middle"
+              fill="#a5ff11"
+              font-family="JetBrains Mono"
+              font-size="11"
+              font-weight="700"
+            >
+              App.tsx
+            </text>
 
-  <!-- Router -->
-  <rect x="310" y="90" width="200" height="40" rx="8" fill="#58a6ff10" stroke="#58a6ff" stroke-width="1.2"/>
-  <text x="410" y="115" text-anchor="middle" fill="#58a6ff" font-family="JetBrains Mono" font-size="11">React Router</text>
+            <!-- Router -->
+            <rect
+              x="310"
+              y="90"
+              width="200"
+              height="40"
+              rx="8"
+              fill="#58a6ff10"
+              stroke="#58a6ff"
+              stroke-width="1.2"
+            />
+            <text
+              x="410"
+              y="115"
+              text-anchor="middle"
+              fill="#58a6ff"
+              font-family="JetBrains Mono"
+              font-size="11"
+            >
+              React Router
+            </text>
 
-  <!-- Pages row -->
-  <rect x="20" y="170" width="120" height="40" rx="8" fill="#6b6b8018" stroke="#6b6b80" stroke-width="1"/>
-  <text x="80" y="195" text-anchor="middle" fill="#8b8b9b" font-family="JetBrains Mono" font-size="10">Dashboard</text>
+            <!-- Pages row -->
+            <rect
+              x="20"
+              y="170"
+              width="120"
+              height="40"
+              rx="8"
+              fill="#6b6b8018"
+              stroke="#6b6b80"
+              stroke-width="1"
+            />
+            <text
+              x="80"
+              y="195"
+              text-anchor="middle"
+              fill="#8b8b9b"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Dashboard
+            </text>
 
-  <rect x="160" y="170" width="120" height="40" rx="8" fill="#f778ba10" stroke="#f778ba" stroke-width="1"/>
-  <text x="220" y="195" text-anchor="middle" fill="#f778ba" font-family="JetBrains Mono" font-size="10">Contexts</text>
+            <rect
+              x="160"
+              y="170"
+              width="120"
+              height="40"
+              rx="8"
+              fill="#f778ba10"
+              stroke="#f778ba"
+              stroke-width="1"
+            />
+            <text
+              x="220"
+              y="195"
+              text-anchor="middle"
+              fill="#f778ba"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Contexts
+            </text>
 
-  <rect x="300" y="170" width="120" height="40" rx="8" fill="#39d0d810" stroke="#39d0d8" stroke-width="1"/>
-  <text x="360" y="195" text-anchor="middle" fill="#39d0d8" font-family="JetBrains Mono" font-size="10">Applications</text>
+            <rect
+              x="300"
+              y="170"
+              width="120"
+              height="40"
+              rx="8"
+              fill="#39d0d810"
+              stroke="#39d0d8"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="195"
+              text-anchor="middle"
+              fill="#39d0d8"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Applications
+            </text>
 
-  <rect x="440" y="170" width="120" height="40" rx="8" fill="#a371f710" stroke="#a371f7" stroke-width="1"/>
-  <text x="500" y="195" text-anchor="middle" fill="#a371f7" font-family="JetBrains Mono" font-size="10">Identity</text>
+            <rect
+              x="440"
+              y="170"
+              width="120"
+              height="40"
+              rx="8"
+              fill="#a371f710"
+              stroke="#a371f7"
+              stroke-width="1"
+            />
+            <text
+              x="500"
+              y="195"
+              text-anchor="middle"
+              fill="#a371f7"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Identity
+            </text>
 
-  <rect x="580" y="170" width="120" height="40" rx="8" fill="#f59e0b10" stroke="#f59e0b" stroke-width="1"/>
-  <text x="640" y="195" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">Releases/Blobs</text>
+            <rect
+              x="580"
+              y="170"
+              width="120"
+              height="40"
+              rx="8"
+              fill="#f59e0b10"
+              stroke="#f59e0b"
+              stroke-width="1"
+            />
+            <text
+              x="640"
+              y="195"
+              text-anchor="middle"
+              fill="#f59e0b"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Releases/Blobs
+            </text>
 
-  <rect x="720" y="170" width="80" height="40" rx="8" fill="#3fb95010" stroke="#3fb950" stroke-width="1"/>
-  <text x="760" y="195" text-anchor="middle" fill="#3fb950" font-family="JetBrains Mono" font-size="10">Logs</text>
+            <rect
+              x="720"
+              y="170"
+              width="80"
+              height="40"
+              rx="8"
+              fill="#3fb95010"
+              stroke="#3fb950"
+              stroke-width="1"
+            />
+            <text
+              x="760"
+              y="195"
+              text-anchor="middle"
+              fill="#3fb950"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Logs
+            </text>
 
-  <!-- API hooks layer -->
-  <rect x="200" y="260" width="420" height="50" rx="10" fill="#8b8b9b10" stroke="#8b8b9b" stroke-width="1.2"/>
-  <text x="410" y="282" text-anchor="middle" fill="#8b8b9b" font-family="JetBrains Mono" font-size="11" font-weight="600">API Hooks (src/hooks/)</text>
-  <text x="410" y="300" text-anchor="middle" fill="#6b6b80" font-family="DM Sans" font-size="10">useContexts, useApplications, useIdentity, useLogs…</text>
+            <!-- API hooks layer -->
+            <rect
+              x="200"
+              y="260"
+              width="420"
+              height="50"
+              rx="10"
+              fill="#8b8b9b10"
+              stroke="#8b8b9b"
+              stroke-width="1.2"
+            />
+            <text
+              x="410"
+              y="282"
+              text-anchor="middle"
+              fill="#8b8b9b"
+              font-family="JetBrains Mono"
+              font-size="11"
+              font-weight="600"
+            >
+              API Hooks (src/hooks/)
+            </text>
+            <text
+              x="410"
+              y="300"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              useContexts, useApplications, useIdentity, useLogs…
+            </text>
 
-  <!-- Node -->
-  <rect x="300" y="346" width="220" height="40" rx="8" fill="#3fb95008" stroke="#3fb950" stroke-width="1.4"/>
-  <text x="410" y="371" text-anchor="middle" fill="#3fb950" font-family="JetBrains Mono" font-size="11">Calimero Node HTTP API</text>
+            <!-- Node -->
+            <rect
+              x="300"
+              y="346"
+              width="220"
+              height="40"
+              rx="8"
+              fill="#3fb95008"
+              stroke="#3fb950"
+              stroke-width="1.4"
+            />
+            <text
+              x="410"
+              y="371"
+              text-anchor="middle"
+              fill="#3fb950"
+              font-family="JetBrains Mono"
+              font-size="11"
+            >
+              Calimero Node HTTP API
+            </text>
 
-  <!-- Lines -->
-  <line x1="410" y1="60" x2="410" y2="88" stroke="#a5ff11" stroke-width="1.2"/>
-  <line x1="410" y1="130" x2="80" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="130" x2="220" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="130" x2="360" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="130" x2="500" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="130" x2="640" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="130" x2="760" y2="168" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4 3"/>
-  <line x1="410" y1="212" x2="410" y2="258" stroke="#8b8b9b" stroke-width="1.2" stroke-dasharray="4 3"/>
-  <line x1="410" y1="312" x2="410" y2="344" stroke="#3fb950" stroke-width="1.2"/>
-  <polygon points="410,344 406,336 414,336" fill="#3fb950"/>
-</svg>
-</div>
+            <!-- Lines -->
+            <line
+              x1="410"
+              y1="60"
+              x2="410"
+              y2="88"
+              stroke="#a5ff11"
+              stroke-width="1.2"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="80"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="220"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="360"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="500"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="640"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="130"
+              x2="760"
+              y2="168"
+              stroke="#58a6ff"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="212"
+              x2="410"
+              y2="258"
+              stroke="#8b8b9b"
+              stroke-width="1.2"
+              stroke-dasharray="4 3"
+            />
+            <line
+              x1="410"
+              y1="312"
+              x2="410"
+              y2="344"
+              stroke="#3fb950"
+              stroke-width="1.2"
+            />
+            <polygon points="410,344 406,336 414,336" fill="#3fb950" />
+          </svg>
+        </div>
 
-<div class="card gb">
-<h2>Source Structure</h2>
-<div class="fr"><div class="fp">src/App.tsx</div><div class="fd">Root component. Sets up React Router with all page routes. Wraps pages with layout and auth guard.</div></div>
-<div class="fr"><div class="fp">src/pages/</div><div class="fd">One file per page: Dashboard, Contexts, ContextDetails, Applications, ApplicationDetails, Identity, LoginPage, Logs, Blobs, AddRelease, AddRootKey, InstallApplication, JoinContext.</div></div>
-<div class="fr"><div class="fp">src/hooks/</div><div class="fd">Custom hooks that call the node API and manage local state. Each hook corresponds to a node API resource.</div></div>
-<div class="fr"><div class="fp">src/components/</div><div class="fd">Shared UI components reused across pages: tables, modals, buttons, status badges.</div></div>
-<div class="fr"><div class="fp">src/types/</div><div class="fd">TypeScript types for node API responses, request bodies, and UI state.</div></div>
-<div class="fr"><div class="fp">src/utils/</div><div class="fd">Utility functions: API client setup, auth token management, formatting helpers.</div></div>
-</div>
+        <div class="card gb">
+          <h2>Source Structure</h2>
+          <div class="fr">
+            <div class="fp">src/App.tsx</div>
+            <div class="fd">
+              Root component. Sets up React Router with all page routes. Wraps
+              pages with layout and auth guard.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/pages/</div>
+            <div class="fd">
+              One file per page: Dashboard, Contexts, ContextDetails,
+              Applications, ApplicationDetails, Identity, LoginPage, Logs,
+              Blobs, AddRelease, AddRootKey, InstallApplication, JoinContext.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/hooks/</div>
+            <div class="fd">
+              Custom hooks that call the node API and manage local state. Each
+              hook corresponds to a node API resource.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/components/</div>
+            <div class="fd">
+              Shared UI components reused across pages: tables, modals, buttons,
+              status badges.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/types/</div>
+            <div class="fd">
+              TypeScript types for node API responses, request bodies, and UI
+              state.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/utils/</div>
+            <div class="fd">
+              Utility functions: API client setup, auth token management,
+              formatting helpers.
+            </div>
+          </div>
+        </div>
 
-<div class="card gc">
-<h2>Authentication Flow</h2>
-<p>The dashboard authenticates with the node using JWT tokens.</p>
-<div class="g2" style="margin-top:16px;">
-  <div class="step"><div class="n">1</div><h4>Login Page</h4><p>User navigates to <span class="code">ConnectPage</span>, enters the node URL and credentials. The dashboard calls the node's auth endpoint.</p></div>
-  <div class="step"><div class="n">2</div><h4>Token Storage</h4><p>JWT access token and refresh token are stored in <span class="code">localStorage</span>. The node URL is also stored for subsequent requests.</p></div>
-  <div class="step"><div class="n">3</div><h4>Authenticated Requests</h4><p>All API hooks attach the <span class="code">Authorization: Bearer</span> header to every request. Expired tokens trigger a refresh before retrying.</p></div>
-  <div class="step"><div class="n">4</div><h4>Logout</h4><p>Clears stored tokens and node URL, redirects to the login page.</p></div>
-</div>
-</div>
+        <div class="card gc">
+          <h2>Authentication Flow</h2>
+          <p>The dashboard authenticates with the node using JWT tokens.</p>
+          <div class="g2" style="margin-top: 16px">
+            <div class="step">
+              <div class="n">1</div>
+              <h4>Login Page</h4>
+              <p>
+                User navigates to <span class="code">ConnectPage</span>, enters
+                the node URL and credentials. The dashboard calls the node's
+                auth endpoint.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">2</div>
+              <h4>Token Storage</h4>
+              <p>
+                JWT access token and refresh token are stored in
+                <span class="code">localStorage</span>. The node URL is also
+                stored for subsequent requests.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">3</div>
+              <h4>Authenticated Requests</h4>
+              <p>
+                All API hooks attach the
+                <span class="code">Authorization: Bearer</span> header to every
+                request. Expired tokens trigger a refresh before retrying.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">4</div>
+              <h4>Logout</h4>
+              <p>
+                Clears stored tokens and node URL, redirects to the login page.
+              </p>
+            </div>
+          </div>
+        </div>
 
-<div class="card gd">
-<h2>Tech Stack</h2>
-<div class="g3">
-  <div class="cb"><h4>React 19</h4><p>Latest React with concurrent features. Uses functional components and hooks throughout — no class components.</p></div>
-  <div class="cb"><h4>TypeScript</h4><p>Strict mode enabled. All API response types are defined; no implicit <span class="code">any</span>.</p></div>
-  <div class="cb"><h4>Vite</h4><p>Fast HMR in development, optimized production bundles. Config in <span class="code">vite.config.ts</span>.</p></div>
-  <div class="cb"><h4>React Router</h4><p>Client-side routing for all pages. Route definitions in <span class="code">App.tsx</span>.</p></div>
-  <div class="cb"><h4>Styled Components / Emotion</h4><p>CSS-in-JS for component styling. Shared theme tokens for colors, spacing, and typography.</p></div>
-  <div class="cb"><h4>pnpm</h4><p>Fast, disk-efficient package manager. Lockfile committed for reproducible installs.</p></div>
-</div>
-</div>
-
-</div>
-</div>
-<script src="nav.js"></script>
-</body>
+        <div class="card gd">
+          <h2>Tech Stack</h2>
+          <div class="g3">
+            <div class="cb">
+              <h4>React 19</h4>
+              <p>
+                Latest React with concurrent features. Uses functional
+                components and hooks throughout — no class components.
+              </p>
+            </div>
+            <div class="cb">
+              <h4>TypeScript</h4>
+              <p>
+                Strict mode enabled. All API response types are defined; no
+                implicit <span class="code">any</span>.
+              </p>
+            </div>
+            <div class="cb">
+              <h4>Vite</h4>
+              <p>
+                Fast HMR in development, optimized production bundles. Config in
+                <span class="code">vite.config.ts</span>.
+              </p>
+            </div>
+            <div class="cb">
+              <h4>React Router</h4>
+              <p>
+                Client-side routing for all pages. Route definitions in
+                <span class="code">App.tsx</span>.
+              </p>
+            </div>
+            <div class="cb">
+              <h4>Styled Components / Emotion</h4>
+              <p>
+                CSS-in-JS for component styling. Shared theme tokens for colors,
+                spacing, and typography.
+              </p>
+            </div>
+            <div class="cb">
+              <h4>pnpm</h4>
+              <p>
+                Fast, disk-efficient package manager. Lockfile committed for
+                reproducible installs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
 </html>
