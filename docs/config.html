@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calimero | Admin Dashboard — Configuration</title>
+<link rel="stylesheet" href="styles.css">
+<meta name="theme-color" content="#0d1117">
+</head>
+<body>
+<div class="main">
+<div class="content">
+<div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Configuration</span></div>
+
+<h1>Configuration</h1>
+<p class="page-subtitle">Environment variables and build settings</p>
+
+<div class="card ga">
+<h2>Development Setup</h2>
+<div class="step"><div class="n">1</div><h4>Clone and install</h4>
+<div class="typedef" style="margin-top:8px;"><span class="field">git clone</span> https://github.com/calimero-network/admin-dashboard<br><span class="field">cd</span> admin-dashboard<br><span class="field">pnpm install</span></div>
+</div>
+<div class="step" style="margin-top:12px;"><div class="n">2</div><h4>Start dev server</h4>
+<div class="typedef" style="margin-top:8px;"><span class="field">pnpm dev</span><br><span class="comment"># Starts at http://localhost:5173</span></div>
+</div>
+<div class="step" style="margin-top:12px;"><div class="n">3</div><h4>Build for production</h4>
+<div class="typedef" style="margin-top:8px;"><span class="field">pnpm build</span><br><span class="comment"># Output in dist/</span></div>
+</div>
+</div>
+
+<div class="card gb">
+<h2>Vite Configuration</h2>
+<p style="margin-bottom:12px;">Key settings in <span class="code">vite.config.ts</span>:</p>
+<div class="fr"><div class="fp">base</div><div class="fd">Set to <span class="code">'/'</span> for local deployment or <span class="code">'/admin-dashboard/'</span> for GitHub Pages hosting at a subpath.</div></div>
+<div class="fr"><div class="fp">server.proxy</div><div class="fd">In development, can proxy <span class="code">/api</span> to the local node URL to avoid CORS issues during development.</div></div>
+<div class="fr"><div class="fp">build.outDir</div><div class="fd">Default: <span class="code">dist/</span>. This directory is deployed to GitHub Pages.</div></div>
+</div>
+
+<div class="card gc">
+<h2>Node Connection</h2>
+<p>The node URL is entered by the user on first use and stored in <span class="code">localStorage</span> under <span class="code">calimeroNodeUrl</span>. There is no build-time environment variable for the node URL — it is runtime-configurable.</p>
+<p style="margin-top:10px;">This allows a single deployed build to connect to any Calimero node — local, staging, or production — by changing the stored URL.</p>
+</div>
+
+</div>
+</div>
+<script src="nav.js"></script>
+</body>
+</html>
