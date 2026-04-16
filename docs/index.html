@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calimero | Admin Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="styles.css" />
     <meta
       name="description"
@@ -22,23 +23,12 @@
             Calimero deployment.
           </p>
 
-          <div class="g4" style="margin-bottom: 36px">
-            <div class="stat">
-              <div class="v">6</div>
-              <div class="l">core pages</div>
-            </div>
-            <div class="stat">
-              <div class="v">React</div>
-              <div class="l">19 + TypeScript</div>
-            </div>
-            <div class="stat">
-              <div class="v">Vite</div>
-              <div class="l">build tool</div>
-            </div>
-            <div class="stat">
-              <div class="v">CI/CD</div>
-              <div class="l">auto-release</div>
-            </div>
+          <div class="capability-pills" style="margin-bottom: 36px">
+            <span class="pill" style="--pill-color: #58a6ff">Dashboard &amp; Overview</span>
+            <span class="pill" style="--pill-color: #f778ba">Contexts &amp; Applications</span>
+            <span class="pill" style="--pill-color: #39d0d8">Identities &amp; Root Keys</span>
+            <span class="pill" style="--pill-color: #f59e0b">Releases &amp; Blobs</span>
+            <span class="pill" style="--pill-color: #a371f7">Logs</span>
           </div>
         </div>
 
@@ -73,13 +63,13 @@
             </div>
             <div class="step">
               <div class="n">3</div>
-              <h4>Release Process</h4>
+              <h4>Configuration</h4>
               <p>
-                Learn how semantic commits trigger automatic versioning, GitHub
-                Releases, and GitHub Pages deployment.
+                Environment variables, build configuration, and how to connect
+                the dashboard to a custom node endpoint.
               </p>
               <p style="margin-top: 8px">
-                <a href="release.html">Read Release &rarr;</a>
+                <a href="config.html">Read Configuration &rarr;</a>
               </p>
             </div>
           </div>
@@ -457,7 +447,7 @@
         </div>
 
         <h2 style="margin-top: 40px">Main Sections</h2>
-        <div class="g3" style="margin-bottom: 16px">
+        <div class="g3">
           <a href="architecture.html" class="hero-card">
             <span class="card-icon" style="color: var(--accent)">&#9670;</span>
             <h3 style="color: var(--accent)">Architecture</h3>
@@ -474,16 +464,6 @@
               creation, app installation, identity management, log monitoring.
             </p>
           </a>
-          <a href="release.html" class="hero-card">
-            <span class="card-icon" style="color: var(--pink)">&#9670;</span>
-            <h3 style="color: var(--pink)">Release Process</h3>
-            <p>
-              Semantic versioning, automatic GitHub Releases, build artifacts,
-              and GitHub Pages deployment triggered by conventional commits.
-            </p>
-          </a>
-        </div>
-        <div class="g2">
           <a href="config.html" class="hero-card">
             <span class="card-icon" style="color: var(--orange)">&#9670;</span>
             <h3 style="color: var(--orange)">Configuration</h3>

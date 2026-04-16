@@ -11,7 +11,6 @@
     { label: 'Architecture', href: 'architecture.html', dot: '#a5ff11' },
     { section: 'Features' },
     { label: 'UI Flows', href: 'flows.html', dot: '#58a6ff' },
-    { label: 'Release Process', href: 'release.html', dot: '#f778ba' },
     { section: 'Reference' },
     { label: 'Configuration', href: 'config.html', dot: '#f0883e' },
   ];

@@ -477,6 +477,23 @@ a svg,
   font-family: var(--font-mono);
 }
 
+/* ── CAPABILITY PILLS ── */
+.capability-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pill-color) 40%, transparent);
+  background: color-mix(in srgb, var(--pill-color) 8%, transparent);
+  color: var(--pill-color);
+  white-space: nowrap;
+}
+
 /* ── FILE ROW ── */
 .fr {
   display: grid;
