@@ -1,3 +1,11 @@
+## [1.9.2](https://github.com/calimero-network/admin-dashboard/compare/v1.9.1...v1.9.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* lint ([6bec50c](https://github.com/calimero-network/admin-dashboard/commit/6bec50cff971b35e1a2057ba83b2a7ba2bf3ac76))
+* switch ghp deploemtns ([d2c173c](https://github.com/calimero-network/admin-dashboard/commit/d2c173c509c36211bba83be8f0ff6e435b5a0380))
+
 ## [1.9.1](https://github.com/calimero-network/admin-dashboard/compare/v1.9.0...v1.9.1) (2026-04-16)
 
 
