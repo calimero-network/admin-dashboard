@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Admin Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta
+      name="description"
+      content="Admin Dashboard — React TypeScript UI for managing Calimero nodes, contexts, applications, and users."
+    />
+    <meta name="theme-color" content="#0d1117" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="hero">
+          <h1>Calimero <em>Admin Dashboard</em></h1>
+          <p class="tagline">
+            React + TypeScript admin interface for node operators — manage
+            contexts, install applications, handle identities, and monitor your
+            Calimero deployment.
+          </p>
+
+          <div class="capability-pills" style="margin-bottom: 36px">
+            <span class="pill" style="--pill-color: #58a6ff">Dashboard &amp; Overview</span>
+            <span class="pill" style="--pill-color: #f778ba">Contexts &amp; Applications</span>
+            <span class="pill" style="--pill-color: #39d0d8">Identities &amp; Root Keys</span>
+            <span class="pill" style="--pill-color: #f59e0b">Releases &amp; Blobs</span>
+            <span class="pill" style="--pill-color: #a371f7">Logs</span>
+          </div>
+        </div>
+
+        <div class="card ga">
+          <h2>Start Here</h2>
+          <p style="margin-bottom: 18px">
+            New to the Admin Dashboard? Follow this path to understand what it
+            does and how it fits together.
+          </p>
+          <div class="g3">
+            <div class="step">
+              <div class="n">1</div>
+              <h4>Architecture</h4>
+              <p>
+                Understand the component tree, how the dashboard connects to a
+                Calimero node, and the overall data flow.
+              </p>
+              <p style="margin-top: 8px">
+                <a href="architecture.html">Read Architecture &rarr;</a>
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">2</div>
+              <h4>UI Flows</h4>
+              <p>
+                Explore the main user journeys — connecting to a node, managing
+                contexts, installing apps, and handling identities.
+              </p>
+              <p style="margin-top: 8px">
+                <a href="flows.html">Read UI Flows &rarr;</a>
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">3</div>
+              <h4>Configuration</h4>
+              <p>
+                Environment variables, build configuration, and how to connect
+                the dashboard to a custom node endpoint.
+              </p>
+              <p style="margin-top: 8px">
+                <a href="config.html">Read Configuration &rarr;</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card gb">
+          <h2>System Map</h2>
+          <svg
+            viewBox="0 0 900 380"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <filter id="glow-b">
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  flood-color="#58a6ff"
+                  flood-opacity="0.3"
+                />
+              </filter>
+              <filter id="glow-g">
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  flood-color="#3fb950"
+                  flood-opacity="0.3"
+                />
+              </filter>
+              <filter id="glow-a">
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  flood-color="#a5ff11"
+                  flood-opacity="0.3"
+                />
+              </filter>
+            </defs>
+
+            <!-- Browser -->
+            <rect
+              x="20"
+              y="140"
+              width="130"
+              height="60"
+              rx="10"
+              fill="#58a6ff10"
+              stroke="#58a6ff"
+              stroke-width="1.4"
+              filter="url(#glow-b)"
+            />
+            <text
+              x="85"
+              y="166"
+              text-anchor="middle"
+              fill="#58a6ff"
+              font-family="JetBrains Mono"
+              font-size="12"
+              font-weight="700"
+            >
+              Browser
+            </text>
+            <text
+              x="85"
+              y="186"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              Operator
+            </text>
+
+            <!-- Admin Dashboard -->
+            <rect
+              x="230"
+              y="60"
+              width="260"
+              height="230"
+              rx="14"
+              fill="#a5ff1108"
+              stroke="#a5ff11"
+              stroke-width="1.8"
+              filter="url(#glow-a)"
+            />
+            <text
+              x="250"
+              y="90"
+              fill="#a5ff11"
+              font-family="JetBrains Mono"
+              font-size="14"
+              font-weight="700"
+            >
+              Admin Dashboard
+            </text>
+            <text
+              x="250"
+              y="114"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="11"
+            >
+              React 19 + Vite + TypeScript
+            </text>
+
+            <rect
+              x="250"
+              y="128"
+              width="220"
+              height="24"
+              rx="6"
+              fill="#58a6ff12"
+              stroke="#58a6ff"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="145"
+              text-anchor="middle"
+              fill="#58a6ff"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Dashboard / Overview
+            </text>
+
+            <rect
+              x="250"
+              y="160"
+              width="220"
+              height="24"
+              rx="6"
+              fill="#f778ba12"
+              stroke="#f778ba"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="177"
+              text-anchor="middle"
+              fill="#f778ba"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Contexts &amp; Applications
+            </text>
+
+            <rect
+              x="250"
+              y="192"
+              width="220"
+              height="24"
+              rx="6"
+              fill="#39d0d812"
+              stroke="#39d0d8"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="209"
+              text-anchor="middle"
+              fill="#39d0d8"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Identities &amp; Root Keys
+            </text>
+
+            <rect
+              x="250"
+              y="224"
+              width="220"
+              height="24"
+              rx="6"
+              fill="#f59e0b12"
+              stroke="#f59e0b"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="241"
+              text-anchor="middle"
+              fill="#f59e0b"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Releases &amp; Blobs
+            </text>
+
+            <rect
+              x="250"
+              y="256"
+              width="220"
+              height="24"
+              rx="6"
+              fill="#a371f712"
+              stroke="#a371f7"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="273"
+              text-anchor="middle"
+              fill="#a371f7"
+              font-family="JetBrains Mono"
+              font-size="10"
+            >
+              Logs
+            </text>
+
+            <!-- Node API -->
+            <rect
+              x="620"
+              y="110"
+              width="220"
+              height="120"
+              rx="14"
+              fill="#3fb95008"
+              stroke="#3fb950"
+              stroke-width="1.8"
+              filter="url(#glow-g)"
+            />
+            <text
+              x="640"
+              y="140"
+              fill="#3fb950"
+              font-family="JetBrains Mono"
+              font-size="14"
+              font-weight="700"
+            >
+              Calimero Node
+            </text>
+            <text
+              x="640"
+              y="163"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="11"
+            >
+              HTTP REST API
+            </text>
+            <text
+              x="640"
+              y="183"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="11"
+            >
+              JWT Auth
+            </text>
+            <text
+              x="640"
+              y="203"
+              fill="#6b6b8080"
+              font-family="JetBrains Mono"
+              font-size="8"
+            >
+              merod / core
+            </text>
+
+            <!-- GitHub Pages -->
+            <rect
+              x="620"
+              y="280"
+              width="220"
+              height="60"
+              rx="10"
+              fill="#6b6b8010"
+              stroke="#6b6b80"
+              stroke-width="1.2"
+            />
+            <text
+              x="730"
+              y="308"
+              text-anchor="middle"
+              fill="#8b8b9b"
+              font-family="JetBrains Mono"
+              font-size="12"
+              font-weight="700"
+            >
+              GitHub Pages
+            </text>
+            <text
+              x="730"
+              y="326"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              Deployed build
+            </text>
+
+            <!-- Arrows -->
+            <line
+              x1="152"
+              y1="170"
+              x2="228"
+              y2="170"
+              stroke="#58a6ff"
+              stroke-width="1.5"
+            />
+            <polygon points="228,170 220,166 220,174" fill="#58a6ff" />
+            <text
+              x="180"
+              y="163"
+              fill="#6b6b80"
+              font-family="JetBrains Mono"
+              font-size="8"
+            >
+              HTTP
+            </text>
+
+            <line
+              x1="492"
+              y1="170"
+              x2="618"
+              y2="170"
+              stroke="#a5ff11"
+              stroke-width="1.5"
+            />
+            <polygon points="618,170 610,166 610,174" fill="#a5ff11" />
+            <text
+              x="530"
+              y="163"
+              fill="#6b6b80"
+              font-family="JetBrains Mono"
+              font-size="8"
+            >
+              REST/JSON
+            </text>
+
+            <line
+              x1="360"
+              y1="292"
+              x2="618"
+              y2="310"
+              stroke="#6b6b80"
+              stroke-width="1"
+              stroke-dasharray="4 3"
+            />
+            <polygon points="618,310 611,306 611,315" fill="#6b6b80" />
+            <text
+              x="470"
+              y="308"
+              fill="#6b6b80"
+              font-family="JetBrains Mono"
+              font-size="8"
+            >
+              CI deploy
+            </text>
+          </svg>
+
+          <div class="legend">
+            <div class="legend-item">
+              <div class="ld" style="background: #a5ff11"></div>
+              Admin Dashboard (React)
+            </div>
+            <div class="legend-item">
+              <div class="ld" style="background: #3fb950"></div>
+              Calimero Node API
+            </div>
+            <div class="legend-item">
+              <div class="ld" style="background: #58a6ff"></div>
+              Operator Browser
+            </div>
+            <div class="legend-item">
+              <div class="ld" style="background: #8b8b9b"></div>
+              GitHub Pages
+            </div>
+          </div>
+        </div>
+
+        <h2 style="margin-top: 40px">Main Sections</h2>
+        <div class="g3">
+          <a href="architecture.html" class="hero-card">
+            <span class="card-icon" style="color: var(--accent)">&#9670;</span>
+            <h3 style="color: var(--accent)">Architecture</h3>
+            <p>
+              Component structure, routing, API layer, and how the dashboard
+              connects to and authenticates with a Calimero node.
+            </p>
+          </a>
+          <a href="flows.html" class="hero-card">
+            <span class="card-icon" style="color: var(--blue)">&#9670;</span>
+            <h3 style="color: var(--blue)">UI Flows</h3>
+            <p>
+              Step-by-step walkthroughs of core operator tasks: context
+              creation, app installation, identity management, log monitoring.
+            </p>
+          </a>
+          <a href="config.html" class="hero-card">
+            <span class="card-icon" style="color: var(--orange)">&#9670;</span>
+            <h3 style="color: var(--orange)">Configuration</h3>
+            <p>
+              Environment variables, build configuration, and how to connect the
+              dashboard to a custom node endpoint.
+            </p>
+          </a>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>

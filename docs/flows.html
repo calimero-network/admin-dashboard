@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Admin Dashboard — UI Flows</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>UI Flows</span>
+        </div>
+
+        <h1>UI Flows</h1>
+        <p class="page-subtitle">
+          Core operator workflows — connect, manage, install, monitor
+        </p>
+
+        <div class="card ga">
+          <h2>Connect to a Node</h2>
+          <div class="g3">
+            <div class="step">
+              <div class="n">1</div>
+              <h4>Open Dashboard</h4>
+              <p>
+                Navigate to the deployed dashboard URL (or localhost in dev). If
+                no token is found in <span class="code">localStorage</span>, the
+                login page appears.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">2</div>
+              <h4>Enter Node URL</h4>
+              <p>
+                Input the node's HTTP base URL (e.g.
+                <span class="code">http://localhost:2428</span> or a remote
+                HTTPS endpoint).
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">3</div>
+              <h4>Login</h4>
+              <p>
+                Enter node credentials. On success, JWT tokens are stored in
+                <span class="code">localStorage</span> and the dashboard
+                redirects to the main overview.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card gb">
+          <h2>Manage Contexts</h2>
+          <div class="fr">
+            <div class="fp">Contexts page</div>
+            <div class="fd">
+              Lists all contexts on the node with ID, type, and member count.
+              Click a row to open context details.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">Context Details</div>
+            <div class="fd">
+              Shows context members, capabilities, installed application, and
+              current state. Allows adding members or joining existing contexts.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">Join Context</div>
+            <div class="fd">
+              Invite a new identity to an existing context. Generates an invite
+              token that the joining party uses.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">Create Context</div>
+            <div class="fd">
+              Create a new isolated context. Optionally installs an application
+              into it at creation time.
+            </div>
+          </div>
+        </div>
+
+        <div class="card gc">
+          <h2>Install Applications</h2>
+          <div class="g3">
+            <div class="step">
+              <div class="n">1</div>
+              <h4>Applications Page</h4>
+              <p>
+                Shows all installed applications across all contexts. Click
+                <strong>Install</strong> to install a new app.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">2</div>
+              <h4>Specify App</h4>
+              <p>
+                Enter the application package ID or upload a WASM bundle. The
+                node fetches the package from the registry if an ID is provided.
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">3</div>
+              <h4>Target Context</h4>
+              <p>
+                Select which context to install the application into. Each
+                context can host one application.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card gd">
+          <h2>Identity &amp; Root Keys</h2>
+          <div class="fr">
+            <div class="fp">Identity page</div>
+            <div class="fd">
+              Lists all identities (signing keys) registered on the node. Each
+              context member has an associated identity.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">Add Root Key</div>
+            <div class="fd">
+              Register a new root signing key. Root keys sign administrative
+              operations on the node.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">Key types</div>
+            <div class="fd">
+              Supports NEAR (ed25519), Ethereum (secp256k1), ICP, and Starknet
+              key formats depending on node configuration.
+            </div>
+          </div>
+        </div>
+
+        <div class="card ga">
+          <h2>Monitor Logs</h2>
+          <p>The Logs page provides a live view of node operation logs:</p>
+          <ul style="margin: 12px 0 0 18px">
+            <li style="margin-bottom: 6px">
+              <strong>Filter by level:</strong> DEBUG, INFO, WARN, ERROR
+            </li>
+            <li style="margin-bottom: 6px">
+              <strong>Filter by context:</strong> Show only logs from a specific
+              context or application
+            </li>
+            <li style="margin-bottom: 6px">
+              <strong>Auto-scroll:</strong> Toggle to follow the latest output
+            </li>
+            <li>
+              <strong>Copy:</strong> Copy log entries to clipboard for incident
+              reports
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>
