@@ -91,4 +91,3 @@ jobs:
         run: gh release upload v${{ steps.release.outputs.new_release_version }} admin-dashboard-build.zip --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
