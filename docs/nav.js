@@ -124,15 +124,14 @@
   }
 
   let searchIndex = null,
-    searchLoading = false,
+    searchIndexPromise = null,
     selectedIdx = -1;
 
-  async function buildIndex() {
-    if (searchIndex) return searchIndex;
-    if (searchLoading) return null;
-    searchLoading = true;
+  function buildIndex() {
+    if (searchIndex) return Promise.resolve(searchIndex);
+    if (searchIndexPromise) return searchIndexPromise;
     const pages = NAV.filter((item) => item.href);
-    const results = await Promise.all(
+    searchIndexPromise = Promise.all(
       pages.map(async (page) => {
         try {
           const res = await fetch(PAGES_BASE + page.href);
@@ -158,10 +157,11 @@
           return null;
         }
       }),
-    );
-    searchIndex = results.filter(Boolean);
-    searchLoading = false;
-    return searchIndex;
+    ).then((results) => {
+      searchIndex = results.filter(Boolean);
+      return searchIndex;
+    });
+    return searchIndexPromise;
   }
 
   function escapeHtml(s) {
@@ -283,7 +283,7 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
           const q = input.value;
-          if (!searchIndex && !searchLoading)
+          if (!searchIndex && !searchIndexPromise)
             document.getElementById('search-results').innerHTML =
               '<p class="search-hint search-loading">Loading index…</p>';
           const index = await buildIndex();
@@ -310,7 +310,7 @@
     }
     overlay.classList.add('open');
     setTimeout(() => overlay.querySelector('#search-input').focus(), 50);
-    if (!searchIndex && !searchLoading) buildIndex();
+    if (!searchIndexPromise) buildIndex();
   }
 
   function closeSearch() {
