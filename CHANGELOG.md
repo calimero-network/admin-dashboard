@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/calimero-network/admin-dashboard/compare/v1.9.0...v1.9.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* lint ([c6b2d81](https://github.com/calimero-network/admin-dashboard/commit/c6b2d818b13fb60611f0ee342a33457bc4ce0e47))
+
 # [1.9.0](https://github.com/calimero-network/admin-dashboard/compare/v1.8.0...v1.9.0) (2026-04-16)
 
 
