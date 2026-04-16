@@ -1,3 +1,15 @@
+# [1.9.0](https://github.com/calimero-network/admin-dashboard/compare/v1.8.0...v1.9.0) (2026-04-16)
+
+
+### Bug Fixes
+
+* lint ([453bd39](https://github.com/calimero-network/admin-dashboard/commit/453bd39e19af366d7ac50d9fd5657b30ecfc82b1))
+
+
+### Features
+
+* add simple AD docs ([#141](https://github.com/calimero-network/admin-dashboard/issues/141)) ([eb4c5ca](https://github.com/calimero-network/admin-dashboard/commit/eb4c5ca2fda280ae8896dc5393f500b7f7c87c20))
+
 # [1.8.0](https://github.com/calimero-network/admin-dashboard/compare/v1.7.0...v1.8.0) (2026-03-31)
 
 
