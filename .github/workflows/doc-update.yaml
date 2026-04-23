@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number to generate docs for (leave blank to auto-detect)"
+        description: 'PR number to generate docs for (leave blank to auto-detect)'
         type: string
         required: false
       dry_run:
-        description: "Dry run: print changes without opening a PR"
+        description: 'Dry run: print changes without opening a PR'
         type: boolean
         default: false
 

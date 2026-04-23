@@ -6,15 +6,15 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number to review"
+        description: 'PR number to review'
         required: true
         type: number
       agents:
-        description: "Number of agents (1-5)"
+        description: 'Number of agents (1-5)'
         required: false
-        default: "3"
+        default: '3'
         type: choice
-        options: ["1", "2", "3", "4", "5"]
+        options: ['1', '2', '3', '4', '5']
 
 concurrency:
   group: ai-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
           cache: pip
 
       - name: Install ai-code-reviewer
