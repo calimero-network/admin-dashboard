@@ -39,7 +39,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install ai-code-reviewer
-        run: pip install ai-code-reviewer
+        run: |
+          pip install ai-code-reviewer
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Determine PR number and agent count
         id: pr
