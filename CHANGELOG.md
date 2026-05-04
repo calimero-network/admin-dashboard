@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/calimero-network/admin-dashboard/compare/v1.10.0...v1.11.0) (2026-05-04)
+
+
+### Features
+
+* namespace / group management ([#143](https://github.com/calimero-network/admin-dashboard/issues/143)) ([2ab92aa](https://github.com/calimero-network/admin-dashboard/commit/2ab92aa22b2e474d0e29528f5646d2a575e07b53))
+
 # [1.10.0](https://github.com/calimero-network/admin-dashboard/compare/v1.9.2...v1.10.0) (2026-05-04)
 
 
