@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/calimero-network/admin-dashboard/compare/v1.9.2...v1.10.0) (2026-05-04)
+
+
+### Features
+
+* add reviewer ci ([#142](https://github.com/calimero-network/admin-dashboard/issues/142)) ([eead39c](https://github.com/calimero-network/admin-dashboard/commit/eead39cd187da6b47c3cd43649a7dae8a6ae4aa3))
+
 ## [1.9.2](https://github.com/calimero-network/admin-dashboard/compare/v1.9.1...v1.9.2) (2026-04-16)
 
 
