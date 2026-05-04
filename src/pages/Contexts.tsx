@@ -6,6 +6,14 @@ import {
   TrashIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
+import {
+  createContext as createContextApi,
+  setSubgroupVisibility,
+  listNamespaces,
+  listNamespaceGroups,
+  type Namespace,
+  type SubgroupEntry,
+} from '../api/namespaceApi';
 import './ContextsPage.css';
 
 // Legacy type export kept for compatibility with old component files
@@ -67,9 +75,21 @@ export default function ContextsPage() {
   // Create context form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createAppId, setCreateAppId] = useState('');
-  const [createProtocol, setCreateProtocol] = useState('near');
   const [createParams, setCreateParams] = useState('');
+  const [createAlias, setCreateAlias] = useState('');
   const [creating, setCreating] = useState(false);
+  const [useCustomAppId, setUseCustomAppId] = useState(false);
+
+  // Namespace + group selection
+  const [namespaces, setNamespaces] = useState<Namespace[]>([]);
+  const [selectedNamespaceId, setSelectedNamespaceId] = useState('');
+  const [namespaceGroups, setNamespaceGroups] = useState<SubgroupEntry[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [useCustomGroupId, setUseCustomGroupId] = useState(false);
+  const [createVisibility, setCreateVisibility] = useState<
+    'open' | 'restricted'
+  >('open');
 
   const showToast = (msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
@@ -101,10 +121,36 @@ export default function ContextsPage() {
     }
   }, []);
 
+  const loadNamespaces = useCallback(async () => {
+    try {
+      const list = await listNamespaces();
+      setNamespaces(Array.isArray(list) ? list : []);
+    } catch {
+      setNamespaces([]);
+    }
+  }, []);
+
+  const handleNamespaceChange = useCallback(async (nsId: string) => {
+    setSelectedNamespaceId(nsId);
+    setSelectedGroupId('');
+    setNamespaceGroups([]);
+    if (!nsId) return;
+    setLoadingGroups(true);
+    try {
+      const groups = await listNamespaceGroups(nsId);
+      setNamespaceGroups(Array.isArray(groups) ? groups : []);
+    } catch {
+      setNamespaceGroups([]);
+    } finally {
+      setLoadingGroups(false);
+    }
+  }, []);
+
   useEffect(() => {
     load();
     loadInstalledApps();
-  }, [load, loadInstalledApps]);
+    loadNamespaces();
+  }, [load, loadInstalledApps, loadNamespaces]);
 
   const handleDelete = async (contextId: string) => {
     setConfirmId(null);
@@ -121,33 +167,50 @@ export default function ContextsPage() {
     }
   };
 
+  const resetCreateForm = () => {
+    setShowCreateForm(false);
+    setCreateAppId('');
+    setCreateParams('');
+    setCreateAlias('');
+    setSelectedNamespaceId('');
+    setNamespaceGroups([]);
+    setSelectedGroupId('');
+    setUseCustomAppId(false);
+    setUseCustomGroupId(false);
+    setCreateVisibility('open');
+  };
+
   const handleCreateContext = async () => {
-    if (!createAppId.trim()) return;
+    if (!createAppId.trim() || !selectedGroupId.trim()) return;
     setCreating(true);
     try {
-      let jsonParams = '';
-      if (createParams.trim()) {
-        const parsed = JSON.parse(createParams.trim());
-        jsonParams = JSON.stringify(parsed);
-      }
+      const raw = createParams.trim() || '{}';
+      const initializationParams = Array.from(
+        new TextEncoder().encode(JSON.stringify(JSON.parse(raw))),
+      );
 
-      const res = await withTimeout(
-        apiClient
-          .node()
-          .createContext(createAppId.trim(), jsonParams, createProtocol),
+      const result = await withTimeout(
+        createContextApi({
+          applicationId: createAppId.trim(),
+          groupId: selectedGroupId.trim(),
+          alias: createAlias.trim() || undefined,
+          initializationParams,
+        }),
         CREATE_CONTEXT_TIMEOUT_MS,
         'Context creation is taking too long. The node did not finish the request in time.',
       );
-      if (res?.error) throw new Error(res.error.message);
+
+      // Apply visibility to the group that was used (or auto-created)
+      const gid = result.groupId ?? selectedGroupId.trim();
+      if (gid) {
+        await setSubgroupVisibility(gid, createVisibility).catch(() => {});
+      }
+
       showToast('Context created successfully', 'success');
-      setShowCreateForm(false);
-      setCreateAppId('');
-      setCreateParams('');
-      setCreateProtocol('near');
+      resetCreateForm();
       await load();
     } catch (e: any) {
-      const message = e.message || 'Failed to create context';
-      showToast(message, 'error');
+      showToast(e.message || 'Failed to create context', 'error');
     } finally {
       setCreating(false);
     }
@@ -192,73 +255,195 @@ export default function ContextsPage() {
           <div className="ctx-start-form">
             <h3 className="ctx-start-title">Create New Context</h3>
             <p className="ctx-start-desc">
-              Select an installed application and configure context options.
+              Select an application and group, then configure context options.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Application */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                  }}
-                >
-                  Protocol
-                </label>
-                <select
-                  className="ctx-start-input"
-                  value={createProtocol}
-                  onChange={(e) => setCreateProtocol(e.target.value)}
-                  style={{ fontFamily: 'inherit' }}
-                >
-                  <option value="near">near</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                  }}
-                >
-                  Application
-                </label>
-                {installedApps.length > 0 ? (
-                  <select
-                    className="ctx-start-input"
-                    value={createAppId}
-                    onChange={(e) => setCreateAppId(e.target.value)}
-                    style={{ fontFamily: 'inherit' }}
-                  >
-                    <option value="">Select an application...</option>
-                    {installedApps.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        {parseAppName(app)}
-                      </option>
-                    ))}
-                  </select>
+                <label className="ctx-field-label">Application</label>
+                {installedApps.length > 0 && !useCustomAppId ? (
+                  <>
+                    <select
+                      className="ctx-start-input"
+                      value={createAppId}
+                      onChange={(e) => setCreateAppId(e.target.value)}
+                      style={{ fontFamily: 'inherit' }}
+                    >
+                      <option value="">Select an installed application…</option>
+                      {installedApps.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {parseAppName(app)}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="ns-toggle-link"
+                      onClick={() => {
+                        setUseCustomAppId(true);
+                        setCreateAppId('');
+                      }}
+                    >
+                      Enter ID manually
+                    </button>
+                  </>
                 ) : (
-                  <input
-                    type="text"
-                    className="ctx-start-input"
-                    placeholder="Application ID"
-                    value={createAppId}
-                    onChange={(e) => setCreateAppId(e.target.value)}
-                  />
+                  <>
+                    <input
+                      type="text"
+                      className="ctx-start-input"
+                      placeholder="Application ID"
+                      value={createAppId}
+                      onChange={(e) => setCreateAppId(e.target.value)}
+                    />
+                    {installedApps.length > 0 && (
+                      <button
+                        type="button"
+                        className="ns-toggle-link"
+                        onClick={() => {
+                          setUseCustomAppId(false);
+                          setCreateAppId('');
+                        }}
+                      >
+                        Pick from installed apps
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
 
+              {/* Group */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                  }}
+                <label className="ctx-field-label">Group</label>
+                {!useCustomGroupId ? (
+                  <>
+                    {namespaces.length > 0 && (
+                      <select
+                        className="ctx-start-input"
+                        value={selectedNamespaceId}
+                        onChange={(e) => handleNamespaceChange(e.target.value)}
+                        style={{ fontFamily: 'inherit' }}
+                      >
+                        <option value="">Select a namespace…</option>
+                        {namespaces.map((ns) => (
+                          <option key={ns.namespaceId} value={ns.namespaceId}>
+                            {ns.alias
+                              ? `${ns.alias} — ${ns.namespaceId.slice(0, 12)}…`
+                              : ns.namespaceId.slice(0, 24) + '…'}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {selectedNamespaceId && (
+                      <select
+                        className="ctx-start-input"
+                        value={selectedGroupId}
+                        onChange={(e) => setSelectedGroupId(e.target.value)}
+                        style={{ fontFamily: 'inherit' }}
+                        disabled={loadingGroups}
+                      >
+                        <option value="">
+                          {loadingGroups
+                            ? 'Loading groups…'
+                            : namespaceGroups.length === 0
+                              ? 'No groups found'
+                              : 'Select a group…'}
+                        </option>
+                        {namespaceGroups.map((g) => (
+                          <option key={g.groupId} value={g.groupId}>
+                            {g.alias
+                              ? `${g.alias} — ${g.groupId.slice(0, 12)}…`
+                              : g.groupId.slice(0, 24) + '…'}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      type="button"
+                      className="ns-toggle-link"
+                      onClick={() => {
+                        setUseCustomGroupId(true);
+                        setSelectedGroupId('');
+                        setSelectedNamespaceId('');
+                        setNamespaceGroups([]);
+                      }}
+                    >
+                      Enter group ID manually
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      className="ctx-start-input"
+                      placeholder="Group ID (hex)"
+                      value={selectedGroupId}
+                      onChange={(e) => setSelectedGroupId(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="ns-toggle-link"
+                      onClick={() => {
+                        setUseCustomGroupId(false);
+                        setSelectedGroupId('');
+                      }}
+                    >
+                      Pick from namespace
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Visibility */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="ctx-field-label">
+                  Visibility{' '}
+                  <span
+                    style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}
+                  >
+                    (applies to the group)
+                  </span>
+                </label>
+                <select
+                  className="ctx-start-input"
+                  value={createVisibility}
+                  onChange={(e) =>
+                    setCreateVisibility(e.target.value as 'open' | 'restricted')
+                  }
+                  style={{ fontFamily: 'inherit' }}
                 >
+                  <option value="open">
+                    Open — parent group members can join automatically
+                  </option>
+                  <option value="restricted">
+                    Restricted — invite only (private)
+                  </option>
+                </select>
+              </div>
+
+              {/* Context alias */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="ctx-field-label">
+                  Context Alias{' '}
+                  <span
+                    style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}
+                  >
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  className="ctx-start-input"
+                  placeholder="e.g. my-context"
+                  value={createAlias}
+                  onChange={(e) => setCreateAlias(e.target.value)}
+                />
+              </div>
+
+              {/* Init params */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label className="ctx-field-label">
                   Initialization Params{' '}
                   <span
                     style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}
@@ -280,18 +465,13 @@ export default function ContextsPage() {
                 <button
                   className="btn btn-primary"
                   onClick={handleCreateContext}
-                  disabled={creating || !createAppId.trim()}
+                  disabled={
+                    creating || !createAppId.trim() || !selectedGroupId.trim()
+                  }
                 >
                   {creating ? 'Creating...' : 'Create Context'}
                 </button>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setCreateAppId('');
-                    setCreateParams('');
-                  }}
-                >
+                <button className="btn" onClick={resetCreateForm}>
                   Cancel
                 </button>
               </div>

@@ -11,6 +11,7 @@ import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 import Dashboard from './pages/Dashboard';
 import NewMarketplace from './pages/NewMarketplace';
 import BlobsPage from './pages/Blobs';
+import NamespacesPage from './pages/Namespaces';
 
 export default function App() {
   const getBasePath = () => {
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/applications" element={<ApplicationsPage />} />
           <Route path="/blobs" element={<BlobsPage />} />
           <Route path="/contexts" element={<ContextsPage />} />
+          <Route path="/namespaces" element={<NamespacesPage />} />
           <Route path="/identity" element={<Identity />} />
           <Route path="/identity/root-key" element={<AddRootKey />} />
           <Route
