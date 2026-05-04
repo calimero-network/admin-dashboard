@@ -1,0 +1,262 @@
+.ns-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  max-width: 380px;
+}
+
+/* Stats row */
+.ns-stats-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.ns-stat-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 14px 16px;
+  background: var(--card-bg, #18181b);
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.ns-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary, #fafafa);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.ns-stat-small {
+  font-size: 0.9rem;
+  padding-top: 6px;
+}
+
+.ns-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #a1a1aa);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Sections */
+.ns-section {
+  background: var(--card-bg, #18181b);
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.ns-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary, #a1a1aa);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 14px;
+}
+
+.ns-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ns-section-header h2 {
+  margin: 0;
+}
+
+/* Key-value rows */
+.ns-kv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color, #27272a);
+  font-size: 13px;
+}
+
+.ns-kv-row:last-child {
+  border-bottom: none;
+}
+
+.ns-kv-label {
+  min-width: 160px;
+  color: var(--text-secondary, #a1a1aa);
+  font-weight: 500;
+}
+
+.ns-kv-value {
+  color: var(--text-primary, #fafafa);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ns-kv-value.mono {
+  font-family: monospace;
+}
+
+/* Group / subgroup list */
+.ns-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ns-group-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--input-bg, #09090b);
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary, #fafafa);
+  font-size: 13px;
+  text-align: left;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.ns-group-row:hover {
+  border-color: var(--accent-primary, #a5ff11);
+}
+
+.ns-group-alias {
+  font-size: 11px;
+  color: var(--text-secondary, #a1a1aa);
+  padding: 2px 6px;
+  background: var(--card-bg, #18181b);
+  border-radius: 4px;
+}
+
+/* Copy button */
+.ns-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #a1a1aa);
+  background: transparent;
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.ns-copy-btn:hover {
+  color: var(--text-primary, #fafafa);
+  border-color: var(--text-secondary, #a1a1aa);
+}
+
+/* Inline form */
+.ns-inline-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: var(--input-bg, #09090b);
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+/* Role select */
+.ns-role-select {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 4px;
+  background: var(--input-bg, #09090b);
+  color: var(--text-primary, #fafafa);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ns-role-select[data-role='admin'] {
+  color: var(--accent-primary, #a5ff11);
+  border-color: var(--accent-primary, #a5ff11);
+}
+
+.ns-role-select[data-role='readonly'] {
+  color: var(--text-tertiary, #71717a);
+}
+
+/* Invitation box */
+.ns-invitation-box {
+  border: 1px solid var(--border-color, #27272a);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.ns-invitation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--input-bg, #09090b);
+  font-size: 12px;
+  color: var(--text-secondary, #a1a1aa);
+  border-bottom: 1px solid var(--border-color, #27272a);
+}
+
+.ns-invitation-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--card-bg, #18181b);
+  border: none;
+  color: var(--text-primary, #fafafa);
+  font-family: monospace;
+  font-size: 11px;
+  resize: vertical;
+}
+
+/* Form field */
+.ns-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ns-form-field label {
+  font-size: 13px;
+  color: var(--text-secondary, #a1a1aa);
+  font-weight: 500;
+}
+
+/* Toggle link (switch between dropdown and manual input) */
+.ns-toggle-link {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--accent-primary, #a5ff11);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ns-toggle-link:hover {
+  opacity: 0.8;
+}
+
+/* Mono utility */
+.mono {
+  font-family: monospace;
+}

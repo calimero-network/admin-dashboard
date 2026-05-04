@@ -10,16 +10,19 @@ import {
   CubeTransparentIcon,
   KeyIcon,
   Square2StackIcon,
+  RectangleStackIcon,
   GlobeAltIcon,
   ArrowDownTrayIcon,
   BookOpenIcon,
   CodeBracketSquareIcon,
 } from '@heroicons/react/24/outline';
+import { listNamespaces } from '../api/namespaceApi';
 import './Dashboard.css';
 
 interface Stats {
   installedApps: number;
   contexts: number;
+  namespaces: number;
   nodeStatus: 'online' | 'offline' | 'checking';
   nodeUrl: string;
 }
@@ -29,6 +32,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({
     installedApps: 0,
     contexts: 0,
+    namespaces: 0,
     nodeStatus: 'checking',
     nodeUrl: getAppEndpointKey() || 'Not configured',
   });
@@ -68,7 +72,20 @@ export default function Dashboard() {
         ).length;
       } catch {}
 
-      setStats((prev) => ({ ...prev, nodeStatus, installedApps, contexts }));
+      // Get namespaces count
+      let namespaces = 0;
+      try {
+        const nsList = await listNamespaces();
+        namespaces = Array.isArray(nsList) ? nsList.length : 0;
+      } catch {}
+
+      setStats((prev) => ({
+        ...prev,
+        nodeStatus,
+        installedApps,
+        contexts,
+        namespaces,
+      }));
     };
     load();
   }, []);
@@ -110,6 +127,14 @@ export default function Dashboard() {
           <div className="dash-stat-card" onClick={() => navigate('/contexts')}>
             <div className="dash-stat-value">{stats.contexts}</div>
             <div className="dash-stat-label">Active Contexts</div>
+            <div className="dash-stat-hint">View all →</div>
+          </div>
+          <div
+            className="dash-stat-card"
+            onClick={() => navigate('/namespaces')}
+          >
+            <div className="dash-stat-value">{stats.namespaces}</div>
+            <div className="dash-stat-label">Namespaces</div>
             <div className="dash-stat-hint">View all →</div>
           </div>
           <div
@@ -164,6 +189,16 @@ export default function Dashboard() {
               <span className="dash-action-label">Applications</span>
               <span className="dash-action-desc">
                 Manage installed applications
+              </span>
+            </button>
+            <button
+              className="dash-action-card"
+              onClick={() => navigate('/namespaces')}
+            >
+              <RectangleStackIcon className="dash-action-icon" />
+              <span className="dash-action-label">Namespaces</span>
+              <span className="dash-action-desc">
+                Manage namespaces, groups, and members
               </span>
             </button>
           </div>

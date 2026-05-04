@@ -5,6 +5,7 @@ import {
   ShoppingBagIcon,
   CubeIcon,
   RectangleGroupIcon,
+  RectangleStackIcon,
   KeyIcon,
   DocumentTextIcon,
   ArrowRightStartOnRectangleIcon,
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/applications', label: 'Applications', Icon: CubeIcon },
   { path: '/blobs', label: 'Blobs', Icon: DocumentTextIcon },
   { path: '/contexts', label: 'Contexts', Icon: RectangleGroupIcon },
+  { path: '/namespaces', label: 'Namespaces', Icon: RectangleStackIcon },
   { path: '/identity', label: 'Identity', Icon: KeyIcon },
 ];
 
