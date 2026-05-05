@@ -871,7 +871,6 @@ function NamespaceDetail({
             <button
               className="btn btn-sm"
               disabled
-              title="Not yet supported by node"
               onClick={() => setConfirmLeaveNs(true)}
             >
               Leave Namespace
@@ -1423,7 +1422,6 @@ function GroupDetail({
                     <button
                       className="btn btn-sm"
                       disabled
-                      title="Not yet supported by node"
                       onClick={() => setConfirmLeaveCtx(c.contextId)}
                       style={{ marginLeft: 8 }}
                     >
@@ -1510,7 +1508,6 @@ function GroupDetail({
             <button
               className="btn btn-sm"
               disabled
-              title="Not yet supported by node"
               onClick={() => setConfirmLeaveGroup(true)}
             >
               Leave Group
