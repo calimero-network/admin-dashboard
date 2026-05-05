@@ -1,11 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock calimero-client before importing namespaceApi
-vi.mock('@calimero-network/calimero-client', () => ({
-  getAppEndpointKey: () => 'http://localhost:2428',
-  getAccessToken: () => 'test-token',
-}));
-
 import {
   leaveNamespace,
   leaveGroup,
@@ -14,6 +8,12 @@ import {
   removeGroupMembers,
   addGroupMembers,
 } from '../api/namespaceApi';
+
+// Mock calimero-client before importing namespaceApi
+vi.mock('@calimero-network/calimero-client', () => ({
+  getAppEndpointKey: () => 'http://localhost:2428',
+  getAccessToken: () => 'test-token',
+}));
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
