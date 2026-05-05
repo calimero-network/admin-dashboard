@@ -310,3 +310,20 @@ export async function createContext(
 ): Promise<CreateContextResponseData> {
   return apiPost<CreateContextResponseData>('/admin-api/contexts', req);
 }
+
+// ---- Template stubs (endpoints not yet live on node) ----
+
+/** Leave a namespace you are a member of. */
+export async function leaveNamespace(namespaceId: string): Promise<void> {
+  await apiPost<void>(`/admin-api/namespaces/${namespaceId}/leave`);
+}
+
+/** Leave a group you are a member of. */
+export async function leaveGroup(groupId: string): Promise<void> {
+  await apiPost<void>(`/admin-api/groups/${groupId}/leave`);
+}
+
+/** Leave a context you are a member of. */
+export async function leaveContext(contextId: string): Promise<void> {
+  await apiPost<void>(`/admin-api/contexts/${contextId}/leave`);
+}
