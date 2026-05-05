@@ -870,6 +870,8 @@ function NamespaceDetail({
           ) : (
             <button
               className="btn btn-sm"
+              disabled
+              title="Not yet supported by node"
               onClick={() => setConfirmLeaveNs(true)}
             >
               Leave Namespace
@@ -1311,7 +1313,14 @@ function GroupDetail({
                     </select>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                    <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        gap: 6,
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end',
+                      }}
+                    >
                       {m.role !== 'Admin' && (
                         <button
                           className="btn btn-sm"
@@ -1413,6 +1422,8 @@ function GroupDetail({
                   ) : (
                     <button
                       className="btn btn-sm"
+                      disabled
+                      title="Not yet supported by node"
                       onClick={() => setConfirmLeaveCtx(c.contextId)}
                       style={{ marginLeft: 8 }}
                     >
@@ -1498,6 +1509,8 @@ function GroupDetail({
           ) : (
             <button
               className="btn btn-sm"
+              disabled
+              title="Not yet supported by node"
               onClick={() => setConfirmLeaveGroup(true)}
             >
               Leave Group
