@@ -31,6 +31,9 @@ import {
   createGroupInvitation,
   joinGroup,
   setSubgroupVisibility,
+  leaveNamespace,
+  leaveGroup,
+  leaveContext,
   type Namespace,
   type GroupInfo,
   type GroupMember,
@@ -572,6 +575,8 @@ function NamespaceDetail({
   const [joinJson, setJoinJson] = useState('');
   const [showJoin, setShowJoin] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [confirmLeaveNs, setConfirmLeaveNs] = useState(false);
+  const [leavingNs, setLeavingNs] = useState(false);
 
   const loadGroups = useCallback(async () => {
     setLoadingGroups(true);
@@ -648,6 +653,23 @@ function NamespaceDetail({
       );
     } finally {
       setJoining(false);
+    }
+  };
+
+  const handleLeaveNamespace = async () => {
+    setConfirmLeaveNs(false);
+    setLeavingNs(true);
+    try {
+      await leaveNamespace(ns.namespaceId);
+      showToast('Left namespace', 'success');
+      onBack();
+    } catch (e: unknown) {
+      showToast(
+        e instanceof Error ? e.message : 'Failed to leave namespace',
+        'error',
+      );
+    } finally {
+      setLeavingNs(false);
     }
   };
 
@@ -829,6 +851,30 @@ function NamespaceDetail({
           <button className="btn btn-sm" onClick={() => setShowJoin((v) => !v)}>
             Join Namespace
           </button>
+          {confirmLeaveNs ? (
+            <>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleLeaveNamespace}
+                disabled={leavingNs}
+              >
+                {leavingNs ? 'Leaving…' : 'Confirm Leave'}
+              </button>
+              <button
+                className="btn btn-sm"
+                onClick={() => setConfirmLeaveNs(false)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className="btn btn-sm"
+              onClick={() => setConfirmLeaveNs(true)}
+            >
+              Leave Namespace
+            </button>
+          )}
         </div>
 
         {invitation && (
@@ -935,6 +981,10 @@ function GroupDetail({
   const [joinJson, setJoinJson] = useState('');
   const [showJoin, setShowJoin] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [confirmLeaveGroup, setConfirmLeaveGroup] = useState(false);
+  const [leavingGroup, setLeavingGroup] = useState(false);
+  const [confirmLeaveCtx, setConfirmLeaveCtx] = useState<string | null>(null);
+  const [leavingCtx, setLeavingCtx] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -1049,6 +1099,40 @@ function GroupDetail({
       );
     } finally {
       setJoining(false);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    setConfirmLeaveGroup(false);
+    setLeavingGroup(true);
+    try {
+      await leaveGroup(groupId);
+      showToast('Left group', 'success');
+      onBack();
+    } catch (e: unknown) {
+      showToast(
+        e instanceof Error ? e.message : 'Failed to leave group',
+        'error',
+      );
+    } finally {
+      setLeavingGroup(false);
+    }
+  };
+
+  const handleLeaveContext = async (contextId: string) => {
+    setConfirmLeaveCtx(null);
+    setLeavingCtx(contextId);
+    try {
+      await leaveContext(contextId);
+      showToast('Left context', 'success');
+      setContexts((prev) => prev.filter((c) => c.contextId !== contextId));
+    } catch (e: unknown) {
+      showToast(
+        e instanceof Error ? e.message : 'Failed to leave context',
+        'error',
+      );
+    } finally {
+      setLeavingCtx(null);
     }
   };
 
@@ -1227,32 +1311,54 @@ function GroupDetail({
                     </select>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                    {confirmRemove === m.identity ? (
-                      <span style={{ display: 'inline-flex', gap: 6 }}>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleRemoveMember(m.identity)}
-                          disabled={removing === m.identity}
-                        >
-                          {removing === m.identity ? 'Removing…' : 'Confirm'}
-                        </button>
+                    <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {m.role !== 'Admin' && (
                         <button
                           className="btn btn-sm"
-                          onClick={() => setConfirmRemove(null)}
+                          onClick={() => handleRoleChange(m.identity, 'Admin')}
+                          disabled={updatingRole === m.identity}
+                          title="Promote to Admin"
                         >
-                          Cancel
+                          Promote
                         </button>
-                      </span>
-                    ) : (
-                      <button
-                        className="btn btn-sm"
-                        onClick={() => setConfirmRemove(m.identity)}
-                        title="Remove member"
-                      >
-                        <UserMinusIcon style={{ width: 14, height: 14 }} />
-                        Remove
-                      </button>
-                    )}
+                      )}
+                      {m.role === 'Admin' && (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => handleRoleChange(m.identity, 'Member')}
+                          disabled={updatingRole === m.identity}
+                          title="Demote to Member"
+                        >
+                          Demote
+                        </button>
+                      )}
+                      {confirmRemove === m.identity ? (
+                        <>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleRemoveMember(m.identity)}
+                            disabled={removing === m.identity}
+                          >
+                            {removing === m.identity ? 'Kicking…' : 'Confirm'}
+                          </button>
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => setConfirmRemove(null)}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => setConfirmRemove(m.identity)}
+                          title="Kick member"
+                        >
+                          <UserMinusIcon style={{ width: 14, height: 14 }} />
+                          Kick
+                        </button>
+                      )}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -1285,6 +1391,35 @@ function GroupDetail({
                 </span>
                 {c.alias && <span className="ns-group-alias">{c.alias}</span>}
                 <CopyBtn value={c.contextId} />
+                <span style={{ marginLeft: 'auto' }}>
+                  {confirmLeaveCtx === c.contextId ? (
+                    <>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleLeaveContext(c.contextId)}
+                        disabled={leavingCtx === c.contextId}
+                        style={{ marginLeft: 8 }}
+                      >
+                        {leavingCtx === c.contextId ? 'Leaving…' : 'Confirm'}
+                      </button>
+                      <button
+                        className="btn btn-sm"
+                        onClick={() => setConfirmLeaveCtx(null)}
+                        style={{ marginLeft: 4 }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="btn btn-sm"
+                      onClick={() => setConfirmLeaveCtx(c.contextId)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      Leave
+                    </button>
+                  )}
+                </span>
               </div>
             ))}
           </div>
@@ -1344,6 +1479,30 @@ function GroupDetail({
           <button className="btn btn-sm" onClick={() => setShowJoin((v) => !v)}>
             Join Group
           </button>
+          {confirmLeaveGroup ? (
+            <>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleLeaveGroup}
+                disabled={leavingGroup}
+              >
+                {leavingGroup ? 'Leaving…' : 'Confirm Leave'}
+              </button>
+              <button
+                className="btn btn-sm"
+                onClick={() => setConfirmLeaveGroup(false)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className="btn btn-sm"
+              onClick={() => setConfirmLeaveGroup(true)}
+            >
+              Leave Group
+            </button>
+          )}
         </div>
 
         {invitation && (
