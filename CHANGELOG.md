@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/calimero-network/admin-dashboard/compare/v1.11.0...v1.12.0) (2026-05-05)
+
+
+### Features
+
+* add template management logic ([#144](https://github.com/calimero-network/admin-dashboard/issues/144)) ([da57048](https://github.com/calimero-network/admin-dashboard/commit/da570488a8ad0b8225c8cac6ba32dfa3554c28fd))
+
 # [1.11.0](https://github.com/calimero-network/admin-dashboard/compare/v1.10.0...v1.11.0) (2026-05-04)
 
 
