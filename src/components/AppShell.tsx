@@ -100,8 +100,7 @@ export default function AppShell({ title, children }: AppShellProps) {
           <header className="header">
             <div className="header-title">
               <h1 data-testid="shell-page-title">{title}</h1>
-              {/* `git describe` already yields a leading "v" for tagged builds;
-                  don't add another. */}
+              {/* The resolved version already carries its leading "v". */}
               <span className="version-badge">{DASHBOARD_VERSION}</span>
             </div>
             <NodeStatusIndicator

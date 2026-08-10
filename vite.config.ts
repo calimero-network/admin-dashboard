@@ -5,17 +5,21 @@ import { resolve } from 'path';
 import { execSync } from 'child_process';
 
 /**
- * Build identity for the bundle.
+ * The dashboard's version.
  *
  * `package.json`'s version is not usable: `.releaserc.json` has no
- * `@semantic-release/npm` plugin, so it stays `0.0.0-development`. CI can pass
- * `DASHBOARD_VERSION`; otherwise we stamp `git describe` so a build is always
- * traceable to a commit.
+ * `@semantic-release/npm` plugin, so it stays `0.0.0-development`. CI passes
+ * `DASHBOARD_VERSION` (the version semantic-release is about to publish);
+ * otherwise we fall back to the latest tag.
+ *
+ * Deliberately `--abbrev=0`: just the tag, never `-<n>-g<sha>-dirty`. The UI
+ * shows a version, not a build fingerprint.
  */
 function resolveVersion(): string {
-  if (process.env['DASHBOARD_VERSION']) return process.env['DASHBOARD_VERSION'];
+  const fromEnv = process.env['DASHBOARD_VERSION'];
+  if (fromEnv) return fromEnv.startsWith('v') ? fromEnv : `v${fromEnv}`;
   try {
-    return execSync('git describe --tags --always --dirty', {
+    return execSync('git describe --tags --abbrev=0', {
       stdio: ['ignore', 'pipe', 'ignore'],
     })
       .toString()

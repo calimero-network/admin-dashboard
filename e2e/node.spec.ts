@@ -38,6 +38,38 @@ test.describe('Node page', () => {
     await expect(page.getByText('/ip4/127.0.0.1/tcp/2428')).toBeVisible();
   });
 
+  test('reports lifecycle state from /ready', async ({ page }) => {
+    await expect(page.getByTestId('node-readiness')).toHaveText('ready');
+  });
+
+  test('surfaces a draining node instead of just "unreachable"', async ({
+    page,
+  }) => {
+    // /ready is the only place the Starting / ShuttingDown distinction exists;
+    // /health reports liveness and would still say the process is up.
+    await mockNode(page, { unhealthy: true });
+    await page.goto('/admin-dashboard/node');
+    await expect(page.getByTestId('node-readiness')).toHaveText('ShuttingDown');
+  });
+
+  test('explains why lifecycle control is not offered, with host commands', async ({
+    page,
+  }) => {
+    await expect(
+      page.getByRole('heading', { name: 'Managing this node' }),
+    ).toBeVisible();
+    await expect(page.getByText(/exposes no lifecycle API/)).toBeVisible();
+    await expect(
+      page.getByText(/served by the node it would stop/),
+    ).toBeVisible();
+    // Copyable host commands, not fake in-app buttons.
+    for (const label of ['Stop', 'Start', 'Restart']) {
+      await expect(
+        page.getByRole('button', { name: `Copy ${label} command` }),
+      ).toBeVisible();
+    }
+  });
+
   test('has no process controls', async ({ page }) => {
     // A browser tab cannot start, stop or create a node, and it cannot read
     // merod's log file — core exposes no logs route at all.
@@ -46,10 +78,15 @@ test.describe('Node page', () => {
       'Stop Node',
       'Create New Node',
       'View Logs',
-      'Data Directory',
+      'Swarm Port',
     ]) {
       await expect(page.getByText(forbidden, { exact: false })).toHaveCount(0);
     }
+    // No actionable control either — the only buttons are Refresh and copies.
+    const buttons = await page.getByRole('button').allInnerTexts();
+    expect(buttons.join(' ')).not.toMatch(
+      /\b(Stop|Start|Restart)\b(?! command)/,
+    );
   });
 
   test('degrades panel-by-panel when an endpoint fails', async ({ page }) => {

@@ -64,6 +64,20 @@ async function getJson<T>(path: string): Promise<T> {
   return unwrap<T>(await res.json());
 }
 
+/**
+ * `/ready` answers 503 while the node is Starting or ShuttingDown, and the
+ * lifecycle label we want is in *that* body — so unlike every other panel a
+ * non-OK response here is data, not an error.
+ */
+async function getReadiness(): Promise<string> {
+  const token = getAccessToken();
+  const res = await fetch(`${getAdminApiUrl()}/ready`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  const body = unwrap<{ status?: string }>(await res.json().catch(() => ({})));
+  return body?.status ?? (res.ok ? 'ready' : 'unknown');
+}
+
 function formatBytes(n: number | undefined): string {
   if (!n) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -80,6 +94,7 @@ export default function NodePage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [health, setHealth] = useState<string | null>(null);
+  const [readiness, setReadiness] = useState<string | null>(null);
   const [peers, setPeers] = useState<number | null>(null);
   const [network, setNetwork] = useState<NetworkStatus | null>(null);
   const [usage, setUsage] = useState<NamespaceUsage[] | null>(null);
@@ -96,11 +111,15 @@ export default function NodePage() {
       getJson<{ count?: number }>('/peers'),
       getJson<NetworkStatus>('/network/status'),
       getJson<{ namespaces?: NamespaceUsage[] }>('/usage'),
+      getReadiness(),
     ]);
 
-    const [h, p, n, u] = results;
+    const [h, p, n, u, r] = results;
     if (h.status === 'fulfilled') setHealth(h.value.status ?? 'alive');
     else problems.push(`Health: ${parseApiError(h.reason)}`);
+
+    if (r.status === 'fulfilled') setReadiness(r.value);
+    else problems.push(`Readiness: ${parseApiError(r.reason)}`);
 
     if (p.status === 'fulfilled') setPeers(p.value.count ?? 0);
     else problems.push(`Peers: ${parseApiError(p.reason)}`);
@@ -168,6 +187,19 @@ export default function NodePage() {
                 <Skeleton variant="text" width="60px" />
               ) : (
                 health ?? 'unreachable'
+              )}
+            </span>
+          </div>
+          <div className="node-stat">
+            <span className="node-stat-label">Lifecycle</span>
+            <span
+              className={`node-stat-value ${readiness === 'ready' ? 'ok' : 'warn'}`}
+              data-testid="node-readiness"
+            >
+              {loading ? (
+                <Skeleton variant="text" width="70px" />
+              ) : (
+                readiness ?? '—'
               )}
             </span>
           </div>
@@ -266,6 +298,63 @@ export default function NodePage() {
             <p>Network status unavailable.</p>
           </div>
         )}
+      </section>
+
+      <section className="node-section">
+        <h2 className="node-section-title">Managing this node</h2>
+        <div className="node-card node-manage">
+          <p className="node-manage-lede">
+            Starting, stopping and restarting happen on the host, not from here.
+            Two reasons, both hard:
+          </p>
+          <ol className="node-manage-list">
+            <li>
+              <b>The node exposes no lifecycle API.</b> Its whole admin surface
+              is applications, contexts, namespaces, blobs, identity and these
+              read-only diagnostics. <code>merod</code> stops on a{' '}
+              <code>SIGTERM</code> — an OS signal a browser tab cannot send.
+            </li>
+            <li>
+              <b>This page is served by the node it would stop.</b> Killing it
+              kills the server delivering this UI, and nothing here could start
+              it again — the process that would handle “start” is the one that
+              just exited. Calimero Desktop can do it because it runs as a
+              separate parent process that owns <code>merod</code> as a child.
+            </li>
+          </ol>
+          <p className="node-manage-lede">
+            On the host, with the node’s name and data directory:
+          </p>
+          <div className="node-cmds">
+            {[
+              ['Stop', 'pkill -TERM -f "merod.*--node-name <name>"'],
+              ['Start', 'merod --node-name <name> --home <data-dir> run'],
+              [
+                'Restart',
+                'pkill -TERM -f "merod.*--node-name <name>" && merod --node-name <name> --home <data-dir> run',
+              ],
+            ].map(([label, cmd]) => (
+              <div className="node-cmd" key={label}>
+                <span className="node-cmd-label">{label}</span>
+                <code className="node-cmd-text">{cmd}</code>
+                <button
+                  type="button"
+                  className="node-copy-btn"
+                  title={`Copy ${label} command`}
+                  aria-label={`Copy ${label} command`}
+                  onClick={() => copy(cmd as string, `${label} command`)}
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="node-hint" style={{ padding: '4px 0 0' }}>
+            For multiple nodes on one machine, or live node logs, use Calimero
+            Desktop — it owns the processes and can read the log files it
+            writes.
+          </p>
+        </div>
       </section>
 
       <section className="node-section">

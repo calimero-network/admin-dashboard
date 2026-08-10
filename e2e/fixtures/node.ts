@@ -89,6 +89,14 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
       : json(route, { data: { status: 'alive' } }),
   );
 
+  // /ready answers 503 while Starting/ShuttingDown, and the lifecycle label is
+  // in that body — the Node page treats a non-OK here as data, not an error.
+  await page.route('**/admin-api/ready', (route) =>
+    opts.unhealthy
+      ? json(route, { data: { status: 'ShuttingDown' } }, 503)
+      : json(route, { data: { status: 'ready' } }),
+  );
+
   await page.route('**/admin-api/applications', (route) =>
     json(route, { data: { apps } }),
   );

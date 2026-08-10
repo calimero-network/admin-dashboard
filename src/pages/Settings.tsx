@@ -10,7 +10,7 @@ import {
 } from '../utils/settings';
 import { invalidateMarketplaceCache } from '../utils/marketplaceCache';
 import { getAdminApiUrl, getNodeUrl } from '../utils/nodeUrl';
-import { DASHBOARD_BUILD } from '../utils/version';
+import { DASHBOARD_VERSION } from '../utils/version';
 import './Settings.css';
 
 type Tab = 'general' | 'registries' | 'about';
@@ -267,10 +267,8 @@ export default function SettingsPage() {
               <h2>About</h2>
               <div className="settings-field">
                 <div className="settings-version-row">
-                  <span className="settings-field-label">Dashboard build</span>
-                  <span className="settings-version mono">
-                    {DASHBOARD_BUILD}
-                  </span>
+                  <span className="settings-field-label">Version</span>
+                  <span className="settings-version">{DASHBOARD_VERSION}</span>
                 </div>
                 <div className="settings-version-row">
                   <span className="settings-field-label">Node URL</span>
