@@ -70,6 +70,20 @@ test.describe('Marketplace', () => {
     await expect(modal).toBeHidden();
   });
 
+  test('the version shown belongs to the app that was opened', async ({
+    page,
+  }) => {
+    // Regression guard: fetchAppVersions trusted the registry's ?package=
+    // filter, so an unfiltered response offered another app's versions — the
+    // Mero Blocks modal showed Mero Chat's 1.2.0 and installing it would have
+    // resolved an artifact URL that does not exist for this package.
+    await page.getByTestId('app-card').filter({ hasText: 'Mero Chat' }).click();
+    const modal = page.getByTestId('app-detail-modal');
+    await expect(modal.getByText('com.calimero.merochat')).toBeVisible();
+    await expect(modal).toContainText('1.2.0');
+    await expect(modal).not.toContainText('0.1.1');
+  });
+
   test('empty registry shows the empty state', async ({ page }) => {
     await mockNode(page, { bundles: [] });
     await page.addInitScript(() =>

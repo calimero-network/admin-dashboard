@@ -144,7 +144,13 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
   // A bare array, matching the real contract: GET /api/v2/bundles returns
   // the list directly, not a { bundles } envelope (verified against
   // app-registry's local-server and its own frontend client).
-  await page.route('**/api/v2/bundles**', (route) => json(route, bundles));
+  await page.route('**/api/v2/bundles**', (route) => {
+    // Honour ?package= the way the real registry does, so the version picker
+    // gets this app's versions and not every app's.
+    const pkg = new URL(route.request().url()).searchParams.get('package');
+    const list = pkg ? bundles.filter((b) => b.package === pkg) : bundles;
+    return json(route, list);
+  });
 
   // App frontends opened in a new tab. Registered on the context because a popup
   // is a separate Page — page.route() would not apply to it, and the tab would

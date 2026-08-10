@@ -210,6 +210,11 @@ export async function fetchAppVersions(
     const versions: VersionInfo[] = [];
     for (const bundle of bundlesArray as any[]) {
       const semver = bundle.appVersion as string;
+      // Do not trust the server-side `?package=` filter. A registry, proxy or
+      // cache that ignores it would otherwise have us offer versions belonging
+      // to a DIFFERENT application, and installing one resolves an artifact URL
+      // that does not exist for this package.
+      if (bundle.package !== undefined && bundle.package !== appId) continue;
       if (!VERSION_RE.test(semver)) continue;
       if (bundle.yanked === true) continue;
       if (seen.has(semver)) continue;
