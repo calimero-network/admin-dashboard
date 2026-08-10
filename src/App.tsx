@@ -1,17 +1,25 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import AuthWrapper from './components/AuthWrapper';
+import AppShell from './components/AppShell';
 
-import Identity from './pages/Identity';
-import ApplicationsPage from './pages/Applications';
-import ContextsPage from './pages/Contexts';
-import AddRootKey from './pages/AddRootKey';
-import NotFound from './pages/NotFound';
-import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
 import Dashboard from './pages/Dashboard';
-import NewMarketplace from './pages/NewMarketplace';
+import Marketplace from './pages/Marketplace';
+import ApplicationsPage from './pages/Applications';
 import BlobsPage from './pages/Blobs';
+import ContextsPage from './pages/Contexts';
 import NamespacesPage from './pages/Namespaces';
+import NodePage from './pages/Node';
+import SettingsPage from './pages/Settings';
+import Identity from './pages/Identity';
+import AddRootKey from './pages/AddRootKey';
+import RootKeyProvidersWrapper from './components/keys/RootKeyProvidersWrapper';
+import NotFound from './pages/NotFound';
+
+/** Wrap a page in the shared chrome (sidebar + header + status pill). */
+function Shell({ title, children }: { title: string; children: ReactNode }) {
+  return <AppShell title={title}>{children}</AppShell>;
+}
 
 export default function App() {
   const getBasePath = () => {
@@ -30,13 +38,78 @@ export default function App() {
       <AuthWrapper>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/marketplace" element={<NewMarketplace />} />
-          <Route path="/applications" element={<ApplicationsPage />} />
-          <Route path="/blobs" element={<BlobsPage />} />
-          <Route path="/contexts" element={<ContextsPage />} />
-          <Route path="/namespaces" element={<NamespacesPage />} />
-          <Route path="/identity" element={<Identity />} />
+          <Route
+            path="/dashboard"
+            element={
+              <Shell title="Home">
+                <Dashboard />
+              </Shell>
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <Shell title="Marketplace">
+                <Marketplace />
+              </Shell>
+            }
+          />
+          <Route
+            path="/applications"
+            element={
+              <Shell title="Applications">
+                <ApplicationsPage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/blobs"
+            element={
+              <Shell title="Blobs">
+                <BlobsPage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/contexts"
+            element={
+              <Shell title="Contexts">
+                <ContextsPage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/namespaces"
+            element={
+              <Shell title="Namespaces">
+                <NamespacesPage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/node"
+            element={
+              <Shell title="Node">
+                <NodePage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Shell title="Settings">
+                <SettingsPage />
+              </Shell>
+            }
+          />
+          <Route
+            path="/identity"
+            element={
+              <Shell title="Identity">
+                <Identity />
+              </Shell>
+            }
+          />
           <Route path="/identity/root-key" element={<AddRootKey />} />
           <Route
             path="/identity/root-key/:providerId"

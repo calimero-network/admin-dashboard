@@ -1,0 +1,159 @@
+.data-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--surface-glass-soft);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table thead {
+  background: var(--surface-glass);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.data-table th.sortable {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.data-table th.sortable:hover {
+  background: var(--surface-glass-soft);
+}
+
+.data-table .th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.data-table .sort-indicator {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.data-table th.sortable:hover .sort-indicator {
+  opacity: 1;
+}
+
+.data-table th.sortable.active .sort-indicator {
+  opacity: 1;
+  color: var(--accent-primary);
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.15s;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--surface-glass-soft);
+}
+
+.data-table tbody tr.clickable {
+  cursor: pointer;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.data-table td:first-child {
+  font-weight: 500;
+}
+
+.data-table-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.data-table-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .data-table-container {
+    font-size: 12px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 12px;
+  }
+
+  .data-table th {
+    font-size: 11px;
+  }
+}
+
+/* Compact variant - denser rows for Contexts and Installed Apps */
+.data-table-compact .data-table {
+  font-size: 13px;
+}
+
+.data-table-compact .data-table th {
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+.data-table-compact .data-table td {
+  padding: 8px 12px;
+}
+
+.data-table-compact .table-cell-primary {
+  font-size: 13px;
+}
+
+.data-table-compact .table-cell-secondary {
+  font-size: 12px;
+}
+
+.data-table-compact .button-small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* Responsive compact for smaller screens */
+@media (max-width: 640px) {
+  .data-table {
+    font-size: 11px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 6px 8px;
+  }
+
+  .data-table-compact .data-table th,
+  .data-table-compact .data-table td {
+    padding: 6px 8px;
+  }
+}

@@ -1,0 +1,41 @@
+.scroll-hint-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.scroll-hint {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: linear-gradient(
+    to top,
+    var(--surface-glass-strong) 60%,
+    transparent
+  );
+  color: var(--text-tertiary);
+  font-size: 13px;
+  pointer-events: none;
+  animation: scrollHintPulse 2s ease-in-out infinite;
+}
+
+.scroll-hint svg {
+  flex-shrink: 0;
+}
+
+@keyframes scrollHintPulse {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

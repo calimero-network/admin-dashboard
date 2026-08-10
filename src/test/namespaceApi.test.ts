@@ -113,6 +113,8 @@ describe('updateMemberRole', () => {
     mockFetch.mockReturnValueOnce(okResponse());
     await updateMemberRole('grp-1', 'identity-pub-key', 'Member');
     const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
     expect(JSON.parse(call[1].body)).toEqual({ role: 'Member' });
   });
 
@@ -156,6 +158,8 @@ describe('addGroupMembers', () => {
       members: [{ identity: 'new-key', role: 'Member' }],
     });
     const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
     expect(call[0]).toContain('/admin-api/groups/grp-1/members');
     expect(JSON.parse(call[1].body)).toEqual({
       members: [{ identity: 'new-key', role: 'Member' }],

@@ -2,10 +2,35 @@ import { defineConfig } from 'vitest/config';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { execSync } from 'child_process';
+
+/**
+ * Build identity for the bundle.
+ *
+ * `package.json`'s version is not usable: `.releaserc.json` has no
+ * `@semantic-release/npm` plugin, so it stays `0.0.0-development`. CI can pass
+ * `DASHBOARD_VERSION`; otherwise we stamp `git describe` so a build is always
+ * traceable to a commit.
+ */
+function resolveVersion(): string {
+  if (process.env['DASHBOARD_VERSION']) return process.env['DASHBOARD_VERSION'];
+  try {
+    return execSync('git describe --tags --always --dirty', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim();
+  } catch {
+    return 'dev';
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/admin-dashboard/',
+  define: {
+    __DASHBOARD_VERSION__: JSON.stringify(resolveVersion()),
+  },
   build: {
     outDir: 'build',
     rollupOptions: {
@@ -20,5 +45,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Playwright specs live in e2e/ and must not be collected by vitest.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });

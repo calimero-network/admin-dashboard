@@ -111,7 +111,7 @@ async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${baseUrl()}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? JSON.stringify(body) : null,
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
@@ -142,7 +142,7 @@ async function apiPut<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${baseUrl()}${path}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? JSON.stringify(body) : null,
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

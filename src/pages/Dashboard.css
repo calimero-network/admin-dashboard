@@ -177,3 +177,32 @@
   font-size: 12px;
   color: var(--text-secondary);
 }
+
+/* ── Web additions ──
+   The desktop's home grid relies on `.apps-grid` leaking in from Marketplace.css
+   (both files load globally once bundled). We use an explicit class instead so
+   the two grids can never fight over layout. */
+.home-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* The stat cards are <button>s here (they navigate), so reset button chrome. */
+.dash-stat-card,
+.dash-action-card {
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-page {
+  animation: fadeUp 0.3s ease;
+}
+
+/* The page already sits inside AppShell's scrolling <main>, so it must not add
+   its own padding on top of it. */
+.dashboard-page.page-content {
+  padding: 0;
+  overflow: visible;
+}

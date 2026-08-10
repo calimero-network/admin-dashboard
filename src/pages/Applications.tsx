@@ -1,235 +1,456 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Navigation } from '../components/Navigation';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { apiClient } from '@calimero-network/calimero-client';
-import { parseAppMetadata } from '../utils/metadata';
-import { ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
-import './ApplicationsPage.css';
+import {
+  RefreshCw,
+  MoreHorizontal,
+  Trash2,
+  Copy,
+  ExternalLink,
+} from 'lucide-react';
+import DataTable from '../components/DataTable';
+import ContextMenu from '../components/ContextMenu';
+import Skeleton from '../components/Skeleton';
+import ConfirmAction from './ConfirmAction';
+import { useToast } from '../contexts/ToastContext';
+import { getSettings } from '../utils/settings';
+import {
+  decodeMetadata,
+  appDisplayName,
+  appFrontendUrl,
+  formatSize,
+  parseApiError,
+  type AppMetadata,
+} from '../utils/appUtils';
+import { openAppInNewTab } from '../utils/openApp';
+import './InstalledApps.css';
 
-// Legacy type exports kept for compatibility with old component files
-export interface Application {
+interface InstalledApplication {
   id: string;
-  blob: string;
-  version: string | null;
-  source: string;
-  contract_app_id: string | null;
-  name: string | null;
-  description: string | null;
-  repository: string | null;
-  owner: string | null;
+  name?: string | null;
+  version?: string | null;
+  metadata?: number[] | string;
+  size?: number;
+  source?: string;
 }
 
-export interface Package {
-  id: string;
-  name: string;
-  description: string;
-  repository: string;
-  owner: string;
-  version: string;
-}
-
-export interface Release {
-  version: string;
-  notes: string;
-  path: string;
-  hash: string;
-}
-
-export interface Applications {
-  available: Application[];
-  owned: Application[];
-  installed: Application[];
-}
-
-interface InstalledApp {
-  id: string;
-  source: string;
-  name: string | null;
-  version: string | null;
-  description: string | null;
-}
+/** Keep the skeleton up this long so it never flashes. Matches the desktop. */
+const SKELETON_MIN_MS = 1000;
 
 export default function ApplicationsPage() {
-  const [apps, setApps] = useState<InstalledApp[]>([]);
-  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const [apps, setApps] = useState<InstalledApplication[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [removing, setRemoving] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: 'success' | 'error';
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    app: InstalledApplication;
   } | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [openMenuAppId, setOpenMenuAppId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(
+    null,
+  );
+  const [confirm, setConfirm] = useState<{
+    appId: string;
+    appName: string;
+  } | null>(null);
+  const [uninstalling, setUninstalling] = useState(false);
+  const mounted = useRef(true);
 
-  const showToast = (msg: string, type: 'success' | 'error') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!openMenuAppId) return;
+    const close = () => setOpenMenuAppId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openMenuAppId]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const start = Date.now();
     try {
       const res = await apiClient.node().getInstalledApplications();
       if (res.error) throw new Error(res.error.message);
-      const rawApps =
-        (res.data as any)?.data?.apps ?? (res.data as any)?.apps ?? [];
-      setApps(
-        rawApps.map((a: any) => {
-          const meta = parseAppMetadata(a.metadata);
-          return {
-            id: a.id,
-            source: a.source,
-            name: meta?.applicationName || null,
-            version: meta?.applicationVersion || null,
-            description: meta?.description || null,
-          };
-        }),
-      );
-    } catch (e: any) {
-      setError(e.message);
+      const raw = res.data as
+        | {
+            apps?: InstalledApplication[];
+            data?: { apps?: InstalledApplication[] };
+          }
+        | undefined;
+      const list = raw?.data?.apps ?? raw?.apps ?? [];
+      if (mounted.current) setApps(Array.isArray(list) ? list : []);
+    } catch (e) {
+      if (mounted.current) {
+        setError(parseApiError(e));
+        setApps([]);
+      }
     } finally {
-      setLoading(false);
+      const remaining = SKELETON_MIN_MS - (Date.now() - start);
+      if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
+      if (mounted.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
-  const handleUninstall = async (appId: string) => {
-    setConfirmId(null);
-    setRemoving(appId);
+  /**
+   * Open an app's frontend in a new tab.
+   *
+   * Must stay synchronous: `openAppInNewTab` calls `window.open`, and any
+   * `await` before it spends the user-activation, after which the browser
+   * blocks the tab. (The desktop awaits a token warm-up here; it can, because a
+   * Tauri window is not subject to popup blocking.)
+   */
+  const handleOpen = (frontendUrl: string, app: InstalledApplication) => {
     try {
-      // Check if used by any context
-      const ctxRes = await apiClient.node().getContexts();
-      const usedBy = (
-        (ctxRes.data as any)?.data?.contexts ??
-        (ctxRes.data as any)?.contexts ??
-        []
-      )
-        .filter((c: any) => c.applicationId === appId)
-        .map((c: any) => c.id);
+      openAppInNewTab(frontendUrl, {
+        applicationId: app.id,
+        devMode: getSettings().developerMode,
+      });
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : 'Failed to open application',
+      );
+    }
+  };
 
+  const requestUninstall = (appId: string, appName: string) =>
+    setConfirm({ appId, appName });
+
+  const doUninstall = async () => {
+    if (!confirm) return;
+    const { appId, appName } = confirm;
+    setUninstalling(true);
+    try {
+      // Guard kept from the pre-port dashboard: the node will happily orphan a
+      // context whose application is gone, so refuse while one is still bound.
+      const ctxRes = await apiClient.node().getContexts();
+      const ctxRaw = ctxRes.data as
+        | {
+            contexts?: { applicationId?: string }[];
+            data?: { contexts?: { applicationId?: string }[] };
+          }
+        | undefined;
+      const contexts = ctxRaw?.data?.contexts ?? ctxRaw?.contexts ?? [];
+      const usedBy = contexts.filter((c) => c.applicationId === appId);
       if (usedBy.length > 0) {
-        showToast(
-          `Cannot uninstall: used by ${usedBy.length} context(s)`,
-          'error',
+        toast.error(
+          `Cannot uninstall "${appName}": still used by ${usedBy.length} context(s).`,
         );
         return;
       }
 
       const res = await apiClient.node().uninstallApplication(appId);
       if (res.error) throw new Error(res.error.message);
-      showToast('Application uninstalled', 'success');
+      toast.success(`"${appName}" uninstalled`);
+      setConfirm(null);
       await load();
-    } catch (e: any) {
-      showToast(e.message || 'Uninstall failed', 'error');
+    } catch (e) {
+      toast.error(`Failed to uninstall: ${parseApiError(e)}`);
     } finally {
-      setRemoving(null);
+      setUninstalling(false);
     }
   };
 
+  const handleRowContextMenu = useCallback(
+    (e: React.MouseEvent, app: InstalledApplication) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenu({ x: e.clientX, y: e.clientY, app });
+    },
+    [],
+  );
+
+  const meta = (app: InstalledApplication): AppMetadata | null =>
+    decodeMetadata(app.metadata);
+
+  if (confirm) {
+    return (
+      <ConfirmAction
+        title="Uninstall Application"
+        message="Are you sure you want to uninstall this application? This action cannot be undone."
+        itemName={confirm.appName}
+        actionLabel={uninstalling ? 'Uninstalling…' : 'Uninstall'}
+        onConfirm={doUninstall}
+        onCancel={() => setConfirm(null)}
+        breadcrumbs={[
+          { label: 'Applications', onClick: () => setConfirm(null) },
+          { label: 'Uninstall Application' },
+        ]}
+      />
+    );
+  }
+
   return (
-    <div className="app-shell">
-      <Navigation />
-      <main className="page-content">
-        <div className="page-header">
-          <div className="page-header-left">
-            <h1>Applications</h1>
-            <p>Installed applications on this node</p>
-          </div>
-          <button className="btn" onClick={load} disabled={loading}>
-            <ArrowPathIcon
-              style={{ width: 16, height: 16 }}
-              className={loading ? 'spin' : ''}
-            />
-            Refresh
-          </button>
+    <div className="installed-apps-page">
+      <header className="installed-apps-header">
+        <div>
+          <h1>Applications</h1>
+          <p>Manage the applications installed on this node</p>
         </div>
+        <button
+          onClick={() => void load()}
+          className="installed-refresh-btn"
+          disabled={loading}
+          title="Refresh"
+          aria-label="Refresh"
+        >
+          <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+        </button>
+      </header>
 
-        {toast && (
-          <div className={`alert alert-${toast.type}`}>{toast.msg}</div>
-        )}
-        {error && <div className="alert alert-error">{error}</div>}
+      <main className="installed-apps-main">
+        {error && <div className="error-message">{error}</div>}
 
-        {loading && apps.length === 0 ? (
-          <div className="apps-list">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="app-row app-row-skeleton">
-                <div className="skel-line skel-title" />
-                <div className="skel-line skel-short" />
-              </div>
-            ))}
-          </div>
-        ) : apps.length === 0 ? (
-          <div className="empty-state">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+        {contextMenu &&
+          (() => {
+            const m = meta(contextMenu.app);
+            const name = appDisplayName(contextMenu.app, m);
+            const frontendUrl = appFrontendUrl(m);
+            const items: {
+              label: string;
+              onClick: () => void;
+              danger?: boolean;
+            }[] = [];
+            if (frontendUrl) {
+              items.push({
+                label: 'Open in new tab',
+                onClick: () => handleOpen(frontendUrl, contextMenu.app),
+              });
+            }
+            items.push({
+              label: 'Copy ID',
+              onClick: () => {
+                void navigator.clipboard.writeText(contextMenu.app.id);
+                toast.success('ID copied');
+              },
+            });
+            items.push({
+              label: 'Uninstall',
+              onClick: () => requestUninstall(contextMenu.app.id, name),
+              danger: true,
+            });
+            return (
+              <ContextMenu
+                x={contextMenu.x}
+                y={contextMenu.y}
+                items={items}
+                onClose={() => setContextMenu(null)}
               />
-            </svg>
-            <h3>No applications installed</h3>
-            <p>Visit the Marketplace to install apps on this node.</p>
+            );
+          })()}
+
+        {loading ? (
+          <div className="data-table-container data-table-compact">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '25%' }}>Name</th>
+                  <th style={{ width: '12%' }}>Version</th>
+                  <th style={{ width: '10%' }}>Size</th>
+                  <th style={{ width: '33%' }}>Description</th>
+                  <th style={{ width: '20%' }} />
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i}>
+                    <td>
+                      <Skeleton variant="text" width="60%" height="13px" />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width="45%" height="13px" />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width="55%" height="13px" />
+                    </td>
+                    <td>
+                      <Skeleton variant="text" width="80%" height="13px" />
+                    </td>
+                    <td>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: 6,
+                          justifyContent: 'flex-end',
+                        }}
+                      >
+                        <Skeleton
+                          variant="rectangular"
+                          width="52px"
+                          height="26px"
+                          borderRadius="6px"
+                        />
+                        <Skeleton
+                          variant="rectangular"
+                          width="28px"
+                          height="26px"
+                          borderRadius="6px"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <div className="apps-list">
-            {apps.map((app) => (
-              <div key={app.id} className="app-row">
-                <div className="app-row-icon">
-                  {(app.name || app.id).charAt(0).toUpperCase()}
-                </div>
-                <div className="app-row-info">
-                  <div className="app-row-name">{app.name || app.id}</div>
-                  {app.version && (
-                    <div className="app-row-version">v{app.version}</div>
-                  )}
-                  {app.description && (
-                    <div className="app-row-desc">{app.description}</div>
-                  )}
-                  <div className="app-row-source" title={app.source}>
-                    {app.source}
+          <DataTable
+            data={apps}
+            compact
+            onRowContextMenu={handleRowContextMenu}
+            keyExtractor={(app, index) => app.id || `installed-${index}`}
+            columns={[
+              {
+                key: 'name',
+                label: 'Name',
+                sortable: true,
+                width: '25%',
+                sortValue: (app) => appDisplayName(app, meta(app)),
+                render: (app) => (
+                  <div className="table-cell-name">
+                    <div className="table-cell-primary">
+                      {appDisplayName(app, meta(app))}
+                    </div>
+                    <div className="table-cell-secondary">
+                      ID: {app.id ? `${app.id.substring(0, 16)}…` : 'N/A'}
+                    </div>
                   </div>
-                </div>
-                <div className="app-row-id">
-                  <span title={app.id}>{app.id.slice(0, 16)}…</span>
-                </div>
-                <div className="app-row-actions">
-                  {confirmId === app.id ? (
-                    <>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleUninstall(app.id)}
-                        disabled={removing === app.id}
-                      >
-                        {removing === app.id ? 'Removing...' : 'Confirm'}
-                      </button>
-                      <button
-                        className="btn btn-sm"
-                        onClick={() => setConfirmId(null)}
-                      >
-                        Cancel
-                      </button>
-                    </>
+                ),
+              },
+              {
+                key: 'version',
+                label: 'Version',
+                sortable: true,
+                width: '12%',
+                sortValue: (app) =>
+                  meta(app)?.version ?? app.version ?? 'Unknown',
+                render: (app) => meta(app)?.version ?? app.version ?? 'Unknown',
+              },
+              {
+                key: 'size',
+                label: 'Size',
+                sortable: true,
+                width: '10%',
+                sortValue: (app) => app.size ?? 0,
+                render: (app) => formatSize(app.size),
+              },
+              {
+                key: 'description',
+                label: 'Description',
+                width: '33%',
+                render: (app) => {
+                  const d = meta(app)?.description;
+                  return d ? (
+                    <div className="table-cell-description" title={d}>
+                      {d.length > 80 ? `${d.substring(0, 80)}…` : d}
+                    </div>
                   ) : (
-                    <button
-                      className="btn btn-sm"
-                      onClick={() => setConfirmId(app.id)}
-                      title="Uninstall"
-                    >
-                      <TrashIcon style={{ width: 14, height: 14 }} />
-                      Uninstall
-                    </button>
-                  )}
-                </div>
+                    <span className="table-cell-empty">—</span>
+                  );
+                },
+              },
+              {
+                key: 'actions',
+                label: '',
+                width: '20%',
+                render: (app) => {
+                  const m = meta(app);
+                  const name = appDisplayName(app, m);
+                  const frontendUrl = appFrontendUrl(m);
+                  return (
+                    <div className="table-cell-actions">
+                      {frontendUrl && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpen(frontendUrl, app);
+                          }}
+                          className="btn-open"
+                          data-testid="open-app"
+                          title={`Open ${name} in a new tab`}
+                        >
+                          Open
+                          <ExternalLink size={12} />
+                        </button>
+                      )}
+                      <div
+                        className="app-actions-more"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          className="btn-more"
+                          title="More options"
+                          aria-label="More options"
+                          onClick={(e) => {
+                            const rect =
+                              e.currentTarget.getBoundingClientRect();
+                            setMenuPos({
+                              top: rect.bottom + 4,
+                              right: window.innerWidth - rect.right,
+                            });
+                            setOpenMenuAppId(
+                              openMenuAppId === app.id ? null : app.id,
+                            );
+                          }}
+                        >
+                          <MoreHorizontal size={15} />
+                        </button>
+                        {openMenuAppId === app.id && menuPos && (
+                          <div
+                            className="app-actions-dropdown"
+                            style={{
+                              position: 'fixed',
+                              top: menuPos.top,
+                              right: menuPos.right,
+                            }}
+                          >
+                            <button
+                              className="dropdown-item"
+                              onClick={() => {
+                                setOpenMenuAppId(null);
+                                void navigator.clipboard.writeText(app.id);
+                                toast.success('ID copied');
+                              }}
+                            >
+                              <Copy size={13} />
+                              Copy ID
+                            </button>
+                            <div className="dropdown-divider" />
+                            <button
+                              className="dropdown-item dropdown-item-danger"
+                              onClick={() => {
+                                setOpenMenuAppId(null);
+                                requestUninstall(app.id, name);
+                              }}
+                            >
+                              <Trash2 size={13} />
+                              Uninstall
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                },
+              },
+            ]}
+            emptyMessage={
+              <div className="empty-state">
+                <h3>No applications installed</h3>
+                <p>Visit the Marketplace to install apps on this node.</p>
               </div>
-            ))}
-          </div>
+            }
+          />
         )}
       </main>
     </div>

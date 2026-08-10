@@ -5,19 +5,23 @@
   "type": "module",
   "homepage": "https://calimero-network.github.io/admin-dashboard/",
   "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "deploy": "gh-pages -d build",
     "dev": "vite",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "build": "vite build",
     "lint": "eslint . --ext .ts,.tsx src --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx --fix src",
-    "preview": "vite preview",
     "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d build",
+    "prepare": "husky install",
     "prettier": "exec prettier . --write",
     "prettier:check": "exec prettier . --check",
+    "preview": "vite preview",
     "semantic-release": "semantic-release",
-    "prepare": "husky install"
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "test:e2e:ui": "playwright test --ui",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@calimero-network/calimero-client": "1.25.0-beta.2",
@@ -45,6 +49,7 @@
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "get-starknet-core": "^3.3.2",
+    "lucide-react": "^1.31.0",
     "near-api-js": "^3.0.4",
     "prop-types": "^15.8.1",
     "react": "^18.3.0",
@@ -61,6 +66,7 @@
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
     "@eslint/js": "^9.4.0",
+    "@playwright/test": "^1.62.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -101,6 +107,20 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "e2e/**/*.ts",
+          "playwright.config.ts"
+        ],
+        "rules": {
+          "testing-library/prefer-screen-queries": "off",
+          "testing-library/no-await-sync-queries": "off",
+          "jest/no-conditional-expect": "off",
+          "jest/expect-expect": "off"
+        }
+      }
     ]
   },
   "commitlint": {

@@ -64,7 +64,7 @@ export default function ContentWrapper({
       <div className="login-navbar">
         <div className="logo-container">
           <img
-            src={CalimeroLogo as unknown as string}
+            src={CalimeroLogo}
             alt="Calimero Admin Dashboard Logo"
             className="calimero-logo"
           />

@@ -49,3 +49,8 @@ storybook-static/
 
 # Ignore typescript build output
 *.tsbuildinfo
+
+# Playwright output
+test-results/
+playwright-report/
+blob-report/

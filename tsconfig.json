@@ -34,6 +34,13 @@
     "noPropertyAccessFromIndexSignature": true,
     "types": ["styled-components", "vite/client", "node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "custom.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "e2e/**/*.ts",
+    "custom.d.ts",
+    "playwright.config.ts",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "build"]
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import bs58 from 'bs58';
-import { Navigation } from '../components/Navigation';
 import { apiClient } from '@calimero-network/calimero-client';
 import {
   ArrowPathIcon,
@@ -109,43 +108,38 @@ export default function NamespacesPage() {
   };
 
   return (
-    <div className="app-shell">
-      <Navigation />
-      <main className="page-content">
-        {toast && (
-          <div className={`alert alert-${toast.type} ns-toast`}>
-            {toast.msg}
-          </div>
-        )}
-        {view.type === 'list' && (
-          <NamespaceList
-            onOpen={(ns) => setView({ type: 'namespace', ns })}
-            showToast={showToast}
-          />
-        )}
-        {view.type === 'namespace' && (
-          <NamespaceDetail
-            ns={view.ns}
-            onBack={goBack}
-            onOpenGroup={(groupId) =>
-              setView({ type: 'group', ns: view.ns, groupId })
-            }
-            showToast={showToast}
-          />
-        )}
-        {view.type === 'group' && (
-          <GroupDetail
-            ns={view.ns}
-            groupId={view.groupId}
-            onBack={goBack}
-            onOpenSubgroup={(groupId) =>
-              setView({ type: 'group', ns: view.ns, groupId })
-            }
-            showToast={showToast}
-          />
-        )}
-      </main>
-    </div>
+    <main className="page-content">
+      {toast && (
+        <div className={`alert alert-${toast.type} ns-toast`}>{toast.msg}</div>
+      )}
+      {view.type === 'list' && (
+        <NamespaceList
+          onOpen={(ns) => setView({ type: 'namespace', ns })}
+          showToast={showToast}
+        />
+      )}
+      {view.type === 'namespace' && (
+        <NamespaceDetail
+          ns={view.ns}
+          onBack={goBack}
+          onOpenGroup={(groupId) =>
+            setView({ type: 'group', ns: view.ns, groupId })
+          }
+          showToast={showToast}
+        />
+      )}
+      {view.type === 'group' && (
+        <GroupDetail
+          ns={view.ns}
+          groupId={view.groupId}
+          onBack={goBack}
+          onOpenSubgroup={(groupId) =>
+            setView({ type: 'group', ns: view.ns, groupId })
+          }
+          showToast={showToast}
+        />
+      )}
+    </main>
   );
 }
 
@@ -231,7 +225,7 @@ function NamespaceList({
       await createNamespace({
         applicationId: createAppId.trim(),
         upgradePolicy: createUpgradePolicy,
-        alias: createAlias.trim() || undefined,
+        ...(createAlias.trim() ? { alias: createAlias.trim() } : {}),
       });
       showToast('Namespace created', 'success');
       setShowCreateForm(false);
@@ -601,7 +595,7 @@ function NamespaceDetail({
     setCreatingGroup(true);
     try {
       const result = await createGroupInNamespace(ns.namespaceId, {
-        groupAlias: groupAlias.trim() || undefined,
+        ...(groupAlias.trim() ? { groupAlias: groupAlias.trim() } : {}),
       });
       await setSubgroupVisibility(result.groupId, groupVisibility).catch(
         () => {},
@@ -641,7 +635,7 @@ function NamespaceDetail({
     setJoining(true);
     try {
       const parsed = decodeInvitation(joinJson) as Record<string, unknown>;
-      const invitationPayload = parsed.invitation ?? parsed;
+      const invitationPayload = parsed['invitation'] ?? parsed;
       await joinNamespace(ns.namespaceId, { invitation: invitationPayload });
       showToast('Joined namespace', 'success');
       setShowJoin(false);
@@ -1088,7 +1082,7 @@ function GroupDetail({
     setJoining(true);
     try {
       const parsed = decodeInvitation(joinJson) as Record<string, unknown>;
-      const invitationPayload = parsed.invitation ?? parsed;
+      const invitationPayload = parsed['invitation'] ?? parsed;
       await joinGroup({ invitation: invitationPayload });
       showToast('Joined group', 'success');
       setShowJoin(false);
