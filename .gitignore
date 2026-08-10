@@ -88,3 +88,8 @@ temp/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Live e2e: downloaded merod binary and its output
+/.merod/
+/test-results-live/
+/playwright-report-live/

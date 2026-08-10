@@ -143,3 +143,59 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  e2e-live:
+    name: E2E against a real node
+    runs-on: ubuntu-latest
+    # Boots a real merod, mints a real admin token, and drives install /
+    # namespace / group / delete through the UI. This is what proves the wiring —
+    # request shapes, response envelopes, auth headers — that the mocked suite
+    # can only assume. It caught a bodyless DELETE that failed against every real
+    # node, so it is worth the extra minutes.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm test:e2e:install
+
+      # Cache the merod binary: it is a pinned release asset, so the key only
+      # changes when MEROD_VERSION does.
+      - name: Cache merod
+        id: merod-cache
+        uses: actions/cache@v4
+        with:
+          path: .merod
+          key: merod-${{ runner.os }}-${{ runner.arch }}-0.11.0-rc.20
+
+      - name: Download merod
+        if: steps.merod-cache.outputs.cache-hit != 'true'
+        run: pnpm merod:prepare
+        env:
+          # Unauthenticated GitHub API is 60 req/h per IP, which shared runners
+          # exhaust.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Live E2E
+        run: pnpm test:e2e:live
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-live
+          path: |
+            playwright-report-live/
+            test-results-live/
+          retention-days: 7

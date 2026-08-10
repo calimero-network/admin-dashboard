@@ -123,10 +123,24 @@ async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return (json?.data ?? json) as T;
 }
 
-async function apiDelete<T>(path: string): Promise<T> {
+/**
+ * DELETE with an explicit empty JSON body.
+ *
+ * The node's delete handlers deserialize a JSON body even when they need no
+ * fields from it, so a bodyless DELETE is rejected outright:
+ *
+ *   400 {"error":"JSON syntax error: Failed to parse the request body as JSON:
+ *        EOF while parsing a value at line 1 column 0"}
+ *
+ * Sending `{}` (with the matching Content-Type) satisfies the extractor. Caught
+ * by e2e-live/namespaces.live.spec.ts — every delete on the Namespaces page
+ * silently failed against a real node before this.
+ */
+async function apiDelete<T>(path: string, body: unknown = {}): Promise<T> {
   const res = await fetch(`${baseUrl()}${path}`, {
     method: 'DELETE',
-    headers: { ...authHeader() },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

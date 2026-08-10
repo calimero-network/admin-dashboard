@@ -10,6 +10,7 @@
     "dev": "vite",
     "lint": "eslint . --ext .ts,.tsx src --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx --fix src",
+    "merod:prepare": "node scripts/prepare-merod.mjs",
     "predeploy": "pnpm run build",
     "prepare": "husky install",
     "prettier": "exec prettier . --write",
@@ -19,6 +20,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
+    "test:e2e:live": "playwright test --config playwright.live.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -112,13 +114,16 @@
       {
         "files": [
           "e2e/**/*.ts",
-          "playwright.config.ts"
+          "e2e-live/**/*.ts",
+          "playwright.config.ts",
+          "playwright.live.config.ts"
         ],
         "rules": {
           "testing-library/prefer-screen-queries": "off",
           "testing-library/no-await-sync-queries": "off",
           "jest/no-conditional-expect": "off",
-          "jest/expect-expect": "off"
+          "jest/expect-expect": "off",
+          "jest/valid-expect": "off"
         }
       }
     ]
