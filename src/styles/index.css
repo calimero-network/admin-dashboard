@@ -384,6 +384,19 @@ a {
   min-width: 0;
 }
 
+/*
+ * Pages predating the shell are their own scroll container with their own
+ * padding. Inside AppShell's <main> — which already scrolls and pads — that
+ * nests two scrollbars and doubles the gutter to 56px. Neutralise it here
+ * rather than editing every page, so `.page-content` keeps working for the
+ * routes rendered outside the shell.
+ */
+.main > .page-content {
+  flex: none;
+  overflow: visible;
+  padding: 0;
+}
+
 .page-header {
   margin-bottom: 28px;
   padding-bottom: 20px;

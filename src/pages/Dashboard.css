@@ -199,10 +199,3 @@
 .dashboard-page {
   animation: fadeUp 0.3s ease;
 }
-
-/* The page already sits inside AppShell's scrolling <main>, so it must not add
-   its own padding on top of it. */
-.dashboard-page.page-content {
-  padding: 0;
-  overflow: visible;
-}
