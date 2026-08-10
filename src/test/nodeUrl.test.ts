@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   getNodeUrl,
   getAdminApiUrl,
@@ -21,9 +21,23 @@ function setLocation(href: string) {
   });
 }
 
-describe('getNodeUrl', () => {
+beforeEach(() => {
+  sessionStorage.clear();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+/**
+ * Production: the serving origin is authoritative, because core bakes this
+ * bundle into merod and serves it at `{NODE_PATH_PREFIX}/admin-dashboard/`.
+ * `VITE_NODE_URL` is ignored entirely here, so a stale `.env` can never
+ * redirect a deployed dashboard's API calls or the SSO hash it hands to apps.
+ */
+describe('getNodeUrl (production build)', () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    vi.stubEnv('DEV', false);
   });
 
   it('is the origin that served the dashboard', () => {
@@ -36,12 +50,6 @@ describe('getNodeUrl', () => {
     expect(getNodeUrl()).toBe('http://localhost:2528');
   });
 
-  /**
-   * Core serves the dashboard at `{NODE_PATH_PREFIX}/admin-dashboard/` when the
-   * env var is set (core/crates/server/src/admin/service.rs), and the admin API
-   * moves under the same prefix. Dropping it would send every request to the
-   * wrong path behind a reverse proxy.
-   */
   it('preserves a NODE_PATH_PREFIX', () => {
     setLocation('https://gateway.example/node-a/admin-dashboard/applications');
     expect(getNodeUrl()).toBe('https://gateway.example/node-a');
@@ -53,57 +61,66 @@ describe('getNodeUrl', () => {
     expect(getNodeUrl()).toBe('https://x.example/a/b/c');
   });
 
-  it('uses the dev VITE_NODE_URL only when NOT node-served', () => {
-    // At the vite dev-server root there is no node behind the origin, so the
-    // env fallback is the only usable value.
-    setLocation('http://localhost:5173/');
-    expect(getNodeUrl()).toBe('http://localhost:2528');
-    expect(isDevOverrideActive()).toBe(true);
-  });
-
-  it('lets the serving origin outrank a stale VITE_NODE_URL', () => {
-    // Regression guard: the env var used to win unconditionally in dev, which
-    // pointed every admin-API call — and every SSO hash handed to an app — at
-    // whatever port .env named instead of the node serving the page.
-    setLocation('http://localhost:2999/admin-dashboard/dashboard');
-    expect(getNodeUrl()).toBe('http://localhost:2999');
-    expect(isDevOverrideActive()).toBe(false);
-  });
-
   it('never leaves a trailing slash', () => {
     setLocation('http://localhost:2528/admin-dashboard/');
     expect(getNodeUrl().endsWith('/')).toBe(false);
     expect(getAdminApiUrl()).toBe('http://localhost:2528/admin-api');
   });
-});
 
-describe('dev override', () => {
-  beforeEach(() => {
-    sessionStorage.clear();
-  });
-
-  it('is inactive by default', () => {
-    setLocation('http://localhost:2528/admin-dashboard/dashboard');
+  it('ignores VITE_NODE_URL', () => {
+    setLocation('http://localhost:2528/admin-dashboard/');
+    expect(getNodeUrl()).toBe('http://localhost:2528');
     expect(isDevOverrideActive()).toBe(false);
   });
 
-  it('?nodeUrl= wins and persists for the session', () => {
+  it('still honours an explicit ?nodeUrl=', () => {
     setLocation(
-      'http://localhost:5173/admin-dashboard/?nodeUrl=http://localhost:2528',
+      'http://localhost:2528/admin-dashboard/?nodeUrl=http://other:2529',
     );
+    expect(getNodeUrl()).toBe('http://other:2529');
+  });
+});
+
+/**
+ * Dev: `base: '/admin-dashboard/'` means the DEV SERVER also serves from
+ * /admin-dashboard/, so the path cannot tell dev from node-served — only the
+ * build mode can. A path-based check made `pnpm dev` treat localhost:5173 as the
+ * node and point every admin-API call at the dev server.
+ */
+describe('getNodeUrl (dev server)', () => {
+  beforeEach(() => {
+    vi.stubEnv('DEV', true);
+  });
+
+  it('uses VITE_NODE_URL even on the /admin-dashboard/ path', () => {
+    setLocation('http://localhost:5173/admin-dashboard/dashboard');
     expect(getNodeUrl()).toBe('http://localhost:2528');
     expect(isDevOverrideActive()).toBe(true);
+  });
+
+  it('lets an explicit ?nodeUrl= outrank VITE_NODE_URL', () => {
+    setLocation(
+      'http://localhost:5173/admin-dashboard/?nodeUrl=http://localhost:2529',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:2529');
+  });
+
+  it('?nodeUrl= persists for the session', () => {
+    setLocation(
+      'http://localhost:5173/admin-dashboard/?nodeUrl=http://localhost:2529',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:2529');
 
     // Survives client-side navigation that drops the query string.
     setLocation('http://localhost:5173/admin-dashboard/applications');
-    expect(getNodeUrl()).toBe('http://localhost:2528');
+    expect(getNodeUrl()).toBe('http://localhost:2529');
   });
 
   it('strips a trailing slash from the override', () => {
     setLocation(
-      'http://localhost:5173/admin-dashboard/?nodeUrl=http://localhost:2528/',
+      'http://localhost:5173/admin-dashboard/?nodeUrl=http://localhost:2529/',
     );
-    expect(getNodeUrl()).toBe('http://localhost:2528');
+    expect(getNodeUrl()).toBe('http://localhost:2529');
   });
 });
 

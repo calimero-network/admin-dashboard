@@ -7,6 +7,7 @@ import {
   KeyRound,
   Package,
   Layers,
+  Settings2,
   Globe,
   Download,
   BookOpen,
@@ -18,6 +19,7 @@ import { listNamespaces } from '../api/namespaceApi';
 import { useToast } from '../contexts/ToastContext';
 import { getSettings } from '../utils/settings';
 import { getNodeUrl } from '../utils/nodeUrl';
+import { useNodeStatus } from '../components/AppShell';
 import {
   decodeMetadata,
   appDisplayName,
@@ -74,6 +76,7 @@ const ECOSYSTEM_LINKS = [
 export default function Dashboard() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { state: nodeState, error: nodeError } = useNodeStatus();
   const [stats, setStats] = useState<Stats>({
     installedApps: 0,
     contexts: 0,
@@ -158,11 +161,46 @@ export default function Dashboard() {
   return (
     <div className="page-content dashboard-page">
       <div className="welcome-section">
-        <h2>Welcome to the Calimero Admin Dashboard</h2>
+        <h2>Welcome to Admin Dashboard</h2>
         <p className="welcome-description">
-          Manage the applications, namespaces and identities on{' '}
-          <code>{getNodeUrl()}</code>.
+          Your gateway to decentralized applications. Get started by installing
+          apps from the marketplace.
         </p>
+      </div>
+
+      {/* Node Status card, matching the desktop's home screen. The desktop's
+          "Restart Node" button is deliberately absent: a browser tab cannot
+          start a process. */}
+      <div className="status-cards-simple">
+        <div className="status-card-simple">
+          <div className="status-header-simple">
+            <h3>Node Status</h3>
+            <div
+              className={`status-badge ${nodeState === 'online' ? 'connected' : 'disconnected'}`}
+              data-testid="home-node-status"
+            >
+              <div className="status-dot" />
+              {nodeState === 'checking'
+                ? 'Connecting…'
+                : nodeState === 'online'
+                  ? 'Connected'
+                  : 'Disconnected'}
+            </div>
+          </div>
+          <p className="status-node-url">
+            <code>{getNodeUrl()}</code>
+          </p>
+          {nodeState === 'offline' && (
+            <div className="status-error-block">
+              <p className="status-error">{nodeError ?? 'Node unreachable'}</p>
+              <p className="status-error-hint">
+                This dashboard is served by the node, so it cannot restart it.
+                Check the node process on the host, or manage it with Calimero
+                Desktop.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="dash-stats-grid">
@@ -271,17 +309,27 @@ export default function Dashboard() {
             <Store className="dash-action-icon" />
             <span className="dash-action-label">Browse Marketplace</span>
             <span className="dash-action-desc">
-              Install apps from the registry
+              Discover and install new applications
             </span>
           </button>
           <button
             className="dash-action-card"
-            onClick={() => navigate('/contexts')}
+            onClick={() => navigate('/applications')}
           >
-            <Box className="dash-action-icon" />
-            <span className="dash-action-label">Manage Contexts</span>
+            <Package className="dash-action-icon" />
+            <span className="dash-action-label">Applications</span>
             <span className="dash-action-desc">
-              Create or delete app contexts
+              View and manage your applications
+            </span>
+          </button>
+          <button
+            className="dash-action-card"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings2 className="dash-action-icon" />
+            <span className="dash-action-label">Settings</span>
+            <span className="dash-action-desc">
+              Configure theme, registries, and dashboard settings
             </span>
           </button>
           <button
@@ -292,6 +340,16 @@ export default function Dashboard() {
             <span className="dash-action-label">Namespaces</span>
             <span className="dash-action-desc">
               Manage namespaces, groups, and members
+            </span>
+          </button>
+          <button
+            className="dash-action-card"
+            onClick={() => navigate('/contexts')}
+          >
+            <Box className="dash-action-icon" />
+            <span className="dash-action-label">Manage Contexts</span>
+            <span className="dash-action-desc">
+              Create or delete app contexts
             </span>
           </button>
           <button

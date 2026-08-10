@@ -87,10 +87,15 @@ describe('buildSsoHash', () => {
   });
 
   it('derives node_url through a NODE_PATH_PREFIX', () => {
+    // Production build: the serving origin (plus NODE_PATH_PREFIX) is the node.
+    // Under vitest import.meta.env.DEV is true, which takes the dev branch, so
+    // stub it — see src/test/nodeUrl.test.ts for why mode, not path, decides.
+    vi.stubEnv('DEV', false);
     setLocation('https://host.example/node-a/admin-dashboard/dashboard');
     expect(new URLSearchParams(buildSsoHash()).get('node_url')).toBe(
       'https://host.example/node-a',
     );
+    vi.unstubAllEnvs();
   });
 });
 

@@ -20,10 +20,18 @@
 const DEV_OVERRIDE_KEY = 'calimero-admin-dev-node-url';
 const MARKER = '/admin-dashboard';
 
-/** True when the current path is one core serves this bundle from. */
+/**
+ * Are we being served by a node, or by the vite dev server?
+ *
+ * This is NOT decidable from the path: `base: '/admin-dashboard/'` means the dev
+ * server also serves us from `/admin-dashboard/`, so a path check would make
+ * `pnpm dev` treat localhost:5173 as the node and send every admin-API call to
+ * the dev server. The build mode is the only reliable discriminator — a
+ * production bundle is only ever served by a node (or by `vite preview`, which
+ * deliberately stands in for one).
+ */
 function isNodeServed(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.location.pathname.includes(MARKER);
+  return !import.meta.env.DEV;
 }
 
 /**
@@ -48,15 +56,12 @@ function readExplicitOverride(): string | null {
 }
 
 /**
- * `VITE_NODE_URL`, honoured ONLY in dev and ONLY when we are not node-served.
- *
- * The ordering matters: a stale `.env` must never outrank the origin we were
- * actually loaded from. It once did, and the effect was that every request —
- * and every SSO hash handed to an app — pointed at whatever port `.env`
- * happened to name rather than at the node serving the page.
+ * `VITE_NODE_URL`, honoured only in a dev build. In production the serving
+ * origin is authoritative and this is ignored entirely, so a stale `.env` can
+ * never redirect a deployed dashboard's admin-API calls or the SSO hash it hands
+ * to applications.
  */
 function readEnvFallback(): string | null {
-  if (!import.meta.env.DEV) return null;
   if (isNodeServed()) return null;
   const fromEnv = import.meta.env['VITE_NODE_URL'] as string | undefined;
   return fromEnv && fromEnv.trim() ? fromEnv : null;
@@ -66,7 +71,8 @@ function readEnvFallback(): string | null {
  * The base URL of the node this dashboard administers, without a trailing
  * slash. Append `/admin-api/...` to reach the admin API.
  *
- * Precedence: explicit `?nodeUrl=` > the serving origin > dev `VITE_NODE_URL`.
+ * Precedence: explicit `?nodeUrl=` > the serving origin (production) >
+ * `VITE_NODE_URL` (dev only) > the origin as a last resort.
  */
 export function getNodeUrl(): string {
   const explicit = readExplicitOverride();

@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useCallback, ReactNode } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useContext,
+  createContext,
+  ReactNode,
+} from 'react';
 import Sidebar from './Sidebar';
 import ToastContainer from './ToastContainer';
 import ErrorBoundary from './ErrorBoundary';
@@ -13,6 +20,24 @@ import '../styles/shell.css';
 /** Matches the desktop's 10s health-check interval. */
 const HEALTH_POLL_MS = 10_000;
 const HEALTH_TIMEOUT_MS = 3_000;
+
+interface NodeStatus {
+  state: NodeConnectionState;
+  error: string | null;
+}
+
+/**
+ * The shell already polls health for the header pill; pages that also want to
+ * show connection state read it from here rather than starting a second poll.
+ */
+const NodeStatusContext = createContext<NodeStatus>({
+  state: 'checking',
+  error: null,
+});
+
+export function useNodeStatus(): NodeStatus {
+  return useContext(NodeStatusContext);
+}
 
 interface AppShellProps {
   /** Rendered in the header. */
@@ -86,7 +111,11 @@ export default function AppShell({ title, children }: AppShellProps) {
             />
           </header>
           <main className="main">
-            <ErrorBoundary componentName={title}>{children}</ErrorBoundary>
+            <ErrorBoundary componentName={title}>
+              <NodeStatusContext.Provider value={{ state, error }}>
+                {children}
+              </NodeStatusContext.Provider>
+            </ErrorBoundary>
           </main>
         </div>
       </div>

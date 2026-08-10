@@ -89,6 +89,56 @@ test.describe('App shell', () => {
     }
   });
 
+  test('Home carries the desktop copy with the product name swapped', async ({
+    page,
+  }) => {
+    await page.goto('/admin-dashboard/dashboard');
+    await expect(
+      page.getByRole('heading', { name: 'Welcome to Admin Dashboard' }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/gateway to decentralized applications/),
+    ).toBeVisible();
+    // Never brand this app as the desktop.
+    await expect(page.getByText('Welcome to Calimero Desktop')).toHaveCount(0);
+  });
+
+  test('Home shows the Node Status card, without a Restart control', async ({
+    page,
+  }) => {
+    await page.goto('/admin-dashboard/dashboard');
+    await expect(
+      page.getByRole('heading', { name: 'Node Status' }),
+    ).toBeVisible();
+    await expect(page.getByTestId('home-node-status')).toContainText(
+      'Connected',
+    );
+    // A browser tab cannot start a process, so the desktop's button is absent.
+    await expect(
+      page.getByRole('button', { name: /Restart Node/ }),
+    ).toHaveCount(0);
+  });
+
+  test('Home Quick Actions match the desktop set', async ({ page }) => {
+    await page.goto('/admin-dashboard/dashboard');
+    for (const label of ['Browse Marketplace', 'Applications', 'Settings']) {
+      await expect(
+        page.getByText(label, { exact: true }).first(),
+      ).toBeVisible();
+    }
+    await expect(
+      page.getByText('Discover and install new applications'),
+    ).toBeVisible();
+    await expect(
+      page.getByText('View and manage your applications'),
+    ).toBeVisible();
+  });
+
+  test('the document title is Admin Dashboard', async ({ page }) => {
+    await page.goto('/admin-dashboard/dashboard');
+    await expect(page).toHaveTitle('Admin Dashboard');
+  });
+
   test('404 route renders inside the shell', async ({ page }) => {
     await page.goto('/admin-dashboard/does-not-exist');
     await expect(page.getByText('404')).toBeVisible();

@@ -120,6 +120,8 @@ export default function AuthWrapper({
     return (
       <div className="auth-loading" data-testid="auth-loading">
         <div className="auth-loading-spinner" />
+        <h2>Setting up Admin Dashboard</h2>
+        <p>Checking your node connection and configuration…</p>
       </div>
     );
   }

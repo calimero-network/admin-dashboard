@@ -195,7 +195,7 @@ export default function ApplicationsPage() {
       <header className="installed-apps-header">
         <div>
           <h1>Applications</h1>
-          <p>Manage the applications installed on this node</p>
+          <p>Manage your installed applications</p>
         </div>
         <button
           onClick={() => void load()}
