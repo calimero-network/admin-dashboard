@@ -60,6 +60,11 @@ export interface MockNodeOptions {
     appVersion: string;
     metadata?: Record<string, unknown>;
   }[];
+  /** `GET /admin-api/blobs` — snake_case, exactly as the node returns it. */
+  blobs?: { blob_id: string; size: number }[];
+  /** `GET .../admin/keys` and `.../admin/keys/clients` (SDK adminApi). */
+  rootKeys?: Record<string, unknown>[];
+  clientKeys?: Record<string, unknown>[];
 }
 
 const json = (route: Route, body: unknown, status = 200) =>
@@ -114,6 +119,23 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
 
   await page.route('**/admin-api/peers', (route) =>
     json(route, { data: { count: 3 } }),
+  );
+
+  await page.route('**/admin-api/blobs', (route) =>
+    json(route, { data: { blobs: opts.blobs ?? [] } }),
+  );
+  await page.route('**/admin-api/blobs/*', (route) =>
+    json(route, { data: {} }),
+  );
+
+  // Root keys first, clients second: Playwright resolves in reverse
+  // registration order, so the more specific pattern has to come last or
+  // `admin/keys` swallows `admin/keys/clients`.
+  await page.route('**/admin/keys', (route) =>
+    json(route, { data: opts.rootKeys ?? [] }),
+  );
+  await page.route('**/admin/keys/clients', (route) =>
+    json(route, { data: opts.clientKeys ?? [] }),
   );
 
   await page.route('**/admin-api/network/status', (route) =>
