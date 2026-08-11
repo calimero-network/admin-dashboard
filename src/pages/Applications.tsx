@@ -134,6 +134,14 @@ export default function ApplicationsPage() {
       // Guard kept from the pre-port dashboard: the node will happily orphan a
       // context whose application is gone, so refuse while one is still bound.
       const ctxRes = await apiClient.node().getContexts();
+      // Without this the guard fails open: a failed fetch leaves `contexts` as
+      // [], `usedBy` empty, and the uninstall proceeds as if nothing were bound
+      // — exactly the case the guard exists for.
+      if (ctxRes.error) {
+        throw new Error(
+          `could not check whether "${appName}" is still in use (${ctxRes.error.message})`,
+        );
+      }
       const ctxRaw = ctxRes.data as
         | {
             contexts?: { applicationId?: string }[];

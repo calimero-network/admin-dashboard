@@ -13,6 +13,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job here only reads the repo — nothing comments, tags or publishes. The
+# default token is far broader than that, so pin it down once at the top rather
+# than per job (CodeQL flags each unpinned job separately).
+permissions:
+  contents: read
+
 jobs:
   static:
     name: Lint, format, types

@@ -73,11 +73,45 @@ describe('getNodeUrl (production build)', () => {
     expect(isDevOverrideActive()).toBe(false);
   });
 
-  it('still honours an explicit ?nodeUrl=', () => {
+  it('still honours an explicit ?nodeUrl= pointing at loopback', () => {
     setLocation(
-      'http://localhost:2528/admin-dashboard/?nodeUrl=http://other:2529',
+      'http://localhost:2528/admin-dashboard/?nodeUrl=http://localhost:2529',
     );
-    expect(getNodeUrl()).toBe('http://other:2529');
+    expect(getNodeUrl()).toBe('http://localhost:2529');
+  });
+
+  // A production bundle is only ever served by a real node, so a `?nodeUrl=`
+  // here arrived in a link someone clicked. Honouring it would aim the admin API
+  // — and the access token in the SSO hash handed to opened apps — at whatever
+  // origin the link named.
+  it('refuses a ?nodeUrl= pointing off-box', () => {
+    setLocation(
+      'https://real-node.example/admin-dashboard/?nodeUrl=https://evil.example',
+    );
+    expect(getNodeUrl()).toBe('https://real-node.example');
+    expect(isDevOverrideActive()).toBe(false);
+  });
+
+  it('does not keep serving a rejected override from sessionStorage', () => {
+    setLocation(
+      'https://real-node.example/admin-dashboard/?nodeUrl=https://evil.example',
+    );
+    expect(getNodeUrl()).toBe('https://real-node.example');
+
+    setLocation('https://real-node.example/admin-dashboard/applications');
+    expect(getNodeUrl()).toBe('https://real-node.example');
+  });
+
+  // A loopback override captured while `pnpm dev` was running must not leak into
+  // a production bundle later loaded in the same tab, either — it only survives
+  // because loopback is allowed outright.
+  it('re-checks the stored override on every read', () => {
+    sessionStorage.setItem(
+      'calimero-admin-dev-node-url',
+      'https://evil.example',
+    );
+    setLocation('https://real-node.example/admin-dashboard/');
+    expect(getNodeUrl()).toBe('https://real-node.example');
   });
 });
 

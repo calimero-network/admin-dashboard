@@ -45,22 +45,37 @@ export default function AuthWrapper({
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
     if (encodedAccessToken && encodedRefreshToken) {
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setContextAndIdentityFromJWT(accessToken);
-      fragmentParams.delete('access_token');
-      fragmentParams.delete('refresh_token');
-      const newFragment = fragmentParams.toString();
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname +
-          window.location.search +
-          (newFragment ? `#${newFragment}` : ''),
-      );
-      setState('authenticated');
+      // A malformed hash (bad percent-encoding, an unparseable JWT) throws
+      // synchronously here. `checkAuth` is invoked as `void checkAuth()`, so the
+      // rejection is swallowed, `setState` is never reached and the app sits on
+      // the spinner forever — unrecoverable without hand-editing the URL. Fall
+      // back to the login screen and strip the bad hash so a reload is clean.
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        setContextAndIdentityFromJWT(accessToken);
+        fragmentParams.delete('access_token');
+        fragmentParams.delete('refresh_token');
+        const newFragment = fragmentParams.toString();
+        window.history.replaceState(
+          {},
+          '',
+          window.location.pathname +
+            window.location.search +
+            (newFragment ? `#${newFragment}` : ''),
+        );
+        setState('authenticated');
+      } catch (e) {
+        console.error('Could not adopt tokens from the URL hash:', e);
+        window.history.replaceState(
+          {},
+          '',
+          window.location.pathname + window.location.search,
+        );
+        setState('needs-login');
+      }
       return;
     }
 

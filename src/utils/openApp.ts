@@ -99,6 +99,14 @@ export function buildAppUrl(
   try {
     const u = new URL(frontendUrl);
     u.searchParams.set('_cb', String(now));
+    // Drop any fragment the frontend URL carried. A hash-routed app
+    // (`https://app.example/#/dashboard`) would otherwise yield two `#`, and
+    // since only the first delimits the fragment the SSO params would land
+    // inside the app's route string — the receiving parser looks for
+    // `key=value&…` and finds none, so the hand-off silently fails. Losing the
+    // deep link is the lesser cost: the app strips this fragment once it has
+    // adopted the tokens anyway.
+    u.hash = '';
     return `${u.toString()}#${hash}`;
   } catch {
     // Non-absolute or unparseable frontend URL — append naively rather than

@@ -119,6 +119,16 @@ describe('buildAppUrl', () => {
     expect(url.searchParams.get('_cb')).toBe('1');
   });
 
+  // A hash-routed frontend would otherwise produce two `#`. Only the first
+  // delimits the fragment, so the SSO params would end up inside the app's route
+  // string and its parser — which expects `key=value&…` — would find nothing.
+  it('drops a fragment the frontend URL already carried', () => {
+    const out = buildAppUrl('https://app.example/#/dashboard', {}, 1);
+    expect(out.split('#').length).toBe(2);
+    expect(out).not.toContain('#/dashboard');
+    expect(new URL(out).hash).toContain('access_token=');
+  });
+
   it('still attaches the hash when the URL is unparseable', () => {
     const out = buildAppUrl('not a url', { applicationId: 'a' }, 1);
     expect(out).toContain('#');
