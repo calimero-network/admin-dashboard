@@ -22,8 +22,9 @@ import './Node.css';
  *
  * Note on logs: there is deliberately no logs panel. Core exposes no logs route
  * (the full admin router is in core/crates/server/src/admin/service.rs); the
- * desktop can show logs only because IT spawns merod and tees stdout into a file
- * it then tails. See plan-for-admin-dashboard.md §5.3.
+ * desktop can show logs only because IT spawns merod and tees stdout into
+ * <data_dir>/<node>/logs/merod.log and tails that file. Serving logs here needs
+ * a `GET /admin-api/logs` in core first.
  */
 
 interface NetworkStatus {
