@@ -15,7 +15,6 @@ import {
   UsersIcon,
 } from '@heroicons/react/24/outline';
 import {
-  createContext as createContextApi,
   createGroupInNamespace,
   createGroupInvitation,
   createNamespace,
@@ -45,6 +44,10 @@ import {
   type UpgradePolicy,
 } from '../api/namespaceApi';
 import { namespaceIdFromInvitation } from '../utils/invitations';
+import {
+  CreateContextPanel,
+  type InstalledApp,
+} from '../components/namespaces/CreateContextPanel';
 import { InvitePanel, JoinPanel } from '../components/namespaces/InvitePanel';
 import { MembersSection } from '../components/namespaces/MembersSection';
 import { StructureTree } from '../components/namespaces/StructureTree';
@@ -85,9 +88,22 @@ interface Toast {
   type: 'success' | 'error';
 }
 
-interface InstalledApp {
-  id: string;
-  name: string;
+/**
+ * What to call a namespace.
+ *
+ * A namespace is only named if someone named it — the node stores no default —
+ * so fall back to the APPLICATION it is bound to before showing a raw id. A
+ * namespace exists to run one application, so "Mero Chat" is a true and useful
+ * label; `ns11111111…` is neither. Mirrors the desktop's `nsDisplayName`.
+ */
+export function namespaceLabel(
+  ns: Namespace,
+  installedApps: InstalledApp[],
+): string {
+  if (ns.name) return ns.name;
+  const app = installedApps.find((a) => a.id === ns.targetApplicationId);
+  if (app && app.name !== app.id) return app.name;
+  return truncate(ns.namespaceId, 20);
 }
 
 const UPGRADE_POLICIES: Array<{ value: UpgradePolicy; label: string }> = [
@@ -434,7 +450,7 @@ function NamespaceList({
               }}
             >
               <div className="ns-card-header">
-                <h3>{ns.name || truncate(ns.namespaceId, 20)}</h3>
+                <h3>{namespaceLabel(ns, installedApps)}</h3>
                 <ChevronRightIcon className="ns-card-chevron" />
               </div>
               <div
@@ -482,143 +498,6 @@ function NamespaceList({
         </div>
       )}
     </>
-  );
-}
-
-// ── Create-context form (used by both detail views) ─────────────────────────
-
-function CreateContextPanel({
-  groupId,
-  defaultApplicationId,
-  installedApps,
-  onClose,
-  onCreated,
-  showToast,
-}: {
-  groupId: string;
-  defaultApplicationId: string;
-  installedApps: InstalledApp[];
-  onClose: () => void;
-  onCreated: () => void;
-  showToast: ShowToast;
-}) {
-  const [appId, setAppId] = useState(defaultApplicationId);
-  const [name, setName] = useState('');
-  const [serviceName, setServiceName] = useState('');
-  const [params, setParams] = useState('');
-  const [creating, setCreating] = useState(false);
-
-  const create = async () => {
-    setCreating(true);
-    try {
-      const raw = params.trim() || '{}';
-      let initializationParams: number[];
-      try {
-        initializationParams = Array.from(
-          new TextEncoder().encode(JSON.stringify(JSON.parse(raw))),
-        );
-      } catch {
-        showToast('Initialization params must be valid JSON', 'error');
-        return;
-      }
-      const result = await createContextApi({
-        applicationId: appId.trim(),
-        groupId,
-        initializationParams,
-        ...(name.trim() ? { name: name.trim() } : {}),
-        ...(serviceName.trim() ? { serviceName: serviceName.trim() } : {}),
-      });
-      showToast(`Context created: ${truncate(result.contextId)}`, 'success');
-      onCreated();
-      onClose();
-    } catch (e: unknown) {
-      showToast(errorMessage(e, 'Failed to create context'), 'error');
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  return (
-    <div className="ns-panel" data-testid="ns-create-context-panel">
-      <div className="ns-panel-header">
-        <h3>Create context</h3>
-        <button className="btn btn-sm" onClick={onClose}>
-          Close
-        </button>
-      </div>
-      <p className="ns-muted">
-        A context is a running instance of the application, created inside this
-        group.
-      </p>
-      <div className="ns-form">
-        <label className="ns-form-field">
-          <span>Application</span>
-          <select
-            className="ns-input"
-            value={appId}
-            onChange={(e) => setAppId(e.target.value)}
-          >
-            {/* The group's own application may not be installed under a name we
-                know; keep it selectable regardless. */}
-            {!installedApps.some((a) => a.id === defaultApplicationId) && (
-              <option value={defaultApplicationId}>
-                {truncate(defaultApplicationId)} (this namespace)
-              </option>
-            )}
-            {installedApps.map((app) => (
-              <option key={app.id} value={app.id}>
-                {app.name !== app.id
-                  ? `${app.name} — ${app.id.slice(0, 12)}…`
-                  : app.id}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="ns-form-field">
-          <span>Name (optional)</span>
-          <input
-            className="ns-input"
-            type="text"
-            placeholder="e.g. general"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
-        <label className="ns-form-field">
-          <span>Service (optional — multi-service bundles only)</span>
-          <input
-            className="ns-input"
-            type="text"
-            placeholder="Service name from the bundle"
-            value={serviceName}
-            onChange={(e) => setServiceName(e.target.value)}
-          />
-        </label>
-        <label className="ns-form-field">
-          <span>Initialization params (JSON, optional)</span>
-          <textarea
-            className="ns-input"
-            rows={3}
-            style={{ resize: 'vertical', fontFamily: 'monospace' }}
-            placeholder='{"key": "value"}'
-            value={params}
-            onChange={(e) => setParams(e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="ns-panel-actions">
-        <button
-          className="btn btn-primary"
-          onClick={create}
-          disabled={creating || !appId.trim()}
-        >
-          {creating ? 'Creating…' : 'Create Context'}
-        </button>
-        <button className="btn" onClick={onClose}>
-          Cancel
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -806,13 +685,13 @@ function NamespaceDetail({
     <>
       <div className="page-header">
         <div className="page-header-left">
-          <button className="btn" onClick={onBack} style={{ marginRight: 12 }}>
+          <button className="btn ns-back-btn" onClick={onBack}>
             <ArrowLeftIcon style={{ width: 14, height: 14 }} />
             Back
           </button>
           <div>
             <h1>
-              {ns.name || truncate(ns.namespaceId, 20)}
+              {namespaceLabel(ns, installedApps)}
               <RenameField
                 value={ns.name}
                 placeholder="Namespace name"
@@ -867,6 +746,7 @@ function NamespaceDetail({
               confirmLabel="Confirm leave"
               busyLabel="Leaving…"
               busy={busy}
+              size="md"
               onConfirm={leave}
               icon={
                 <ArrowRightStartOnRectangleIcon
@@ -880,6 +760,7 @@ function NamespaceDetail({
               label="Delete"
               busyLabel="Deleting…"
               busy={busy}
+              size="md"
               onConfirm={removeNamespace}
               icon={<TrashIcon style={{ width: 14, height: 14 }} />}
               title="Delete this namespace, its subgroups and contexts"
@@ -1043,7 +924,7 @@ function NamespaceDetail({
         ) : (
           <StructureTree
             namespaceId={ns.namespaceId}
-            namespaceName={ns.name || truncate(ns.namespaceId, 20)}
+            namespaceName={namespaceLabel(ns, installedApps)}
             tree={tree}
             onOpenGroup={onOpenGroup}
             onDeleteGroup={async (groupId, name) => {
@@ -1190,7 +1071,7 @@ function GroupDetail({
     <>
       <div className="page-header">
         <div className="page-header-left">
-          <button className="btn" onClick={onBack} style={{ marginRight: 12 }}>
+          <button className="btn ns-back-btn" onClick={onBack}>
             <ArrowLeftIcon style={{ width: 14, height: 14 }} />
             Back
           </button>
@@ -1209,7 +1090,7 @@ function GroupDetail({
               <CopyBtn value={groupId} />
               <span className="ns-muted">
                 {' '}
-                in {ns.name || truncate(ns.namespaceId)}
+                in {namespaceLabel(ns, installedApps)}
               </span>
             </p>
           </div>
@@ -1253,6 +1134,7 @@ function GroupDetail({
               confirmLabel="Confirm leave"
               busyLabel="Leaving…"
               busy={busy}
+              size="md"
               onConfirm={async () => {
                 setBusy(true);
                 try {
@@ -1279,6 +1161,7 @@ function GroupDetail({
               label="Delete"
               busyLabel="Deleting…"
               busy={busy}
+              size="md"
               onConfirm={async () => {
                 setBusy(true);
                 try {

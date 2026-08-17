@@ -5,6 +5,7 @@ import {
   installProbeApp,
   uninstallAllApps,
   uniqueName,
+  clearNamespaces,
 } from './fixtures/live';
 
 /**
@@ -34,6 +35,10 @@ test.describe.serial('Live: namespaces', () => {
   let createdNamespaceId = '';
 
   test.beforeAll(async () => {
+    // Arrange our own precondition rather than trusting a sibling spec's
+    // teardown: the first test asserts "no namespaces", and the node is shared
+    // across the whole live run.
+    await clearNamespaces();
     await uninstallAllApps();
     // A namespace targets an application, so one has to exist first. Installed
     // directly rather than through the Marketplace: this spec is about
@@ -44,12 +49,7 @@ test.describe.serial('Live: namespaces', () => {
   test.afterAll(async () => {
     // Best-effort teardown so a rerun starts clean even if a step failed. The
     // node is exclusive to this run, so deleting everything is safe.
-    const { body } = await adminApi<{
-      data?: { namespaceId: string }[];
-    }>('GET', '/namespaces');
-    for (const ns of Array.isArray(body.data) ? body.data : []) {
-      await adminApi('DELETE', `/namespaces/${ns.namespaceId}`);
-    }
+    await clearNamespaces();
     await uninstallAllApps();
   });
 

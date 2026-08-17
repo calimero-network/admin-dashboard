@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { APP_WITH_FRONTEND, mockNode } from './fixtures/node';
+import { ABI_WITH_INIT, APP_WITH_FRONTEND, mockNode } from './fixtures/node';
 
 /**
  * Namespaces is now the only place the group hierarchy is managed — the
@@ -184,6 +184,107 @@ test.describe('Namespaces', () => {
     // The name key core reads is `groupName`; sending only `name` (what the JS
     // SDK does) is silently dropped and the subgroup comes back unnamed.
     expect(body).toMatchObject({ groupName: 'design', visibility: 'open' });
+  });
+
+  test('the create-context form is generated from the application ABI', async ({
+    page,
+  }) => {
+    // Creating a context runs the app's `init`. Get its params wrong and the
+    // node answers a bare 500 with no reason, so the form is built from the
+    // ABI rather than from a free-text JSON box the user has to guess at.
+    await mockNode(page, {
+      ...FIXTURE,
+      abis: { [APP_WITH_FRONTEND.id]: ABI_WITH_INIT },
+    });
+    await page.goto('/admin-dashboard/namespaces');
+    await page.getByTestId('ns-card').click();
+    await page.getByRole('button', { name: /Create Context/ }).click();
+
+    const panel = page.getByTestId('ns-create-context-panel');
+    await expect(panel).toContainText(
+      'init(name: string, context_type: Channel | Dm, created_at: u64)',
+    );
+    await expect(page.getByTestId('ns-init-field-name')).toBeVisible();
+    // A payload-free variant becomes a select of its cases.
+    await expect(
+      page.getByTestId('ns-init-field-context_type').locator('select'),
+    ).toContainText('Channel');
+
+    // Every param is sent, so `{}` can no longer reach the node by accident.
+    let body: Record<string, unknown> | null = null;
+    await page.route('**/admin-api/contexts', async (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      body = route.request().postDataJSON();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: { contextId: 'ctxNew', memberPublicKey: 'pk' },
+        }),
+      });
+    });
+
+    await page
+      .getByTestId('ns-init-field-name')
+      .locator('input')
+      .fill('general');
+    await page
+      .getByTestId('ns-init-field-created_at')
+      .locator('input')
+      .fill('7');
+    await panel.getByRole('button', { name: 'Create Context' }).click();
+
+    await expect(page.getByText(/Context created/)).toBeVisible();
+    const sent = JSON.parse(
+      new TextDecoder().decode(
+        new Uint8Array((body as any).initializationParams),
+      ),
+    );
+    expect(sent).toEqual({
+      name: 'general',
+      context_type: 'Channel',
+      created_at: 7,
+    });
+  });
+
+  test('an app with no ABI falls back to a raw JSON editor', async ({
+    page,
+  }) => {
+    // A raw-wasm app publishes no ABI; the node answers 404 and the form has
+    // nothing to generate from, so it must not pretend otherwise.
+    await mockNode(page, FIXTURE);
+    await page.goto('/admin-dashboard/namespaces');
+    await page.getByTestId('ns-card').click();
+    await page.getByRole('button', { name: /Create Context/ }).click();
+
+    const panel = page.getByTestId('ns-create-context-panel');
+    await expect(panel).toContainText('publishes no ABI');
+    await expect(panel.getByLabel('Initialization params JSON')).toBeVisible();
+  });
+
+  test('a namespace with no name of its own is labelled by its application', async ({
+    page,
+  }) => {
+    await mockNode(page, {
+      ...FIXTURE,
+      namespaces: [
+        {
+          namespaceId: NS_ID,
+          targetApplicationId: APP_WITH_FRONTEND.id,
+          memberCount: 0,
+          contextCount: 0,
+          subgroupCount: 0,
+        },
+      ],
+    });
+    await page.goto('/admin-dashboard/namespaces');
+
+    // A namespace exists to run one application, so its name is a true and
+    // useful label — far better than the raw id the title used to show. The id
+    // is still on the card, just no longer standing in for a name.
+    await expect(page.getByTestId('ns-card').getByRole('heading')).toHaveText(
+      'Mero Blocks',
+    );
   });
 
   test('empty state explains what a namespace is for', async ({ page }) => {

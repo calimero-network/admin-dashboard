@@ -195,6 +195,31 @@ export async function uninstallAllApps(): Promise<void> {
   }
 }
 
+/**
+ * Delete every namespace on the node, contexts first.
+ *
+ * `DELETE /namespaces/:id` does NOT cascade over contexts — a namespace that
+ * still holds one survives the delete, silently, and the leftover then breaks
+ * whichever spec asserts on a clean node. Contexts are addressed through their
+ * group, so they have to be enumerated per namespace.
+ */
+export async function clearNamespaces(): Promise<void> {
+  const { body } = await adminApi<{ data?: { namespaceId: string }[] }>(
+    'GET',
+    '/namespaces',
+  );
+  for (const ns of body.data ?? []) {
+    const { body: ctxs } = await adminApi<{ data?: { contextId: string }[] }>(
+      'GET',
+      `/groups/${ns.namespaceId}/contexts`,
+    );
+    for (const ctx of ctxs.data ?? []) {
+      await adminApi('DELETE', `/contexts/${ctx.contextId}`);
+    }
+    await adminApi('DELETE', `/namespaces/${ns.namespaceId}`);
+  }
+}
+
 /** A name unique to this run, so reruns never collide on the shared node. */
 export function uniqueName(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -212,9 +237,15 @@ export async function adminApi<T>(
     extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` },
   });
   try {
+    // DELETE always carries a body, even an empty one: the node's delete
+    // handlers deserialize a JSON body they take no fields from, so a bodyless
+    // DELETE is rejected with `400 EOF while parsing a value`. Without this the
+    // teardown helpers here fail silently and leave state behind for the next
+    // spec — which is how a suite starts depending on run order.
+    const data = body === undefined && method === 'DELETE' ? {} : body;
     const res = await ctx.fetch(`/admin-api${path}`, {
       method,
-      ...(body === undefined ? {} : { data: body }),
+      ...(data === undefined ? {} : { data }),
     });
     const text = await res.text();
     return {

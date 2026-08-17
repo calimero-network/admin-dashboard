@@ -21,6 +21,7 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "test:e2e:live": "playwright test --config playwright.live.config.ts",
+    "test:e2e:merobox": "playwright test --config playwright.merobox.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -115,8 +116,10 @@
         "files": [
           "e2e/**/*.ts",
           "e2e-live/**/*.ts",
+          "e2e-merobox/**/*.ts",
           "playwright.config.ts",
-          "playwright.live.config.ts"
+          "playwright.live.config.ts",
+          "playwright.merobox.config.ts"
         ],
         "rules": {
           "testing-library/prefer-screen-queries": "off",

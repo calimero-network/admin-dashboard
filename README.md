@@ -13,6 +13,32 @@ pnpm dev
 pnpm build
 ```
 
+## Tests
+
+Three layers, each proving something the one before it cannot.
+
+```bash
+pnpm test              # unit (vitest)
+pnpm test:e2e          # UI, node mocked with page.route
+pnpm test:e2e:live     # ONE real merod
+pnpm test:e2e:merobox  # TWO real merods, in Docker
+```
+
+- **`test:e2e`** — fast and hermetic. Proves the UI: what renders, what the
+  forms send. It assumes the node's request/response shapes, because it is the
+  one writing them.
+- **`test:e2e:live`** — boots a real `merod` (`pnpm merod:prepare` fetches a
+  pinned release), mints a real admin token, and drives the UI against it.
+  Proves the wiring the mocks can only assume — request shapes, response
+  envelopes, auth headers. It is what catches a field the node does not read,
+  or an envelope unwrapped the wrong way, both of which fail silently.
+- **`test:e2e:merobox`** — boots two nodes with
+  [merobox](https://pypi.org/project/merobox/) (`pip install merobox`, needs
+  Docker), the same harness core uses for its own multi-node e2e. Proves the
+  one thing a single node cannot: **membership**. An invitation is a claim
+  about somebody else's node, so with one node an invite/join test can neither
+  fail nor pass. Set `MEROBOX_KEEP=1` to leave the cluster up for poking at.
+
 ## Release Process
 
 This project uses semantic releases. When you merge to `main`, it automatically:

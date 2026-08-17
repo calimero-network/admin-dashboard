@@ -40,6 +40,34 @@ export const APP_WITH_FRONTEND: MockApp = {
   metadata: metadataBytes(bundleMetadata()),
 };
 
+/**
+ * A minimal ABI whose `init` takes one parameter of each shape the form has a
+ * control for: a string, a payload-free variant (→ select) and an integer.
+ * Mirrors the shape core emits (`crates/wasm-abi/src/schema.rs`), which is
+ * snake_case unlike the camelCase admin API around it.
+ */
+export const ABI_WITH_INIT = {
+  schema_version: 'wasm-abi/1',
+  types: {
+    ContextType: {
+      kind: 'variant',
+      variants: [{ name: 'Channel' }, { name: 'Dm' }],
+    },
+  },
+  methods: [
+    {
+      name: 'init',
+      params: [
+        { name: 'name', type: { kind: 'string' } },
+        { name: 'context_type', type: { $ref: 'ContextType' } },
+        { name: 'created_at', type: { kind: 'u64' } },
+      ],
+      returns: { kind: 'unit' },
+    },
+    { name: 'send', params: [{ name: 'text', type: { kind: 'string' } }] },
+  ],
+};
+
 /** An app whose bundle declared no frontend — must render without an Open button. */
 export const APP_WITHOUT_FRONTEND: MockApp = {
   id: 'AppNoFrontend22222222222222222222222222222',
@@ -72,6 +100,12 @@ export interface MockNodeOptions {
    * root entry is keyed by the namespace id.
    */
   groups?: Record<string, MockGroup>;
+  /**
+   * `GET /admin-api/applications/:id/abi`, keyed by application id. The
+   * create-context form is generated from this; an app with no entry answers
+   * 404, which is the real "raw wasm, no embedded ABI" case.
+   */
+  abis?: Record<string, unknown>;
 }
 
 export interface MockNamespace {
@@ -140,6 +174,18 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
       return json(route, { data: {} });
     }
     return json(route, { data: {} });
+  });
+
+  // AFTER `applications/*`, so it wins: Playwright resolves routes in reverse
+  // registration order, and `applications/*` also matches `.../abi`.
+  await page.route('**/admin-api/applications/*/abi**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const id = /\/applications\/([^/]+)\/abi/.exec(path)?.[1];
+    const abi = id ? opts.abis?.[id] : undefined;
+    // 404 is how the node reports an application with no embedded ABI.
+    return abi
+      ? json(route, { data: abi })
+      : json(route, { error: 'no abi' }, 404);
   });
 
   await page.route('**/admin-api/contexts', (route) =>

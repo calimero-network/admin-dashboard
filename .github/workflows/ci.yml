@@ -205,3 +205,68 @@ jobs:
             playwright-report-live/
             test-results-live/
           retention-days: 7
+
+  e2e-merobox:
+    name: E2E across two real nodes
+    runs-on: ubuntu-latest
+    # The only suite that can prove membership. An invitation is a claim about
+    # somebody ELSE's node, so with a single node an invite/join test cannot
+    # fail — and therefore cannot pass either. merobox boots two merods in
+    # Docker (the same harness core uses for its own multi-node e2e) and the
+    # dashboard is driven against each in turn.
+    #
+    # Needs egress twice over: the merod image, and the application bundle the
+    # node downloads from the registry.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # From PyPI, not the apt repo: the Calimero apt repo 404s, which fails
+      # every job identically at the install step and reads like a contract
+      # break rather than a packaging problem.
+      - name: Install merobox
+        run: pip install merobox
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm test:e2e:install
+
+      - name: Multi-node E2E
+        run: pnpm test:e2e:merobox
+
+      - name: Node logs
+        if: failure()
+        run: |
+          for c in $(docker ps -a --filter name=admindash-e2e --format '{{.Names}}'); do
+            echo "::group::$c"
+            docker logs --tail 400 "$c" || true
+            echo "::endgroup::"
+          done
+
+      - name: Stop the cluster
+        if: always()
+        run: merobox stop --all || true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-merobox
+          path: |
+            playwright-report-merobox/
+            test-results-merobox/
+          retention-days: 7

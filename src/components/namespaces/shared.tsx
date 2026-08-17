@@ -50,22 +50,29 @@ export function ConfirmButton({
   onConfirm,
   icon,
   title,
+  size = 'sm',
 }: {
   label: string;
   confirmLabel?: string;
   busyLabel?: string;
-  busy?: boolean;
-  disabled?: boolean;
+  busy?: boolean | undefined;
+  disabled?: boolean | undefined;
   onConfirm: () => void;
   icon?: React.ReactNode;
   title?: string;
+  /**
+   * `md` matches the plain `.btn` used by the page-header actions. Without it
+   * Delete/Leave rendered a size smaller than the buttons they sit beside.
+   */
+  size?: 'sm' | 'md';
 }) {
   const [armed, setArmed] = useState(false);
+  const sizeClass = size === 'sm' ? ' btn-sm' : '';
 
   if (!armed) {
     return (
       <button
-        className="btn btn-sm"
+        className={`btn${sizeClass}`}
         onClick={() => setArmed(true)}
         disabled={disabled}
         title={title ?? label}
@@ -78,14 +85,14 @@ export function ConfirmButton({
   return (
     <>
       <button
-        className="btn btn-danger btn-sm"
+        className={`btn btn-danger${sizeClass}`}
         onClick={onConfirm}
         disabled={busy}
       >
         {busy ? busyLabel : confirmLabel}
       </button>
       <button
-        className="btn btn-sm"
+        className={`btn${sizeClass}`}
         onClick={() => setArmed(false)}
         disabled={busy}
       >

@@ -279,14 +279,32 @@
   overflow: hidden;
 }
 
+/* ── Back button ── */
+
+/*
+ * The back button sits on its own line above the title, so it needs the gap
+ * itself — as an inline-flex button it contributes no bottom spacing.
+ */
+.ns-back-btn {
+  margin-bottom: 14px;
+}
+
 /* ── Panels (create / join / invite forms) ── */
 
+/*
+ * Sized like the desktop app's modals (`ns-modal` / `ns-modal-body` in
+ * tauri-app): a capped width so a form does not stretch across a wide screen,
+ * and real padding — 20px around a 16px-gapped body — instead of the cramped
+ * card these used to be.
+ */
 .ns-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-bottom: 16px;
+  border-radius: 12px;
+  padding: 20px 24px 24px;
+  margin-bottom: 20px;
+  max-width: 640px;
+  box-shadow: var(--shadow-md);
   animation: slideUp 0.25s ease;
 }
 
@@ -295,20 +313,27 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .ns-panel-header h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.ns-panel > .ns-muted {
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
 
 .ns-panel-actions {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .ns-form {
@@ -665,9 +690,8 @@
 
 .ns-invitation-box {
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   overflow: hidden;
-  margin-top: 8px;
 }
 
 .ns-invitation-header {
@@ -675,21 +699,75 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: var(--bg-primary);
   font-size: 12px;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Matches the desktop's `.ns-invite-payload`: a code is one long unbroken
+   string, so it has to wrap mid-token or it renders as a single clipped line. */
 .ns-invitation-textarea {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: var(--bg-secondary);
   border: none;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
+  line-height: 1.6;
+  word-break: break-all;
   resize: vertical;
+}
+
+/* ── ABI-driven init block (create context) ── */
+
+.ns-init-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.ns-init-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ns-init-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ns-init-signature {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+  word-break: break-word;
+}
+
+.ns-field-name {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+}
+
+.ns-field-type {
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.ns-init-error {
+  margin-top: 16px;
+  line-height: 1.5;
 }
