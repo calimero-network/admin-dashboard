@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process';
+import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { promisify } from 'node:util';
 import { request, type APIRequestContext, type Page } from '@playwright/test';
 
@@ -121,6 +121,24 @@ export async function discoverNodes(): Promise<MeroboxNode[]> {
   return nodes.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * The `merobox run` process, held for the lifetime of the suite.
+ *
+ * `merobox run` is NOT "create detached containers and return" — it owns the
+ * cluster for as long as it lives and tears it down on the way out:
+ *
+ *     Deployment Summary: 2/2 nodes started successfully
+ *     Stopping managed containers with graceful shutdown...
+ *     ✓ Gracefully stopped and removed admindash-e2e-1
+ *
+ * Awaiting it therefore guaranteed an empty cluster by the time the first test
+ * ran, which is exactly what CI showed: merobox reporting 2/2 started, and
+ * `docker ps -a` listing only the two exited init containers. There is no
+ * `--detach`, so the process has to be kept alive instead — the same shape as
+ * a Playwright `webServer`.
+ */
+let clusterProcess: ChildProcess | null = null;
+
 export async function startCluster(): Promise<MeroboxNode[]> {
   // Idempotent: a cluster left over from an interrupted run is reused rather
   // than colliding on container names.
@@ -135,27 +153,61 @@ export async function startCluster(): Promise<MeroboxNode[]> {
   // with `409 Conflict … name already in use` — and merobox keeps going and
   // exits 0, so the cluster comes up one node short and the failure only
   // surfaces later as "cluster is not running".
-  await exec('docker', ['rm', '-f', ...(await staleInitContainers())]).catch(
-    () => undefined,
-  );
-
-  const output = await merobox([
-    'run',
-    '-c',
-    String(NODE_COUNT),
-    '--prefix',
-    PREFIX,
-  ]);
-  const nodes = await discoverNodes();
-  if (nodes.length < NODE_COUNT) {
-    // Carry merobox's own words and Docker's view into the message: without
-    // them this is unactionable, and the run that produced it is gone.
-    throw new Error(
-      `merobox started ${nodes.length}/${NODE_COUNT} nodes.\n` +
-        `--- merobox output ---\n${output}\n` +
-        `--- docker ps -a ---\n${await dockerState()}`,
-    );
+  const stale = await staleInitContainers();
+  if (stale.length) {
+    await exec('docker', ['rm', '-f', ...stale]).catch(() => undefined);
   }
+
+  const log: string[] = [];
+  clusterProcess = spawn(
+    'merobox',
+    ['run', '-c', String(NODE_COUNT), '--prefix', PREFIX],
+    {
+      // stdin stays an OPEN pipe we never write to or close. Handing merobox a
+      // closed stdin is itself a reason for it to wind down, and we want it to
+      // sit there holding the cluster until teardown.
+      stdio: ['pipe', 'pipe', 'pipe'],
+      detached: false,
+    },
+  );
+  const record = (chunk: Buffer) => {
+    const text = chunk.toString();
+    log.push(text);
+    process.stdout.write(`[merobox] ${text}`);
+  };
+  clusterProcess.stdout?.on('data', record);
+  clusterProcess.stderr?.on('data', record);
+
+  let processExited: number | null = null;
+  clusterProcess.on('exit', (code) => {
+    processExited = code ?? -1;
+  });
+  clusterProcess.on('error', (e) => log.push(`spawn error: ${e.message}`));
+
+  // Readiness is the containers appearing, not the command returning — it
+  // never returns while things are working.
+  const deadline = Date.now() + 300_000;
+  let nodes: MeroboxNode[] = [];
+  for (;;) {
+    nodes = await discoverNodes();
+    if (nodes.length >= NODE_COUNT) break;
+    if (processExited !== null) {
+      throw new Error(
+        `merobox exited (code ${processExited}) with ${nodes.length}/${NODE_COUNT} ` +
+          `nodes up.\n--- merobox output ---\n${log.join('')}\n` +
+          `--- docker ps -a ---\n${await dockerState()}`,
+      );
+    }
+    if (Date.now() > deadline) {
+      throw new Error(
+        `merobox brought up ${nodes.length}/${NODE_COUNT} nodes within 5min.\n` +
+          `--- merobox output ---\n${log.join('')}\n` +
+          `--- docker ps -a ---\n${await dockerState()}`,
+      );
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+
   await Promise.all(nodes.map((n) => waitForHealth(n)));
   return nodes;
 }
@@ -181,6 +233,14 @@ async function staleInitContainers(): Promise<string[]> {
 
 export async function stopCluster(): Promise<void> {
   // Never fail teardown: a stop error must not turn a green run red.
+  //
+  // Both halves matter. Killing the process makes merobox run its own graceful
+  // shutdown; `stop --all` covers the case where this process is not the one
+  // that started the cluster (a reused cluster, or a previous run's leftovers).
+  if (clusterProcess && clusterProcess.exitCode === null) {
+    clusterProcess.kill('SIGTERM');
+  }
+  clusterProcess = null;
   await merobox(['stop', '--all'], 120_000).catch(() => '');
 }
 

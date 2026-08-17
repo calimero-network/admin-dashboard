@@ -39,6 +39,11 @@ pnpm test:e2e:merobox  # TWO real merods, in Docker
   about somebody else's node, so with one node an invite/join test can neither
   fail nor pass. Set `MEROBOX_KEEP=1` to leave the cluster up for poking at.
 
+  This one runs from the **Actions tab** (workflow_dispatch) and nightly, not
+  on pull requests — the harness is still being brought up, and a check that
+  has never been green does not belong in front of every PR. Move it back into
+  `ci.yml` once it has passed a few times.
+
 ## Release Process
 
 This project uses semantic releases. When you merge to `main`, it automatically:
