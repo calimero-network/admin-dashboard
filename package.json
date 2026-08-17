@@ -122,11 +122,12 @@
           "playwright.merobox.config.ts"
         ],
         "rules": {
-          "testing-library/prefer-screen-queries": "off",
-          "testing-library/no-await-sync-queries": "off",
-          "jest/no-conditional-expect": "off",
           "jest/expect-expect": "off",
-          "jest/valid-expect": "off"
+          "jest/no-conditional-expect": "off",
+          "jest/valid-expect": "off",
+          "testing-library/await-async-utils": "off",
+          "testing-library/no-await-sync-queries": "off",
+          "testing-library/prefer-screen-queries": "off"
         }
       }
     ]

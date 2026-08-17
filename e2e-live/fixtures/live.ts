@@ -195,13 +195,46 @@ export async function uninstallAllApps(): Promise<void> {
   }
 }
 
+/** Guard against a cyclic group graph; deeper than any test builds. */
+const MAX_GROUP_DEPTH = 8;
+
 /**
- * Delete every namespace on the node, contexts first.
+ * Delete a group's contexts, then its subgroups' — depth first.
  *
- * `DELETE /namespaces/:id` does NOT cascade over contexts — a namespace that
- * still holds one survives the delete, silently, and the leftover then breaks
- * whichever spec asserts on a clean node. Contexts are addressed through their
- * group, so they have to be enumerated per namespace.
+ * Contexts are addressed through the group that holds them, and a subgroup's
+ * contexts are invisible from the namespace root, so the tree has to be walked
+ * rather than queried once.
+ */
+async function clearGroupTree(groupId: string, depth = 0): Promise<void> {
+  const { body: ctxs } = await adminApi<{ data?: { contextId: string }[] }>(
+    'GET',
+    `/groups/${groupId}/contexts`,
+  );
+  for (const ctx of ctxs.data ?? []) {
+    await adminApi('DELETE', `/contexts/${ctx.contextId}`);
+  }
+  if (depth >= MAX_GROUP_DEPTH) return;
+  const { body: subs } = await adminApi<{ subgroups?: { groupId: string }[] }>(
+    'GET',
+    `/groups/${groupId}/subgroups`,
+  );
+  for (const sub of subs.subgroups ?? []) {
+    await clearGroupTree(sub.groupId, depth + 1);
+    await adminApi('DELETE', `/groups/${sub.groupId}`);
+  }
+}
+
+/**
+ * Delete every namespace on the node, emptying each one first.
+ *
+ * `DELETE /namespaces/:id` does NOT cascade — a namespace that still holds a
+ * context survives the delete, silently, and the leftover then breaks whichever
+ * spec asserts on a clean node. That applies to the whole tree, not just the
+ * root: the namespaces spec creates a SUBGROUP, and a context inside one is
+ * just as blocking and even less visible.
+ *
+ * Note `/groups/:id/subgroups` answers `{ subgroups }`, not the `{ data }`
+ * envelope the sibling routes use.
  */
 export async function clearNamespaces(): Promise<void> {
   const { body } = await adminApi<{ data?: { namespaceId: string }[] }>(
@@ -209,13 +242,7 @@ export async function clearNamespaces(): Promise<void> {
     '/namespaces',
   );
   for (const ns of body.data ?? []) {
-    const { body: ctxs } = await adminApi<{ data?: { contextId: string }[] }>(
-      'GET',
-      `/groups/${ns.namespaceId}/contexts`,
-    );
-    for (const ctx of ctxs.data ?? []) {
-      await adminApi('DELETE', `/contexts/${ctx.contextId}`);
-    }
+    await clearGroupTree(ns.namespaceId);
     await adminApi('DELETE', `/namespaces/${ns.namespaceId}`);
   }
 }

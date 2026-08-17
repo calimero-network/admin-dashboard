@@ -77,11 +77,18 @@ const child = spawn(merod, ['--home', home, '--node', NODE_NAME, 'run'], {
   env: { ...process.env },
 });
 
+// `child.killed` is NOT "the child has exited" — Node sets it as soon as a
+// signal is successfully SENT. Using it to gate the SIGKILL escalation meant
+// the escalation could never fire (SIGTERM had already set it), so a merod
+// that ignored SIGTERM was left running while this process exited: an orphan
+// holding the server and swarm ports against the next run.
+let exited = false;
+
 const shutdown = (signal) => {
   // merod stops on SIGTERM; there is no HTTP route for it.
-  if (!child.killed) child.kill('SIGTERM');
+  if (!exited) child.kill('SIGTERM');
   setTimeout(() => {
-    if (!child.killed) child.kill('SIGKILL');
+    if (!exited) child.kill('SIGKILL');
     process.exit(signal === 'SIGINT' ? 130 : 143);
   }, 5000);
 };
@@ -89,7 +96,17 @@ const shutdown = (signal) => {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
+// Without an 'error' listener a failed spawn (EACCES, or the binary vanishing
+// between the existsSync check and here) is an unhandled 'error' event, which
+// Node turns into an uncaught exception — a stack trace instead of this
+// script's own diagnostics.
+child.on('error', (err) => {
+  console.error('[live-node] failed to start merod:', err.message ?? err);
+  process.exit(1);
+});
+
 child.on('exit', (code, signal) => {
+  exited = true;
   console.log(`[live-node] merod exited code=${code} signal=${signal}`);
   process.exit(code ?? 0);
 });

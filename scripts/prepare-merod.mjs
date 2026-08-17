@@ -44,6 +44,20 @@ function headers() {
   return h;
 }
 
+/** Depth-first search for the extracted `merod` executable. */
+async function findBinary(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isFile() && entry.name.startsWith('merod')) return full;
+    if (entry.isDirectory()) {
+      const nested = await findBinary(full);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
 async function main() {
   if (existsSync(binaryPath) && !process.env['MEROD_FORCE_DOWNLOAD']) {
     const version = execFileSync(binaryPath, ['--version'], {
@@ -91,16 +105,20 @@ async function main() {
   });
   await fs.rm(archivePath, { force: true });
 
-  // Archives may nest the binary or name it after the target triple.
+  // Archives may nest the binary or name it after the target triple. The
+  // search has to RECURSE to honour the first half of that: a tarball that
+  // extracts to `merod-x86_64-apple-darwin/merod` puts a directory at the top
+  // level, and a files-only scan of that level finds nothing and throws
+  // "contains no merod binary" while the binary sits one level down.
   if (!existsSync(binaryPath)) {
-    const entries = await fs.readdir(binDir, { withFileTypes: true });
-    const found = entries.find((e) => e.isFile() && e.name.startsWith('merod'));
+    const found = await findBinary(binDir);
     if (!found) {
+      const entries = await fs.readdir(binDir);
       throw new Error(
-        `Extracted archive contains no merod binary: ${entries.map((e) => e.name).join(', ')}`,
+        `Extracted archive contains no merod binary: ${entries.join(', ')}`,
       );
     }
-    await fs.rename(path.join(binDir, found.name), binaryPath);
+    await fs.rename(found, binaryPath);
   }
 
   await fs.chmod(binaryPath, 0o755);

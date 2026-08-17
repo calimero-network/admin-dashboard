@@ -31,6 +31,19 @@ const ARTIFACT = `https://apps.calimero.network/artifacts/${PACKAGE}/${VERSION}/
 /** Long enough for gossip to settle on a co-located pair, short enough to fail. */
 const PROPAGATION = { timeout: 120_000, intervals: [1000, 2000, 5000] };
 
+/**
+ * Unique per run. `startCluster` deliberately REUSES a cluster that is already
+ * up, so a namespace left behind by an interrupted run persists — and a
+ * hard-coded name would match that stale one instead of the namespace this run
+ * just created, passing (or failing) for entirely the wrong reason.
+ *
+ * Not `Date.now()` alone: two runs in the same millisecond are unlikely but a
+ * collision here is silent, and the suffix costs nothing.
+ */
+const NS_NAME = `shared-${Date.now().toString(36)}-${Math.random()
+  .toString(36)
+  .slice(2, 6)}`;
+
 interface NamespaceRow {
   namespaceId: string;
   name?: string;
@@ -85,7 +98,7 @@ test.describe.serial('Merobox: membership between two nodes', () => {
 
     await page.getByRole('button', { name: /Create Namespace/ }).click();
     await page.locator('select').first().selectOption(appId);
-    await page.getByPlaceholder('e.g. Team workspace').fill('shared');
+    await page.getByPlaceholder('e.g. Team workspace').fill(NS_NAME);
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
     await expect
@@ -93,20 +106,20 @@ test.describe.serial('Merobox: membership between two nodes', () => {
         const { body } = await aliceApi.get<{ data?: NamespaceRow[] }>(
           '/namespaces',
         );
-        const match = (body.data ?? []).find((n) => n.name === 'shared');
+        const match = (body.data ?? []).find((n) => n.name === NS_NAME);
         if (match) namespaceId = match.namespaceId;
         return match?.name ?? null;
       }, PROPAGATION)
-      .toBe('shared');
+      .toBe(NS_NAME);
 
     await expect(
-      page.getByTestId('ns-card').filter({ hasText: 'shared' }),
+      page.getByTestId('ns-card').filter({ hasText: NS_NAME }),
     ).toBeVisible();
   });
 
   test('alice generates an invitation code', async ({ page }) => {
     await openDashboardOn(page, alice, '/admin-dashboard/namespaces');
-    await page.getByTestId('ns-card').filter({ hasText: 'shared' }).click();
+    await page.getByTestId('ns-card').filter({ hasText: NS_NAME }).click();
 
     await page.getByRole('button', { name: 'Invite' }).click();
     const panel = page.getByTestId('ns-invite-panel');
@@ -146,7 +159,9 @@ test.describe.serial('Merobox: membership between two nodes', () => {
       }, PROPAGATION)
       .toBe(true);
 
-    await expect(page.getByTestId('ns-card')).toContainText(/shared|Mero Chat/);
+    await expect(page.getByTestId('ns-card')).toContainText(
+      new RegExp(`${NS_NAME}|Mero Chat`),
+    );
   });
 
   test('alice sees bob in the member list', async ({ page }) => {
@@ -160,7 +175,7 @@ test.describe.serial('Merobox: membership between two nodes', () => {
       .toBeGreaterThan(1);
 
     await openDashboardOn(page, alice, '/admin-dashboard/namespaces');
-    await page.getByTestId('ns-card').filter({ hasText: 'shared' }).click();
+    await page.getByTestId('ns-card').filter({ hasText: NS_NAME }).click();
 
     const members = page.getByTestId('ns-members-section');
     await expect(members).toContainText('Members (2)');
@@ -180,7 +195,7 @@ test.describe.serial('Merobox: membership between two nodes', () => {
     expect(bobIdentity, 'could not tell the two members apart').toBeTruthy();
 
     await openDashboardOn(page, alice, '/admin-dashboard/namespaces');
-    await page.getByTestId('ns-card').filter({ hasText: 'shared' }).click();
+    await page.getByTestId('ns-card').filter({ hasText: NS_NAME }).click();
 
     const row = page
       .getByTestId('ns-members-section')

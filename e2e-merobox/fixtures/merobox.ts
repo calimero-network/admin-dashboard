@@ -29,12 +29,48 @@ export interface MeroboxNode {
   url: string;
 }
 
+/**
+ * Run merobox, echoing everything it said.
+ *
+ * The output is the only account of what happened: `merobox run` can fail to
+ * start a node and still exit 0 (a stale container name 409s, and it carries
+ * on), so a silent success is not evidence of one. Swallowing this turned a
+ * CI failure into "started 0/2 nodes" with no reason attached.
+ */
 async function merobox(args: string[], timeoutMs = 600_000): Promise<string> {
-  const { stdout, stderr } = await exec('merobox', args, {
-    timeout: timeoutMs,
-    maxBuffer: 32 * 1024 * 1024,
-  });
-  return `${stdout}${stderr}`;
+  try {
+    const { stdout, stderr } = await exec('merobox', args, {
+      timeout: timeoutMs,
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    const output = `${stdout}${stderr}`;
+    console.log(`[merobox ${args.join(' ')}]\n${output}`);
+    return output;
+  } catch (e) {
+    const err = e as { stdout?: string; stderr?: string; message?: string };
+    const output = `${err.stdout ?? ''}${err.stderr ?? ''}`;
+    console.error(
+      `[merobox ${args.join(' ')}] FAILED: ${err.message}\n${output}`,
+    );
+    throw e;
+  }
+}
+
+/** Everything Docker knows about our containers, for a failure message. */
+async function dockerState(): Promise<string> {
+  try {
+    const { stdout } = await exec('docker', [
+      'ps',
+      '-a',
+      '--filter',
+      `name=${PREFIX}`,
+      '--format',
+      '{{.Names}}\t{{.Status}}\t{{.Ports}}',
+    ]);
+    return stdout.trim() || '(no containers matching the prefix)';
+  } catch (e) {
+    return `docker ps failed: ${(e as Error).message}`;
+  }
 }
 
 /**
@@ -90,12 +126,21 @@ export async function startCluster(): Promise<MeroboxNode[]> {
     () => undefined,
   );
 
-  await merobox(['run', '-c', String(NODE_COUNT), '--prefix', PREFIX]);
+  const output = await merobox([
+    'run',
+    '-c',
+    String(NODE_COUNT),
+    '--prefix',
+    PREFIX,
+  ]);
   const nodes = await discoverNodes();
   if (nodes.length < NODE_COUNT) {
+    // Carry merobox's own words and Docker's view into the message: without
+    // them this is unactionable, and the run that produced it is gone.
     throw new Error(
-      `merobox started ${nodes.length}/${NODE_COUNT} nodes. ` +
-        'Check `docker ps` and that the merod image could be pulled.',
+      `merobox started ${nodes.length}/${NODE_COUNT} nodes.\n` +
+        `--- merobox output ---\n${output}\n` +
+        `--- docker ps -a ---\n${await dockerState()}`,
     );
   }
   await Promise.all(nodes.map((n) => waitForHealth(n)));
@@ -149,9 +194,11 @@ async function waitForHealth(node: MeroboxNode, timeoutMs = 120_000) {
  * A token for a merobox node, when it wants one.
  *
  * merobox runs merod without the auth service unless asked for it, so
- * `/auth/token` may simply not exist. Treat that as "no auth required" rather
- * than as a failure — the admin API is then open on the container's own
- * network, which is what makes this harness cheap to run.
+ * `/auth/token` may simply not exist. **Only a 404 means that.** Every other
+ * outcome — a 5xx, a timeout, an unparseable body — is a broken auth path, and
+ * returning `null` for those would have the caller proceed unauthenticated:
+ * the failure then resurfaces as anonymous 401s deep inside a test instead of
+ * here, where the actual problem is.
  */
 export async function tokenFor(node: MeroboxNode): Promise<string | null> {
   const ctx = await request.newContext({ baseURL: node.url });
@@ -167,14 +214,26 @@ export async function tokenFor(node: MeroboxNode): Promise<string | null> {
       },
       failOnStatusCode: false,
     });
-    if (!res.ok()) return null;
-    const body = (await res.json()) as {
+    // No auth service in front of this node: nothing to mint, nothing wrong.
+    if (res.status() === 404) return null;
+    const text = await res.text();
+    if (!res.ok()) {
+      throw new Error(
+        `${node.name}: POST /auth/token answered ${res.status()} — the node ` +
+          `has an auth service but it is not usable: ${text.slice(0, 200)}`,
+      );
+    }
+    const body = JSON.parse(text) as {
       data?: { access_token?: string };
       access_token?: string;
     };
-    return body.data?.access_token ?? body.access_token ?? null;
-  } catch {
-    return null;
+    const token = body.data?.access_token ?? body.access_token;
+    if (!token) {
+      throw new Error(
+        `${node.name}: /auth/token returned no access_token: ${text.slice(0, 200)}`,
+      );
+    }
+    return token;
   } finally {
     await ctx.dispose();
   }

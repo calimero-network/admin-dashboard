@@ -209,6 +209,12 @@ jobs:
   e2e-merobox:
     name: E2E across two real nodes
     runs-on: ubuntu-latest
+    # NOT a merge gate yet: this suite has never had a green run, so a red X
+    # here means "the harness is still being brought up", not "the dashboard is
+    # broken". It still runs on every PR and its logs are the only way to
+    # finish debugging it. Remove this line the first time it passes — an
+    # advisory test that nobody has to care about stops being worth running.
+    continue-on-error: true
     # The only suite that can prove membership. An invitation is a claim about
     # somebody ELSE's node, so with a single node an invite/join test cannot
     # fail — and therefore cannot pass either. merobox boots two merods in

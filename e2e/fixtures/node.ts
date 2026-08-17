@@ -169,12 +169,11 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     json(route, { data: { apps } }),
   );
 
-  await page.route('**/admin-api/applications/*', (route) => {
-    if (route.request().method() === 'DELETE') {
-      return json(route, { data: {} });
-    }
-    return json(route, { data: {} });
-  });
+  // Every method answers the same empty envelope — no test asserts on an
+  // uninstall response body, and GET of a single application is never read.
+  await page.route('**/admin-api/applications/*', (route) =>
+    json(route, { data: {} }),
+  );
 
   // AFTER `applications/*`, so it wins: Playwright resolves routes in reverse
   // registration order, and `applications/*` also matches `.../abi`.

@@ -110,8 +110,15 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     await install.click();
 
     // Any error toast is the node's own reason — surface it rather than letting
-    // the poll below fail with a bare timeout.
+    // the poll below fail with a bare timeout. It has to be WAITED for: the
+    // toast only renders once the install request rejects, which is after the
+    // click resolves, so checking presence immediately always found nothing and
+    // this whole branch was dead code.
     const errorToast = page.locator('.toast-error');
+    await errorToast
+      .first()
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .catch(() => undefined);
     if (await errorToast.count()) {
       throw new Error(
         `Install reported: ${await errorToast.first().innerText()}`,
@@ -226,10 +233,14 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
 
   test('the Marketplace marks it installed', async ({ page }) => {
     await openDashboard(page, '/admin-dashboard/marketplace');
-    const card = page
-      .getByTestId('app-card')
-      .filter({ hasText: REAL_APP_NAME })
-      .first();
+    // By PACKAGE, for the same reason the install test searches by it: the
+    // registry publishes two packages both displayed as "Mero Chat", so
+    // `.first()` on the display name can land on the one that was never
+    // installed — non-deterministically, depending on registry ordering. The
+    // package id is an attribute, not text: the card never renders it.
+    const card = page.locator(
+      `[data-testid="app-card"][data-package="${REAL_PACKAGE}"]`,
+    );
     await expect(card.getByText('Installed')).toBeVisible();
   });
 

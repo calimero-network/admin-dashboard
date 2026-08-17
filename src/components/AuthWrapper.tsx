@@ -93,8 +93,15 @@ export default function AuthWrapper({
         } else {
           setState('authenticated');
         }
-      } catch {
-        setState('needs-login');
+      } catch (e) {
+        // Only a confirmed 401 means the stored tokens are bad; that is handled
+        // above. Anything reaching here is the REQUEST failing — offline, DNS,
+        // CORS, a 5xx, a node still booting — and treating that as "not logged
+        // in" signs the user out over a network blip, discarding tokens that
+        // were fine. Stay authenticated and let the node-status pill report
+        // that the node is unreachable.
+        console.warn('Could not reach the node to validate the session:', e);
+        setState('authenticated');
       }
       return;
     }

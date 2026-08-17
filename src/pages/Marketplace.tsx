@@ -104,16 +104,20 @@ export function resolveArtifact(
   };
 }
 
-/** Convert a 64-char hex digest to the base58 the node expects. */
+/**
+ * Convert a 64-char hex digest to the base58 the node expects.
+ *
+ * The character check is load-bearing, not defensive noise: `parseInt` answers
+ * `NaN` for a non-hex pair and `Uint8Array.from` coerces that to 0 WITHOUT
+ * throwing, so a malformed digest would encode cleanly into a hash that simply
+ * isn't the artifact's. Better to send no hash — and skip the integrity check
+ * — than to send a confidently wrong one.
+ */
 export function hexToBase58(hashHex: string | null): string | undefined {
-  if (!hashHex || hashHex.length !== 64) return undefined;
-  try {
-    const pairs = hashHex.match(/.{1,2}/g);
-    if (!pairs) return undefined;
-    return bs58.encode(Uint8Array.from(pairs.map((b) => parseInt(b, 16))));
-  } catch {
-    return undefined;
-  }
+  if (!hashHex || !/^[0-9a-f]{64}$/i.test(hashHex)) return undefined;
+  const pairs = hashHex.match(/.{2}/g);
+  if (!pairs) return undefined;
+  return bs58.encode(Uint8Array.from(pairs.map((b) => parseInt(b, 16))));
 }
 
 export default function Marketplace() {
@@ -507,6 +511,12 @@ export default function Marketplace() {
                   key={`${app.registry}-${app.id}`}
                   className="app-card"
                   data-testid="app-card"
+                  // The package id, which the card does not render: the
+                  // registry publishes distinct packages that share a display
+                  // name ("Mero Chat" is both com.calimero.chat and
+                  // com.calimero.curb), so a test picking a card by its title
+                  // picks non-deterministically between them.
+                  data-package={app.id}
                   onClick={() => setSelectedApp(app)}
                 >
                   <div className="app-card-header">
