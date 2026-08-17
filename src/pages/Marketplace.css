@@ -86,9 +86,12 @@
   z-index: 1;
 }
 
-.search-input {
+/* Selector is scoped to the container so it outranks the global
+   `input[type='text']` rule in styles/index.css, which would otherwise
+   win on specificity and collapse the left padding the icon sits in. */
+.search-container .search-input {
   width: 100%;
-  padding: 10px 16px 10px 42px;
+  padding: 10px 38px 10px 42px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 14px;
@@ -97,7 +100,7 @@
   transition: all 0.2s;
 }
 
-.search-input:focus {
+.search-container .search-input:focus {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px var(--accent-light);
