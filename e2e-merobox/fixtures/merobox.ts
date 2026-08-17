@@ -56,9 +56,16 @@ export async function discoverNodes(): Promise<MeroboxNode[]> {
   for (const line of stdout.trim().split('\n').filter(Boolean)) {
     const [name, ports] = line.split('\t');
     if (!name || !ports) continue;
-    // The admin API is the container's 2428; take whichever host port maps to
-    // it. Ports look like `0.0.0.0:2428->2428/tcp, 0.0.0.0:2528->2528/udp`.
-    const match = /0\.0\.0\.0:(\d+)->2428\/tcp/.exec(ports);
+    // The admin API is the container's **2528**, not 2428. merobox configures
+    // merod the opposite way round from the docs' single-node example
+    // (`--server-port 2428 --swarm-port 2528`): inside a merobox container
+    // 2428 is P2P and 2528 serves the admin API. Reading the wrong one gets a
+    // port that accepts TCP and answers nothing, so it fails as a timeout
+    // rather than as a refused connection.
+    //
+    // Host ports are auto-assigned, so they are only knowable from the
+    // mapping: `0.0.0.0:2429->2428/tcp, 0.0.0.0:2529->2528/tcp`.
+    const match = /0\.0\.0\.0:(\d+)->2528\/tcp/.exec(ports);
     if (!match) continue;
     nodes.push({ name, url: `http://localhost:${match[1]}` });
   }
@@ -69,7 +76,19 @@ export async function startCluster(): Promise<MeroboxNode[]> {
   // Idempotent: a cluster left over from an interrupted run is reused rather
   // than colliding on container names.
   const existing = await discoverNodes();
-  if (existing.length >= NODE_COUNT) return existing;
+  if (existing.length >= NODE_COUNT) {
+    await Promise.all(existing.map((n) => waitForHealth(n)));
+    return existing;
+  }
+
+  // merobox initialises each node with a throwaway `<name>-init` container it
+  // does not always clean up. A leftover one makes the NEXT run fail that node
+  // with `409 Conflict … name already in use` — and merobox keeps going and
+  // exits 0, so the cluster comes up one node short and the failure only
+  // surfaces later as "cluster is not running".
+  await exec('docker', ['rm', '-f', ...(await staleInitContainers())]).catch(
+    () => undefined,
+  );
 
   await merobox(['run', '-c', String(NODE_COUNT), '--prefix', PREFIX]);
   const nodes = await discoverNodes();
@@ -81,6 +100,21 @@ export async function startCluster(): Promise<MeroboxNode[]> {
   }
   await Promise.all(nodes.map((n) => waitForHealth(n)));
   return nodes;
+}
+
+async function staleInitContainers(): Promise<string[]> {
+  const { stdout } = await exec('docker', [
+    'ps',
+    '-a',
+    '--filter',
+    `name=${PREFIX}`,
+    '--format',
+    '{{.Names}}',
+  ]);
+  return stdout
+    .trim()
+    .split('\n')
+    .filter((name) => name.endsWith('-init'));
 }
 
 export async function stopCluster(): Promise<void> {
