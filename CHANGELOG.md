@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/calimero-network/admin-dashboard/compare/v1.12.4...v1.13.0) (2026-08-17)
+
+
+### Features
+
+* port Calimero Desktop design system, shell and app-opening to the web dashboard ([#152](https://github.com/calimero-network/admin-dashboard/issues/152)) ([5aa2a27](https://github.com/calimero-network/admin-dashboard/commit/5aa2a27ae3859bc8f4c22983828cdc6e6c288ac4))
+
 ## [1.12.4](https://github.com/calimero-network/admin-dashboard/compare/v1.12.3...v1.12.4) (2026-07-21)
 
 ## [1.12.3](https://github.com/calimero-network/admin-dashboard/compare/v1.12.2...v1.12.3) (2026-06-10)
