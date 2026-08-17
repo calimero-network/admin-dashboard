@@ -252,13 +252,39 @@ export function uniqueName(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * The admin token, minted once and reused.
+ *
+ * `adminApi` is called from inside `expect.poll` callbacks that tick every
+ * second for up to 150s, and from recursive teardown helpers — one mint per
+ * call meant a run opened hundreds of short-lived sessions on the node. Any
+ * anti-brute-force limit on `user_password` logins would then surface as an
+ * unrelated 429/500 in the middle of an assertion about something else.
+ *
+ * Cached as the PROMISE so concurrent callers share one in-flight mint, and
+ * dropped on a 401 so an expired token re-mints exactly once.
+ */
+let tokenCache: Promise<{ accessToken: string; refreshToken: string }> | null =
+  null;
+
+function cachedToken() {
+  if (!tokenCache) {
+    tokenCache = mintAdminToken().catch((e) => {
+      // Never cache a rejection: the next caller must be able to retry.
+      tokenCache = null;
+      throw e;
+    });
+  }
+  return tokenCache;
+}
+
 /** Direct admin-API call with the minted token, for arrange/assert steps. */
 export async function adminApi<T>(
   method: 'GET' | 'POST' | 'DELETE',
   path: string,
   body?: unknown,
 ): Promise<{ status: number; body: T }> {
-  const { accessToken } = await mintAdminToken();
+  const { accessToken } = await cachedToken();
   const ctx = await request.newContext({
     baseURL: NODE_URL,
     extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` },
@@ -274,11 +300,24 @@ export async function adminApi<T>(
       method,
       ...(data === undefined ? {} : { data }),
     });
+    // A 401 means the cached token has expired; drop it so the next call
+    // mints a fresh one rather than every subsequent call also failing.
+    if (res.status() === 401) tokenCache = null;
     const text = await res.text();
-    return {
-      status: res.status(),
-      body: (text ? JSON.parse(text) : {}) as T,
-    };
+    let parsed: unknown = {};
+    if (text) {
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        // A non-JSON body — an HTML 502 from a proxy, a plain-text 413 — would
+        // otherwise throw a bare SyntaxError from inside a poll callback,
+        // hiding both the status and what the node actually said.
+        throw new Error(
+          `Non-JSON response (${res.status()}) from ${method} ${path}: ${text.slice(0, 300)}`,
+        );
+      }
+    }
+    return { status: res.status(), body: parsed as T };
   } finally {
     await ctx.dispose();
   }

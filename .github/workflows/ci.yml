@@ -255,10 +255,14 @@ jobs:
       - name: Multi-node E2E
         run: pnpm test:e2e:merobox
 
+      # By image, not name: merobox's --prefix names the NODE, and the
+      # container it creates does not reliably carry it — a name filter here
+      # printed only the throwaway init containers.
       - name: Node logs
-        if: failure()
+        if: always()
         run: |
-          for c in $(docker ps -a --filter name=admindash-e2e --format '{{.Names}}'); do
+          docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+          for c in $(docker ps -a --filter ancestor=ghcr.io/calimero-network/merod:prerelease --format '{{.Names}}'); do
             echo "::group::$c"
             docker logs --tail 400 "$c" || true
             echo "::endgroup::"

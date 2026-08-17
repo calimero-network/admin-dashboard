@@ -56,18 +56,23 @@ async function merobox(args: string[], timeoutMs = 600_000): Promise<string> {
   }
 }
 
-/** Everything Docker knows about our containers, for a failure message. */
+/**
+ * Every container Docker knows about, for a failure message.
+ *
+ * Deliberately unfiltered: a `--filter name=<prefix>` here is what hid the
+ * problem last time — it showed only the init containers and made it look as
+ * if merobox had started nothing, when the nodes were running under names
+ * that simply did not carry the prefix.
+ */
 async function dockerState(): Promise<string> {
   try {
     const { stdout } = await exec('docker', [
       'ps',
       '-a',
-      '--filter',
-      `name=${PREFIX}`,
       '--format',
-      '{{.Names}}\t{{.Status}}\t{{.Ports}}',
+      '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}',
     ]);
-    return stdout.trim() || '(no containers matching the prefix)';
+    return stdout.trim() || '(docker reports no containers at all)';
   } catch (e) {
     return `docker ps failed: ${(e as Error).message}`;
   }
@@ -76,32 +81,40 @@ async function dockerState(): Promise<string> {
 /**
  * Discover the running nodes and their host ports from Docker itself.
  *
- * `merobox run` auto-detects free ports, so the mapping is only knowable
+ * Matched by IMAGE, not by container name. merobox's `--prefix` names the
+ * NODE, and the container it creates does not reliably carry that prefix — in
+ * CI only the throwaway `<prefix>-init` containers matched
+ * `--filter name=<prefix>`, so discovery found nothing while merobox reported
+ * "2/2 nodes started successfully". The image is the one property every node
+ * container has by definition.
+ *
+ * Host ports are auto-assigned by merobox, so the mapping is only knowable
  * after the fact — reading it back from `docker ps` is the one source that
  * cannot drift from what is actually listening.
  */
 export async function discoverNodes(): Promise<MeroboxNode[]> {
   const { stdout } = await exec('docker', [
     'ps',
-    '--filter',
-    `name=${PREFIX}`,
     '--format',
-    '{{.Names}}\t{{.Ports}}',
+    '{{.Names}}\t{{.Image}}\t{{.Ports}}',
   ]);
   const nodes: MeroboxNode[] = [];
   for (const line of stdout.trim().split('\n').filter(Boolean)) {
-    const [name, ports] = line.split('\t');
-    if (!name || !ports) continue;
+    const [name, image, ports] = line.split('\t');
+    if (!name || !image || !ports) continue;
+    // Any running container on the merod image is one of ours; the init
+    // containers exit immediately and so never appear in a plain `docker ps`.
+    if (!image.includes('merod')) continue;
     // The admin API is the container's **2528**, not 2428. merobox configures
     // merod the opposite way round from the docs' single-node example
     // (`--server-port 2428 --swarm-port 2528`): inside a merobox container
-    // 2428 is P2P and 2528 serves the admin API. Reading the wrong one gets a
-    // port that accepts TCP and answers nothing, so it fails as a timeout
-    // rather than as a refused connection.
+    // 2428 is P2P. Reading the wrong one gets a port that accepts TCP and
+    // answers nothing, which fails as a timeout rather than a refused
+    // connection.
     //
-    // Host ports are auto-assigned, so they are only knowable from the
-    // mapping: `0.0.0.0:2429->2428/tcp, 0.0.0.0:2529->2528/tcp`.
-    const match = /0\.0\.0\.0:(\d+)->2528\/tcp/.exec(ports);
+    // The host side is `0.0.0.0:` or `[::]:` depending on the daemon's
+    // settings, so anchor on the container port instead.
+    const match = /(?:0\.0\.0\.0|\[::\]):(\d+)->2528\/tcp/.exec(ports);
     if (!match) continue;
     nodes.push({ name, url: `http://localhost:${match[1]}` });
   }
@@ -147,6 +160,10 @@ export async function startCluster(): Promise<MeroboxNode[]> {
   return nodes;
 }
 
+/**
+ * The `<prefix>-init` containers, which merobox does name for the prefix and
+ * does not always remove.
+ */
 async function staleInitContainers(): Promise<string[]> {
   const { stdout } = await exec('docker', [
     'ps',
@@ -223,10 +240,19 @@ export async function tokenFor(node: MeroboxNode): Promise<string | null> {
           `has an auth service but it is not usable: ${text.slice(0, 200)}`,
       );
     }
-    const body = JSON.parse(text) as {
-      data?: { access_token?: string };
-      access_token?: string;
-    };
+    // Guarded for the same reason every other branch here throws with
+    // context: a 2xx carrying a non-JSON body (a proxy's HTML, a truncated
+    // response) would otherwise be a bare SyntaxError, the one failure mode
+    // this function does not explain.
+    let body: { data?: { access_token?: string }; access_token?: string };
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw new Error(
+        `${node.name}: /auth/token returned ${res.status()} with a non-JSON ` +
+          `body: ${text.slice(0, 200)}`,
+      );
+    }
     const token = body.data?.access_token ?? body.access_token;
     if (!token) {
       throw new Error(
