@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@calimero-network/calimero-client';
 import {
   Store,
-  Box,
   KeyRound,
   Package,
   Layers,
@@ -216,7 +215,7 @@ export default function Dashboard() {
         <button
           type="button"
           className="dash-stat-card"
-          onClick={() => navigate('/contexts')}
+          onClick={() => navigate('/namespaces')}
         >
           <div className="dash-stat-value">{stats.contexts}</div>
           <div className="dash-stat-label">Active Contexts</div>
@@ -340,16 +339,6 @@ export default function Dashboard() {
             <span className="dash-action-label">Namespaces</span>
             <span className="dash-action-desc">
               Manage namespaces, groups, and members
-            </span>
-          </button>
-          <button
-            className="dash-action-card"
-            onClick={() => navigate('/contexts')}
-          >
-            <Box className="dash-action-icon" />
-            <span className="dash-action-label">Manage Contexts</span>
-            <span className="dash-action-desc">
-              Create or delete app contexts
             </span>
           </button>
           <button

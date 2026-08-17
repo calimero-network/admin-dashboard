@@ -65,6 +65,35 @@ export interface MockNodeOptions {
   /** `GET .../admin/keys` and `.../admin/keys/clients` (SDK adminApi). */
   rootKeys?: Record<string, unknown>[];
   clientKeys?: Record<string, unknown>[];
+  /** `GET /admin-api/namespaces`. */
+  namespaces?: MockNamespace[];
+  /**
+   * Per-group state, keyed by group id. A namespace IS a group, so its own
+   * root entry is keyed by the namespace id.
+   */
+  groups?: Record<string, MockGroup>;
+}
+
+export interface MockNamespace {
+  namespaceId: string;
+  targetApplicationId: string;
+  upgradePolicy?: string;
+  name?: string;
+  appVersion?: string;
+  memberCount?: number;
+  contextCount?: number;
+  subgroupCount?: number;
+}
+
+export interface MockGroup {
+  /** Display name — lives in group metadata on the wire, not at the top level. */
+  name?: string;
+  subgroupVisibility?: string;
+  members?: { identity: string; role: string; name?: string }[];
+  /** The node reports the caller's own identity alongside the member list. */
+  selfIdentity?: string;
+  contexts?: { contextId: string; name?: string }[];
+  subgroups?: { groupId: string; name?: string }[];
 }
 
 const json = (route: Route, body: unknown, status = 200) =>
@@ -155,13 +184,80 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     json(route, { data: { namespaces: [] } }),
   );
 
-  // Namespaces list (raw fetch in src/api/namespaceApi.ts).
-  await page.route('**/admin-api/groups**', (route) =>
-    json(route, { data: [] }),
-  );
-  await page.route('**/admin-api/namespaces**', (route) =>
-    json(route, { data: [] }),
-  );
+  // Namespaces + groups (raw fetches in src/api/namespaceApi.ts).
+  //
+  // One dispatcher per prefix rather than a glob per endpoint: the response
+  // ENVELOPES differ between these routes (`{ data }` vs `{ members,
+  // selfIdentity }` vs `{ subgroups }`), and matching on the parsed path makes
+  // that explicit instead of depending on Playwright's reverse-order glob
+  // resolution.
+  const namespaces = opts.namespaces ?? [];
+  const groups = opts.groups ?? {};
+  const groupOf = (id: string): MockGroup => groups[id] ?? {};
+
+  await page.route('**/admin-api/namespaces**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const [, id, sub] =
+      /\/admin-api\/namespaces(?:\/([^/]+))?(?:\/([^/]+))?/.exec(path) ?? [];
+
+    if (!id) {
+      return json(route, {
+        data: namespaces.map((ns) => ({
+          appKey: 'a'.repeat(64),
+          upgradePolicy: 'Automatic',
+          createdAt: 0,
+          memberCount: 0,
+          contextCount: 0,
+          subgroupCount: 0,
+          ...ns,
+        })),
+      });
+    }
+    if (sub === 'identity') {
+      return json(route, { namespaceId: id, publicKey: `pk-${id}` });
+    }
+    if (sub === 'groups') {
+      return json(route, { data: groupOf(id).subgroups ?? [] });
+    }
+    return json(route, { data: {} });
+  });
+
+  await page.route('**/admin-api/groups**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const [, id, sub] =
+      /\/admin-api\/groups(?:\/([^/]+))?(?:\/([^/]+))?/.exec(path) ?? [];
+    const group = id ? groupOf(id) : {};
+
+    if (sub === 'members') {
+      return json(route, {
+        members: group.members ?? [],
+        ...(group.selfIdentity ? { selfIdentity: group.selfIdentity } : {}),
+      });
+    }
+    if (sub === 'contexts') {
+      return json(route, { data: group.contexts ?? [] });
+    }
+    if (sub === 'subgroups') {
+      return json(route, { subgroups: group.subgroups ?? [] });
+    }
+    if (id && !sub) {
+      return json(route, {
+        data: {
+          groupId: id,
+          appKey: 'a'.repeat(64),
+          targetApplicationId: APP_WITH_FRONTEND.id,
+          upgradePolicy: 'Automatic',
+          memberCount: group.members?.length ?? 0,
+          contextCount: group.contexts?.length ?? 0,
+          defaultCapabilities: 11,
+          subgroupVisibility: group.subgroupVisibility ?? 'open',
+          groupStateHash: '0'.repeat(64),
+          ...(group.name ? { metadata: { name: group.name, data: {} } } : {}),
+        },
+      });
+    }
+    return json(route, { data: {} });
+  });
 
   // Registry (Marketplace). Matched on the registry host, not the node.
   const bundles = opts.bundles ?? [

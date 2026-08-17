@@ -11,7 +11,6 @@ import { mockNode } from './fixtures/node';
  */
 const SHELL_PAGES = [
   ['/admin-dashboard/namespaces', 'Namespaces'],
-  ['/admin-dashboard/contexts', 'Contexts'],
   ['/admin-dashboard/blobs', 'Blobs'],
   ['/admin-dashboard/identity', 'Identity'],
 ] as const;

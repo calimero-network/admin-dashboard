@@ -4,7 +4,6 @@ import {
   Home,
   Server,
   Layers,
-  Box,
   Package,
   Store,
   FileText,
@@ -34,14 +33,16 @@ interface NavItem {
 /**
  * Nav order mirrors the desktop's sidebar, extended with the pages that only
  * exist here (Blobs, Identity). Node diagnostics is dev-only, matching how the
- * desktop gates its Nodes tab; Namespaces and Contexts are always visible
- * because they are the point of an admin tool.
+ * desktop gates its Nodes tab.
+ *
+ * There is no Contexts entry, for the same reason the desktop has none: a
+ * context belongs to exactly one group, so it is managed inside its namespace
+ * rather than in a node-global list that maps onto nothing.
  */
 const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: 'Home', Icon: Home },
   { path: '/node', label: 'Node', Icon: Server, devOnly: true },
   { path: '/namespaces', label: 'Namespaces', Icon: Layers },
-  { path: '/contexts', label: 'Contexts', Icon: Box },
   { path: '/applications', label: 'Applications', Icon: Package },
   { path: '/marketplace', label: 'Marketplace', Icon: Store },
   { path: '/blobs', label: 'Blobs', Icon: FileText },

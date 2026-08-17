@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard';
 import Marketplace from './pages/Marketplace';
 import ApplicationsPage from './pages/Applications';
 import BlobsPage from './pages/Blobs';
-import ContextsPage from './pages/Contexts';
 import NamespacesPage from './pages/Namespaces';
 import NodePage from './pages/Node';
 import SettingsPage from './pages/Settings';
@@ -70,13 +69,12 @@ export default function App() {
               </Shell>
             }
           />
+          {/* Contexts have no page of their own: a context always belongs to
+              exactly one group, so it is managed inside its namespace. Old
+              links (and the desktop app's deep links) still resolve. */}
           <Route
             path="/contexts"
-            element={
-              <Shell title="Contexts">
-                <ContextsPage />
-              </Shell>
-            }
+            element={<Navigate to="/namespaces" replace />}
           />
           <Route
             path="/namespaces"

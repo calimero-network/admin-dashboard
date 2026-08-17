@@ -8,26 +8,28 @@ import {
 } from './fixtures/live';
 
 /**
- * Namespace and group creation against a real node.
+ * Namespaces against a real node.
  *
- * This is the deepest live path in the suite: creating a namespace writes
- * governance state, mints a namespace identity, and the counts the UI shows come
- * straight back out of the store. None of it can be faked convincingly by a mock,
- * because the request shapes are the thing under test — `exactOptionalPropertyTypes`
- * made the alias field an easy thing to get subtly wrong.
+ * This is the deepest live path in the suite, and the one a mock cannot stand
+ * in for: the REQUEST AND RESPONSE SHAPES are the thing under test. Three of
+ * them were wrong for a long time and each failed silently rather than loudly —
+ * an empty list or a missing name, never an error:
  *
- * Serial: the group and delete steps operate on the namespace the first test made.
- */
-/**
- * NOTE — the node does not persist a namespace alias. POST /admin-api/namespaces
- * accepts `alias` and returns 200, but the namespace it creates comes back from
- * GET /admin-api/namespaces with no alias field at all, so the UI has nothing to
- * render. (Same shape of problem as subgroup names, which are also dropped.)
- * These tests therefore identify the namespace by id and by count, not by the
- * alias typed into the form.
+ *   • display names are `name` on the wire, not `alias`;
+ *   • the subgroup-creation endpoint reads `groupName`, so a request carrying
+ *     only `name` is accepted and the name is dropped;
+ *   • `GET /groups/:id/members` answers `{ members, selfIdentity }` and
+ *     `GET /groups/:id/subgroups` answers `{ subgroups }` — neither is the
+ *     `{ data }` envelope the rest of the API uses.
+ *
+ * So these tests assert on names, not just ids: a name that survives the round
+ * trip is the proof.
+ *
+ * Serial: later steps operate on the namespace the first one made.
  */
 test.describe.serial('Live: namespaces', () => {
-  const nsAlias = uniqueName('e2e-ns');
+  const nsName = uniqueName('e2e-ns');
+  const groupName = uniqueName('e2e-grp');
   let appId = '';
   let createdNamespaceId = '';
 
@@ -40,9 +42,8 @@ test.describe.serial('Live: namespaces', () => {
   });
 
   test.afterAll(async () => {
-    // Best-effort teardown so a rerun starts clean even if a step failed.
-    // Delete every namespace: the node is exclusive to this run, and aliases are
-    // not persisted so there is nothing to filter on.
+    // Best-effort teardown so a rerun starts clean even if a step failed. The
+    // node is exclusive to this run, so deleting everything is safe.
     const { body } = await adminApi<{
       data?: { namespaceId: string }[];
     }>('GET', '/namespaces');
@@ -58,20 +59,26 @@ test.describe.serial('Live: namespaces', () => {
     await expect(page.getByText('No namespaces found')).toBeVisible();
   });
 
-  test('creates a namespace against the installed application', async ({
+  test('there is no separate Contexts page', async ({ page }) => {
+    // Contexts live inside their group; the old route redirects.
+    await openDashboard(page, '/admin-dashboard/contexts');
+    await expect(page.getByTestId('shell-page-title')).toHaveText('Namespaces');
+  });
+
+  test('creates a namespace, and its name survives the round trip', async ({
     page,
   }) => {
     await openDashboard(page, '/admin-dashboard/namespaces');
 
-    await page.getByRole('button', { name: /New Namespace/ }).click();
+    await page.getByRole('button', { name: /Create Namespace/ }).click();
     await expect(
-      page.getByRole('heading', { name: 'Create Namespace' }),
+      page.getByRole('heading', { name: 'Create namespace' }),
     ).toBeVisible();
 
     // The app select is populated from the node's installed applications, so
     // choosing by value proves that list loaded.
     await page.locator('select').first().selectOption(appId);
-    await page.getByPlaceholder('e.g. my-namespace').fill(nsAlias);
+    await page.getByPlaceholder('e.g. Team workspace').fill(nsName);
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
     // The node is the source of truth, and creating a namespace writes
@@ -80,26 +87,31 @@ test.describe.serial('Live: namespaces', () => {
       .poll(
         async () => {
           const { body } = await adminApi<{
-            data?: { namespaceId: string; targetApplicationId?: string }[];
+            data?: {
+              namespaceId: string;
+              targetApplicationId?: string;
+              name?: string;
+            }[];
           }>('GET', '/namespaces');
           const rows = Array.isArray(body.data) ? body.data : [];
           const match = rows.find((ns) => ns.targetApplicationId === appId);
           if (match) createdNamespaceId = match.namespaceId;
-          return rows.length;
+          return match?.name ?? null;
         },
         { timeout: 60_000, intervals: [1000, 2000, 5000] },
       )
-      .toBe(1);
+      .toBe(nsName);
 
     expect(createdNamespaceId).toBeTruthy();
 
     // Then the UI must show it. Refresh explicitly: the list is fetched on
     // mount, so this asserts the read path, not the create path's re-render.
-    // Matched on the truncated id the table renders, since the alias is dropped.
     await page.getByRole('button', { name: 'Refresh' }).first().click();
     await expect(
-      page.getByText(createdNamespaceId.slice(0, 10), { exact: false }).first(),
-    ).toBeVisible({ timeout: 30_000 });
+      page.getByTestId('ns-card').filter({ hasText: nsName }),
+    ).toBeVisible({
+      timeout: 30_000,
+    });
   });
 
   test('Home counts the new namespace', async ({ page }) => {
@@ -110,61 +122,68 @@ test.describe.serial('Live: namespaces', () => {
     await expect(card).toContainText(/[1-9]\d*/);
   });
 
-  test('opens the namespace and shows its detail', async ({ page }) => {
+  test('the detail view shows the application, structure and members', async ({
+    page,
+  }) => {
     await openDashboard(page, '/admin-dashboard/namespaces');
-    await page
-      .getByText(createdNamespaceId.slice(0, 10), { exact: false })
-      .first()
-      .click();
+    await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
 
-    // Detail view: the namespace's own heading plus the sections the node feeds.
     await expect(
       page.getByRole('heading', { name: 'Application' }),
     ).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Groups/ })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: /Membership/ }),
+      page.getByRole('heading', { name: 'Structure' }),
     ).toBeVisible();
+
+    // The creator is a member of their own namespace, so an empty list here
+    // means the `{ members, selfIdentity }` envelope was misread.
+    const members = page.getByTestId('ns-members-section');
+    await expect(members).not.toContainText('Members (0)');
+    await expect(members.getByText('you')).toBeVisible();
   });
 
-  test('creates a group inside the namespace', async ({ page }) => {
+  test('creates a named subgroup, and the name persists', async ({ page }) => {
     await openDashboard(page, '/admin-dashboard/namespaces');
-    await page
-      .getByText(createdNamespaceId.slice(0, 10), { exact: false })
-      .first()
-      .click();
+    await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
 
-    // The form is behind a toggle; without this the fields below do not exist.
-    await page.getByRole('button', { name: 'New Group' }).click();
+    await page.getByRole('button', { name: /New Subgroup/ }).click();
+    await page.getByPlaceholder('e.g. engineering').fill(groupName);
+    await page.getByRole('button', { name: 'Create Subgroup' }).click();
 
-    const groupAlias = uniqueName('e2e-grp');
-    await page.getByPlaceholder('Alias (optional)').first().fill(groupAlias);
-    // Subgroups are restricted by default and 403 on join; `open` (lowercase) is
-    // the value the node accepts, exposed in the UI as "Open (public)".
-    await page
-      .locator('select')
-      .filter({ hasText: 'Open (public)' })
-      .first()
-      .selectOption('open');
-    await page.getByRole('button', { name: 'Create Group' }).click();
-
-    // Group aliases are dropped the same way namespace aliases are, so assert on
-    // the node's subgroup count instead of looking for the name we typed.
+    // `groupName` is the key the node reads. Sending only `name` (what the JS
+    // SDK does) returns 200 and drops it, so asserting the name — not just the
+    // count — is what makes this test worth having.
     await expect
       .poll(
         async () => {
           const { body } = await adminApi<{
-            data?: { namespaceId: string; subgroupCount?: number }[];
-          }>('GET', '/namespaces');
+            data?: { groupId: string; name?: string }[];
+          }>('GET', `/namespaces/${createdNamespaceId}/groups`);
           const rows = Array.isArray(body.data) ? body.data : [];
-          return (
-            rows.find((ns) => ns.namespaceId === createdNamespaceId)
-              ?.subgroupCount ?? 0
-          );
+          return rows.map((g) => g.name ?? null);
         },
         { timeout: 60_000, intervals: [1000, 2000, 5000] },
       )
-      .toBeGreaterThan(0);
+      .toContain(groupName);
+
+    // And it must reach the structure tree, which walks the group hierarchy
+    // one level at a time.
+    await page.getByRole('button', { name: 'Refresh' }).last().click();
+    await expect(page.getByTestId('ns-tree-subgroup')).toContainText(
+      groupName,
+      { timeout: 30_000 },
+    );
+  });
+
+  test('opens the subgroup and lists its own members', async ({ page }) => {
+    await openDashboard(page, '/admin-dashboard/namespaces');
+    await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
+    await page.getByTestId('ns-tree-subgroup').getByText(groupName).click();
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: new RegExp(groupName) }),
+    ).toBeVisible();
+    await expect(page.getByTestId('ns-members-section')).toBeVisible();
   });
 
   test('deletes a namespace from the list', async ({ page }) => {
@@ -177,19 +196,17 @@ test.describe.serial('Live: namespaces', () => {
     }>('POST', '/namespaces', {
       applicationId: appId,
       upgradePolicy: 'Automatic',
+      name: 'doomed',
     });
     const doomedId = created.data?.namespaceId;
     expect(doomedId, 'failed to arrange a namespace to delete').toBeTruthy();
 
     await openDashboard(page, '/admin-dashboard/namespaces');
 
-    const row = page
-      .locator('tr')
-      .filter({ hasText: (doomedId as string).slice(0, 10) })
-      .first();
-    // Two steps, both inside the row: Delete swaps itself for Confirm/Cancel.
-    await row.getByRole('button', { name: 'Delete' }).click();
-    await row.getByRole('button', { name: 'Confirm' }).click();
+    const card = page.getByTestId('ns-card').filter({ hasText: 'doomed' });
+    // Two steps, both inside the card: Delete swaps itself for Confirm/Cancel.
+    await card.getByRole('button', { name: 'Delete' }).click();
+    await card.getByRole('button', { name: 'Confirm' }).click();
 
     await expect
       .poll(

@@ -39,7 +39,6 @@ test.describe('App shell', () => {
       ['Applications', 'Applications'],
       ['Marketplace', 'Marketplace'],
       ['Namespaces', 'Namespaces'],
-      ['Contexts', 'Contexts'],
       ['Blobs', 'Blobs'],
       ['Identity', 'Identity'],
       ['Settings', 'Settings'],
