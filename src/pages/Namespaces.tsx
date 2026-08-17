@@ -1,46 +1,82 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import bs58 from 'bs58';
-import { Navigation } from '../components/Navigation';
+import React, { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@calimero-network/calimero-client';
 import {
-  ArrowPathIcon,
-  TrashIcon,
-  ChevronRightIcon,
-  PlusIcon,
   ArrowLeftIcon,
-  DocumentDuplicateIcon,
-  UserPlusIcon,
-  UserMinusIcon,
+  ArrowPathIcon,
+  ArrowRightOnRectangleIcon,
+  ArrowRightStartOnRectangleIcon,
+  ChevronRightIcon,
+  CubeIcon,
+  FolderIcon,
+  FolderPlusIcon,
+  LinkIcon,
+  PlusIcon,
+  TrashIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
 import {
-  listNamespaces,
-  getNamespaceIdentity,
-  createNamespace,
-  deleteNamespace,
-  createNamespaceInvitation,
-  joinNamespace,
   createGroupInNamespace,
-  listNamespaceGroups,
-  getGroupInfo,
-  listGroupMembers,
-  listGroupContexts,
-  listSubgroups,
-  addGroupMembers,
-  removeGroupMembers,
-  updateMemberRole,
   createGroupInvitation,
+  createNamespace,
+  createNamespaceInvitation,
+  createSubgroup,
+  deleteContext,
+  deleteGroup,
+  deleteNamespace,
+  getGroupInfo,
+  getNamespaceIdentity,
   joinGroup,
-  setSubgroupVisibility,
-  leaveNamespace,
+  joinNamespace,
   leaveGroup,
-  leaveContext,
-  type Namespace,
-  type GroupInfo,
-  type GroupMember,
+  leaveNamespace,
+  listGroupContexts,
+  listNamespaces,
+  listSubgroups,
+  setContextMetadata,
+  setGroupMetadata,
+  setSubgroupVisibility,
   type GroupContextEntry,
+  type GroupInfo,
+  type GroupMembersResult,
+  type Namespace,
   type SubgroupEntry,
+  type SubgroupVisibility,
+  type UpgradePolicy,
 } from '../api/namespaceApi';
+import { namespaceIdFromInvitation } from '../utils/invitations';
+import {
+  CreateContextPanel,
+  type InstalledApp,
+} from '../components/namespaces/CreateContextPanel';
+import { InvitePanel, JoinPanel } from '../components/namespaces/InvitePanel';
+import { MembersSection } from '../components/namespaces/MembersSection';
+import { StructureTree } from '../components/namespaces/StructureTree';
+import {
+  ConfirmButton,
+  CopyBtn,
+  RenameField,
+  errorMessage,
+  truncate,
+  type ShowToast,
+} from '../components/namespaces/shared';
+import {
+  countTreeContexts,
+  countTreeSubgroups,
+  useNamespaceTree,
+} from '../components/namespaces/useNamespaceTree';
 import './NamespacesPage.css';
+
+/**
+ * Namespaces — the single place where the node's group hierarchy is managed.
+ *
+ * The model this page mirrors (and the reason there is no separate Contexts
+ * tab): a NAMESPACE is a root group bound to one application. It holds
+ * CONTEXTS (running instances of that app) and SUBGROUPS, and each subgroup
+ * holds its own contexts and subgroups. A context always belongs to exactly
+ * one group, so listing contexts node-globally showed them detached from the
+ * only thing that gives them meaning — and the two tabs could not be mapped
+ * onto each other 1:1.
+ */
 
 type View =
   | { type: 'list' }
@@ -52,135 +88,151 @@ interface Toast {
   type: 'success' | 'error';
 }
 
-function truncate(str: string, max = 24): string {
-  return str.length > max ? `${str.slice(0, 10)}…${str.slice(-10)}` : str;
+/**
+ * What to call a namespace.
+ *
+ * A namespace is only named if someone named it — the node stores no default —
+ * so fall back to the APPLICATION it is bound to before showing a raw id. A
+ * namespace exists to run one application, so "Mero Chat" is a true and useful
+ * label; `ns11111111…` is neither. Mirrors the desktop's `nsDisplayName`.
+ */
+export function namespaceLabel(
+  ns: Namespace,
+  installedApps: InstalledApp[],
+): string {
+  if (ns.name) return ns.name;
+  const app = installedApps.find((a) => a.id === ns.targetApplicationId);
+  if (app && app.name !== app.id) return app.name;
+  return truncate(ns.namespaceId, 20);
 }
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).catch(() => {});
-}
+const UPGRADE_POLICIES: Array<{ value: UpgradePolicy; label: string }> = [
+  // `Coordinated` existed in an older node and was removed — offering it only
+  // produces a 400.
+  {
+    value: 'Automatic',
+    label: 'Automatic — upgrade as soon as a new version lands',
+  },
+  { value: 'LazyOnAccess', label: 'LazyOnAccess — upgrade on next use' },
+];
 
-function encodeInvitation(obj: unknown): string {
-  const bytes = new TextEncoder().encode(JSON.stringify(obj));
-  return bs58.encode(bytes);
-}
-
-function decodeInvitation(input: string): unknown {
-  const trimmed = input.trim();
-  // Try base58 first, fall back to raw JSON
-  try {
-    const bytes = bs58.decode(trimmed);
-    return JSON.parse(new TextDecoder().decode(bytes));
-  } catch {
-    return JSON.parse(trimmed);
-  }
-}
-
-function CopyBtn({ value }: { value: string }) {
-  return (
-    <button
-      className="ns-copy-btn"
-      title="Copy"
-      onClick={(e) => {
-        e.stopPropagation();
-        copyToClipboard(value);
-      }}
-    >
-      <DocumentDuplicateIcon style={{ width: 12, height: 12 }} />
-    </button>
-  );
+function useInstalledApps(): InstalledApp[] {
+  const [apps, setApps] = useState<InstalledApp[]>([]);
+  useEffect(() => {
+    apiClient
+      .node()
+      .getInstalledApplications()
+      .then((res) => {
+        const list: Array<{ id: string; metadata?: number[] }> =
+          (res.data as any)?.data?.apps ?? (res.data as any)?.apps ?? [];
+        setApps(
+          list.map((app) => {
+            let name = app.id;
+            try {
+              const decoded = JSON.parse(
+                new TextDecoder().decode(new Uint8Array(app.metadata ?? [])),
+              );
+              if (decoded?.name) name = decoded.name;
+            } catch {
+              // raw-wasm app or no metadata — the id is the best we have
+            }
+            return { id: app.id, name };
+          }),
+        );
+      })
+      .catch(() => setApps([]));
+  }, []);
+  return apps;
 }
 
 export default function NamespacesPage() {
   const [view, setView] = useState<View>({ type: 'list' });
   const [toast, setToast] = useState<Toast | null>(null);
+  const installedApps = useInstalledApps();
 
-  const showToast = (msg: string, type: 'success' | 'error') => {
+  const showToast = useCallback<ShowToast>((msg, type) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
-  };
+  }, []);
 
   const goBack = () => {
-    if (view.type === 'group') {
-      setView({ type: 'namespace', ns: view.ns });
-    } else if (view.type === 'namespace') {
-      setView({ type: 'list' });
-    }
+    if (view.type === 'group') setView({ type: 'namespace', ns: view.ns });
+    else if (view.type === 'namespace') setView({ type: 'list' });
   };
 
   return (
-    <div className="app-shell">
-      <Navigation />
-      <main className="page-content">
-        {toast && (
-          <div className={`alert alert-${toast.type} ns-toast`}>
-            {toast.msg}
-          </div>
-        )}
-        {view.type === 'list' && (
-          <NamespaceList
-            onOpen={(ns) => setView({ type: 'namespace', ns })}
-            showToast={showToast}
-          />
-        )}
-        {view.type === 'namespace' && (
-          <NamespaceDetail
-            ns={view.ns}
-            onBack={goBack}
-            onOpenGroup={(groupId) =>
-              setView({ type: 'group', ns: view.ns, groupId })
-            }
-            showToast={showToast}
-          />
-        )}
-        {view.type === 'group' && (
-          <GroupDetail
-            ns={view.ns}
-            groupId={view.groupId}
-            onBack={goBack}
-            onOpenSubgroup={(groupId) =>
-              setView({ type: 'group', ns: view.ns, groupId })
-            }
-            showToast={showToast}
-          />
-        )}
-      </main>
-    </div>
+    <main className="page-content">
+      {toast && (
+        <div className={`alert alert-${toast.type} ns-toast`}>{toast.msg}</div>
+      )}
+      {view.type === 'list' && (
+        <NamespaceList
+          installedApps={installedApps}
+          onOpen={(ns) => setView({ type: 'namespace', ns })}
+          showToast={showToast}
+        />
+      )}
+      {view.type === 'namespace' && (
+        <NamespaceDetail
+          key={view.ns.namespaceId}
+          ns={view.ns}
+          installedApps={installedApps}
+          onBack={goBack}
+          onGone={() => setView({ type: 'list' })}
+          onOpenGroup={(groupId) =>
+            setView({ type: 'group', ns: view.ns, groupId })
+          }
+          showToast={showToast}
+        />
+      )}
+      {view.type === 'group' && (
+        <GroupDetail
+          key={view.groupId}
+          ns={view.ns}
+          groupId={view.groupId}
+          installedApps={installedApps}
+          onBack={goBack}
+          onGone={() => setView({ type: 'namespace', ns: view.ns })}
+          onOpenSubgroup={(groupId) =>
+            setView({ type: 'group', ns: view.ns, groupId })
+          }
+          showToast={showToast}
+        />
+      )}
+    </main>
   );
 }
 
-// ── Namespace List ──────────────────────────────────────────────────────────
+// ── Namespace list ──────────────────────────────────────────────────────────
 
 function NamespaceList({
+  installedApps,
   onOpen,
   showToast,
 }: {
+  installedApps: InstalledApp[];
   onOpen: (ns: Namespace) => void;
-  showToast: (msg: string, type: 'success' | 'error') => void;
+  showToast: ShowToast;
 }) {
   const [namespaces, setNamespaces] = useState<Namespace[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showJoin, setShowJoin] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createAppId, setCreateAppId] = useState('');
-  const [createUpgradePolicy, setCreateUpgradePolicy] = useState('Automatic');
-  const [createAlias, setCreateAlias] = useState('');
+
+  const [appId, setAppId] = useState('');
+  const [policy, setPolicy] = useState<UpgradePolicy>('Automatic');
+  const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [installedApps, setInstalledApps] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
-  const [useCustomAppId, setUseCustomAppId] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await listNamespaces();
-      setNamespaces(Array.isArray(result) ? result : []);
+      setNamespaces(await listNamespaces());
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorMessage(e, 'Failed to load namespaces'));
     } finally {
       setLoading(false);
     }
@@ -188,61 +240,45 @@ function NamespaceList({
 
   useEffect(() => {
     load();
-    apiClient
-      .node()
-      .getInstalledApplications()
-      .then((res) => {
-        const apps: Array<{ id: string; metadata: number[] }> =
-          (res.data as any)?.data?.apps ?? (res.data as any)?.apps ?? [];
-        setInstalledApps(
-          apps.map((app) => {
-            let name = app.id;
-            try {
-              const decoded = JSON.parse(
-                new TextDecoder().decode(new Uint8Array(app.metadata ?? [])),
-              );
-              if (decoded.name) name = decoded.name;
-            } catch {}
-            return { id: app.id, name };
-          }),
-        );
-      })
-      .catch(() => {});
   }, [load]);
 
-  const handleDelete = async (namespaceId: string) => {
-    setConfirmDelete(null);
-    setDeleting(namespaceId);
+  const appName = (id: string) =>
+    installedApps.find((a) => a.id === id)?.name ?? null;
+
+  const create = async () => {
+    if (!appId.trim()) return;
+    setCreating(true);
     try {
-      await deleteNamespace(namespaceId);
-      showToast('Namespace deleted', 'success');
+      const result = await createNamespace({
+        applicationId: appId.trim(),
+        upgradePolicy: policy,
+        ...(name.trim() ? { name: name.trim() } : {}),
+      });
+      showToast(
+        `Namespace created: ${truncate(result.namespaceId)}`,
+        'success',
+      );
+      setShowCreate(false);
+      setAppId('');
+      setName('');
       await load();
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : 'Delete failed', 'error');
+      showToast(errorMessage(e, 'Failed to create namespace'), 'error');
     } finally {
-      setDeleting(null);
+      setCreating(false);
     }
   };
 
-  const handleCreate = async () => {
-    if (!createAppId.trim()) return;
-    setCreating(true);
+  const remove = async (ns: Namespace) => {
+    setDeleting(ns.namespaceId);
     try {
-      await createNamespace({
-        applicationId: createAppId.trim(),
-        upgradePolicy: createUpgradePolicy,
-        alias: createAlias.trim() || undefined,
-      });
-      showToast('Namespace created', 'success');
-      setShowCreateForm(false);
-      setCreateAppId('');
-      setCreateAlias('');
-      setUseCustomAppId(false);
+      await deleteNamespace(ns.namespaceId);
+      showToast('Namespace deleted', 'success');
       await load();
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : 'Create failed', 'error');
+      showToast(errorMessage(e, 'Failed to delete namespace'), 'error');
     } finally {
-      setCreating(false);
+      setDeleting(null);
     }
   };
 
@@ -251,9 +287,13 @@ function NamespaceList({
       <div className="page-header">
         <div className="page-header-left">
           <h1>Namespaces</h1>
-          <p>Manage namespaces, groups, and their members</p>
+          <p>
+            A namespace is an app-bound workspace. It holds contexts (running
+            app instances) and subgroups (nested groups with their own
+            contexts).
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="ns-header-actions">
           <button className="btn" onClick={load} disabled={loading}>
             <ArrowPathIcon
               style={{ width: 16, height: 16 }}
@@ -261,132 +301,114 @@ function NamespaceList({
             />
             Refresh
           </button>
+          <button className="btn" onClick={() => setShowJoin((v) => !v)}>
+            <ArrowRightOnRectangleIcon style={{ width: 16, height: 16 }} />
+            Join Namespace
+          </button>
           <button
             className="btn btn-primary"
-            onClick={() => setShowCreateForm((v) => !v)}
+            onClick={() => setShowCreate((v) => !v)}
+            disabled={installedApps.length === 0}
+            title={
+              installedApps.length === 0
+                ? 'Install an application first (Marketplace)'
+                : 'Create a namespace'
+            }
           >
             <PlusIcon style={{ width: 16, height: 16 }} />
-            New Namespace
+            Create Namespace
           </button>
         </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      {showCreateForm && (
-        <div className="ctx-start-form">
-          <h3 className="ctx-start-title">Create Namespace</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div className="ns-form-field">
-              <label>Application</label>
-              {installedApps.length > 0 && !useCustomAppId ? (
-                <>
-                  <select
-                    className="ctx-start-input"
-                    value={createAppId}
-                    onChange={(e) => setCreateAppId(e.target.value)}
-                    style={{ fontFamily: 'inherit' }}
-                  >
-                    <option value="">Select an installed application…</option>
-                    {installedApps.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        {app.name !== app.id
-                          ? `${app.name} — ${app.id.slice(0, 16)}…`
-                          : app.id}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="ns-toggle-link"
-                    onClick={() => {
-                      setUseCustomAppId(true);
-                      setCreateAppId('');
-                    }}
-                  >
-                    Enter ID manually
-                  </button>
-                </>
-              ) : (
-                <>
-                  <input
-                    className="ctx-start-input"
-                    type="text"
-                    placeholder="Application ID"
-                    value={createAppId}
-                    onChange={(e) => setCreateAppId(e.target.value)}
-                  />
-                  {installedApps.length > 0 && (
-                    <button
-                      type="button"
-                      className="ns-toggle-link"
-                      onClick={() => {
-                        setUseCustomAppId(false);
-                        setCreateAppId('');
-                      }}
-                    >
-                      Pick from installed apps
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="ns-form-field">
-              <label>Upgrade Policy</label>
+      {showJoin && (
+        <JoinPanel
+          title="Join a namespace"
+          hint="Paste an invitation code. The namespace it belongs to is read from the code itself."
+          confirmLabel="Join"
+          showToast={showToast}
+          onClose={() => setShowJoin(false)}
+          onJoin={async (payload) => {
+            // A joiner does not know the namespace id — it is carried, signed,
+            // inside the invitation, and the join route is addressed by it.
+            const namespaceId = namespaceIdFromInvitation(payload);
+            await joinNamespace(namespaceId, payload);
+            showToast('Joined namespace', 'success');
+            setShowJoin(false);
+            await load();
+          }}
+        />
+      )}
+
+      {showCreate && (
+        <div className="ns-panel">
+          <div className="ns-panel-header">
+            <h3>Create namespace</h3>
+          </div>
+          <div className="ns-form">
+            <label className="ns-form-field">
+              <span>Application</span>
               <select
-                className="ctx-start-input"
-                value={createUpgradePolicy}
-                onChange={(e) => setCreateUpgradePolicy(e.target.value)}
+                className="ns-input"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
               >
-                <option value="Automatic">
-                  Automatic — upgrade as soon as new version available
-                </option>
-                <option value="LazyOnAccess">
-                  LazyOnAccess — upgrade on next use
-                </option>
-                <option value="Coordinated">
-                  Coordinated — manual/scheduled upgrade
-                </option>
+                <option value="">Select an installed application…</option>
+                {installedApps.map((app) => (
+                  <option key={app.id} value={app.id}>
+                    {app.name !== app.id
+                      ? `${app.name} — ${app.id.slice(0, 12)}…`
+                      : app.id}
+                  </option>
+                ))}
               </select>
-            </div>
-            <div className="ns-form-field">
-              <label>Alias (optional)</label>
+            </label>
+            <label className="ns-form-field">
+              <span>Upgrade policy</span>
+              <select
+                className="ns-input"
+                value={policy}
+                onChange={(e) => setPolicy(e.target.value as UpgradePolicy)}
+              >
+                {UPGRADE_POLICIES.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="ns-form-field">
+              <span>Name (optional)</span>
               <input
-                className="ctx-start-input"
+                className="ns-input"
                 type="text"
-                placeholder="e.g. my-namespace"
-                value={createAlias}
-                onChange={(e) => setCreateAlias(e.target.value)}
+                placeholder="e.g. Team workspace"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
-            </div>
-            <div className="ctx-start-row">
-              <button
-                className="btn btn-primary"
-                onClick={handleCreate}
-                disabled={creating || !createAppId.trim()}
-              >
-                {creating ? 'Creating…' : 'Create'}
-              </button>
-              <button
-                className="btn"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setCreateAppId('');
-                  setCreateAlias('');
-                  setUseCustomAppId(false);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+            </label>
+          </div>
+          <div className="ns-panel-actions">
+            <button
+              className="btn btn-primary"
+              onClick={create}
+              disabled={creating || !appId.trim()}
+            >
+              {creating ? 'Creating…' : 'Create'}
+            </button>
+            <button className="btn" onClick={() => setShowCreate(false)}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
       {loading && namespaces.length === 0 ? (
-        <div className="ctx-list">
+        <div className="ns-card-grid">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="ctx-row ctx-row-skeleton">
+            <div key={i} className="ns-card ns-card-skeleton">
               <div className="skel-line skel-title" />
               <div className="skel-line skel-short" />
             </div>
@@ -407,269 +429,255 @@ function NamespaceList({
             />
           </svg>
           <h3>No namespaces found</h3>
-          <p>Create a namespace to get started.</p>
+          <p>
+            {installedApps.length === 0
+              ? 'Install an application first, then create a namespace bound to it.'
+              : 'Create a namespace bound to an installed application, then create a context inside it.'}
+          </p>
         </div>
       ) : (
-        <table
-          style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}
-        >
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              {[
-                'Namespace ID',
-                'Application',
-                'Members',
-                'Contexts',
-                'Groups',
-                'Policy',
-                'Actions',
-              ].map((h, i) => (
-                <th
-                  key={h}
-                  style={{
-                    textAlign:
-                      i >= 2 && i <= 5 ? 'center' : i === 6 ? 'right' : 'left',
-                    padding: '8px 12px',
-                    color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {namespaces.map((ns) => (
-              <tr
-                key={ns.namespaceId}
-                style={{
-                  borderBottom: '1px solid var(--border-color)',
-                  cursor: 'pointer',
-                }}
-                onClick={() => onOpen(ns)}
+        <div className="ns-card-grid">
+          {namespaces.map((ns) => (
+            <div
+              key={ns.namespaceId}
+              className="ns-card"
+              role="button"
+              tabIndex={0}
+              data-testid="ns-card"
+              onClick={() => onOpen(ns)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') onOpen(ns);
+              }}
+            >
+              <div className="ns-card-header">
+                <h3>{namespaceLabel(ns, installedApps)}</h3>
+                <ChevronRightIcon className="ns-card-chevron" />
+              </div>
+              <div
+                className="ns-card-id mono"
+                title={ns.namespaceId}
+                onClick={(e) => e.stopPropagation()}
               >
-                <td style={{ padding: '10px 12px', fontFamily: 'monospace' }}>
-                  <span title={ns.namespaceId}>{truncate(ns.namespaceId)}</span>
-                  <CopyBtn value={ns.namespaceId} />
-                  {ns.alias && (
-                    <span
-                      style={{
-                        marginLeft: 6,
-                        fontSize: 11,
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
-                      {ns.alias}
-                    </span>
-                  )}
-                </td>
-                <td
-                  style={{
-                    padding: '10px 12px',
-                    fontFamily: 'monospace',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <span title={ns.targetApplicationId}>
-                    {truncate(ns.targetApplicationId)}
-                  </span>
-                </td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {ns.memberCount}
-                </td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {ns.contextCount}
-                </td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {ns.subgroupCount}
-                </td>
-                <td
-                  style={{
-                    padding: '10px 12px',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  {ns.upgradePolicy}
-                </td>
-                <td
-                  style={{ padding: '10px 12px', textAlign: 'right' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 8,
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <button className="btn btn-sm" onClick={() => onOpen(ns)}>
-                      <ChevronRightIcon style={{ width: 14, height: 14 }} />
-                      View
-                    </button>
-                    {confirmDelete === ns.namespaceId ? (
-                      <>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(ns.namespaceId)}
-                          disabled={deleting === ns.namespaceId}
-                        >
-                          {deleting === ns.namespaceId
-                            ? 'Deleting…'
-                            : 'Confirm'}
-                        </button>
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => setConfirmDelete(null)}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className="btn btn-sm"
-                        onClick={() => setConfirmDelete(ns.namespaceId)}
-                        title="Delete namespace"
-                      >
-                        <TrashIcon style={{ width: 14, height: 14 }} />
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                {truncate(ns.namespaceId)}
+                <CopyBtn value={ns.namespaceId} />
+              </div>
+              <div className="ns-card-app" title={ns.targetApplicationId}>
+                {appName(ns.targetApplicationId) ??
+                  truncate(ns.targetApplicationId)}
+                {ns.appVersion && (
+                  <span className="ns-card-version">v{ns.appVersion}</span>
+                )}
+              </div>
+              <div className="ns-card-stats">
+                <span title="Subgroups — nested groups, each holding its own contexts">
+                  <FolderIcon /> {ns.subgroupCount}
+                </span>
+                <span title="Members — identities with access to this namespace">
+                  <UsersIcon /> {ns.memberCount}
+                </span>
+                <span title="Contexts — running app instances directly under the namespace">
+                  <CubeIcon /> {ns.contextCount}
+                </span>
+              </div>
+              <div
+                className="ns-card-footer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="ns-badge">{ns.upgradePolicy}</span>
+                <ConfirmButton
+                  label="Delete"
+                  busyLabel="Deleting…"
+                  busy={deleting === ns.namespaceId}
+                  onConfirm={() => remove(ns)}
+                  icon={<TrashIcon style={{ width: 13, height: 13 }} />}
+                  title="Delete namespace"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </>
   );
 }
 
-// ── Namespace Detail ────────────────────────────────────────────────────────
+// ── Create-subgroup form ────────────────────────────────────────────────────
+
+function CreateSubgroupPanel({
+  onClose,
+  onSubmit,
+  showToast,
+  /** Only the namespace-level endpoint takes a birth visibility. */
+  withVisibility,
+}: {
+  onClose: () => void;
+  onSubmit: (name: string, visibility: SubgroupVisibility) => Promise<void>;
+  showToast: ShowToast;
+  withVisibility: boolean;
+}) {
+  const [name, setName] = useState('');
+  const [visibility, setVisibility] = useState<SubgroupVisibility>('open');
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div className="ns-panel" data-testid="ns-create-subgroup-panel">
+      <div className="ns-panel-header">
+        <h3>New subgroup</h3>
+        <button className="btn btn-sm" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      <div className="ns-form">
+        <label className="ns-form-field">
+          <span>Name (optional)</span>
+          <input
+            className="ns-input"
+            type="text"
+            placeholder="e.g. engineering"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        {withVisibility && (
+          <label className="ns-form-field">
+            <span>Visibility</span>
+            <select
+              className="ns-input"
+              value={visibility}
+              onChange={(e) =>
+                setVisibility(e.target.value as SubgroupVisibility)
+              }
+            >
+              <option value="open">
+                Open — parent members can join automatically
+              </option>
+              <option value="restricted">Restricted — invite only</option>
+            </select>
+          </label>
+        )}
+      </div>
+      <div className="ns-panel-actions">
+        <button
+          className="btn btn-primary"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              await onSubmit(name.trim(), visibility);
+            } catch (e: unknown) {
+              showToast(errorMessage(e, 'Failed to create subgroup'), 'error');
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? 'Creating…' : 'Create Subgroup'}
+        </button>
+        <button className="btn" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+type Panel =
+  | 'invite'
+  | 'join-context'
+  | 'create-context'
+  | 'create-subgroup'
+  | null;
+
+// ── Namespace detail ────────────────────────────────────────────────────────
 
 function NamespaceDetail({
   ns: initialNs,
+  installedApps,
   onBack,
+  onGone,
   onOpenGroup,
   showToast,
 }: {
   ns: Namespace;
+  installedApps: InstalledApp[];
   onBack: () => void;
+  onGone: () => void;
   onOpenGroup: (groupId: string) => void;
-  showToast: (msg: string, type: 'success' | 'error') => void;
+  showToast: ShowToast;
 }) {
-  const [ns, setNs] = useState<Namespace>(initialNs);
-  const [groups, setGroups] = useState<SubgroupEntry[]>([]);
+  const [ns, setNs] = useState(initialNs);
   const [identity, setIdentity] = useState<string | null>(null);
-  const [loadingGroups, setLoadingGroups] = useState(false);
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [groupAlias, setGroupAlias] = useState('');
-  const [groupVisibility, setGroupVisibility] = useState<'open' | 'restricted'>(
-    'open',
-  );
-  const [creatingGroup, setCreatingGroup] = useState(false);
-  const [invitation, setInvitation] = useState<string | null>(null);
-  const [creatingInvite, setCreatingInvite] = useState(false);
-  const [joinJson, setJoinJson] = useState('');
-  const [showJoin, setShowJoin] = useState(false);
-  const [joining, setJoining] = useState(false);
-  const [confirmLeaveNs, setConfirmLeaveNs] = useState(false);
-  const [leavingNs, setLeavingNs] = useState(false);
+  const [panel, setPanel] = useState<Panel>(null);
+  const [busy, setBusy] = useState(false);
+  const [treeVersion, setTreeVersion] = useState(0);
+  const [self, setSelf] = useState<GroupMembersResult | null>(null);
 
-  const loadGroups = useCallback(async () => {
-    setLoadingGroups(true);
-    try {
-      const result = await listNamespaceGroups(ns.namespaceId);
-      setGroups(Array.isArray(result) ? result : []);
-    } catch {
-      setGroups([]);
-    } finally {
-      setLoadingGroups(false);
-    }
-  }, [ns.namespaceId]);
+  const refreshTree = useCallback(() => setTreeVersion((v) => v + 1), []);
+  const {
+    tree,
+    loading: treeLoading,
+    partial,
+  } = useNamespaceTree(ns.namespaceId, treeVersion);
 
   useEffect(() => {
-    loadGroups();
     getNamespaceIdentity(ns.namespaceId)
       .then((id) => setIdentity(id.publicKey))
       .catch(() => setIdentity(null));
-  }, [ns.namespaceId, loadGroups]);
+  }, [ns.namespaceId]);
 
-  const handleCreateGroup = async () => {
-    setCreatingGroup(true);
+  const appName = installedApps.find(
+    (a) => a.id === ns.targetApplicationId,
+  )?.name;
+
+  // Delete is admin-gated on the node; a plain member's only exit is Leave.
+  // While the role is still unknown, keep offering Delete — the node enforces
+  // it anyway, so the worst case is an error toast rather than a hidden action.
+  const myRole = self?.selfIdentity
+    ? self.members.find((m) => m.identity === self.selfIdentity)?.role
+    : undefined;
+  const showLeave =
+    myRole !== undefined && String(myRole).toLowerCase() !== 'admin';
+
+  const contextCount = tree ? countTreeContexts(tree) : ns.contextCount;
+  const subgroupCount = tree ? countTreeSubgroups(tree) : ns.subgroupCount;
+
+  const rename = async (name: string) => {
+    setBusy(true);
     try {
-      const result = await createGroupInNamespace(ns.namespaceId, {
-        groupAlias: groupAlias.trim() || undefined,
-      });
-      await setSubgroupVisibility(result.groupId, groupVisibility).catch(
-        () => {},
-      );
-      showToast(`Group created: ${truncate(result.groupId)}`, 'success');
-      setShowCreateGroup(false);
-      setGroupAlias('');
-      setGroupVisibility('open');
-      await loadGroups();
-      setNs((prev) => ({ ...prev, subgroupCount: prev.subgroupCount + 1 }));
+      // A namespace IS a group (the root one), so its name is group metadata.
+      await setGroupMetadata(ns.namespaceId, { name });
+      setNs((prev) => ({ ...prev, name }));
+      showToast('Namespace renamed', 'success');
     } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to create group',
-        'error',
-      );
+      showToast(errorMessage(e, 'Failed to rename namespace'), 'error');
     } finally {
-      setCreatingGroup(false);
+      setBusy(false);
     }
   };
 
-  const handleCreateInvitation = async () => {
-    setCreatingInvite(true);
+  const removeNamespace = async () => {
+    setBusy(true);
     try {
-      const result = await createNamespaceInvitation(ns.namespaceId);
-      setInvitation(encodeInvitation(result));
+      await deleteNamespace(ns.namespaceId);
+      showToast('Namespace deleted', 'success');
+      onGone();
     } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to create invitation',
-        'error',
-      );
+      showToast(errorMessage(e, 'Failed to delete namespace'), 'error');
     } finally {
-      setCreatingInvite(false);
+      setBusy(false);
     }
   };
 
-  const handleJoin = async () => {
-    setJoining(true);
-    try {
-      const parsed = decodeInvitation(joinJson) as Record<string, unknown>;
-      const invitationPayload = parsed.invitation ?? parsed;
-      await joinNamespace(ns.namespaceId, { invitation: invitationPayload });
-      showToast('Joined namespace', 'success');
-      setShowJoin(false);
-      setJoinJson('');
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to join namespace',
-        'error',
-      );
-    } finally {
-      setJoining(false);
-    }
-  };
-
-  const handleLeaveNamespace = async () => {
-    setConfirmLeaveNs(false);
-    setLeavingNs(true);
+  const leave = async () => {
+    setBusy(true);
     try {
       await leaveNamespace(ns.namespaceId);
       showToast('Left namespace', 'success');
-      onBack();
+      onGone();
     } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to leave namespace',
-        'error',
-      );
+      showToast(errorMessage(e, 'Failed to leave namespace'), 'error');
     } finally {
-      setLeavingNs(false);
+      setBusy(false);
     }
   };
 
@@ -677,35 +685,165 @@ function NamespaceDetail({
     <>
       <div className="page-header">
         <div className="page-header-left">
-          <button className="btn" onClick={onBack} style={{ marginRight: 8 }}>
+          <button className="btn ns-back-btn" onClick={onBack}>
             <ArrowLeftIcon style={{ width: 14, height: 14 }} />
             Back
           </button>
           <div>
             <h1>
-              {ns.alias || truncate(ns.namespaceId, 20)}
-              <CopyBtn value={ns.namespaceId} />
+              {namespaceLabel(ns, installedApps)}
+              <RenameField
+                value={ns.name}
+                placeholder="Namespace name"
+                busy={busy}
+                onSave={rename}
+              />
             </h1>
-            <p style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            <p className="mono">
               {truncate(ns.namespaceId, 32)}
+              <CopyBtn value={ns.namespaceId} />
             </p>
           </div>
         </div>
+        <div className="ns-header-actions">
+          <button
+            className="btn btn-primary"
+            onClick={() =>
+              setPanel(panel === 'create-context' ? null : 'create-context')
+            }
+          >
+            <PlusIcon style={{ width: 16, height: 16 }} />
+            Create Context
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              setPanel(panel === 'create-subgroup' ? null : 'create-subgroup')
+            }
+          >
+            <FolderPlusIcon style={{ width: 16, height: 16 }} />
+            New Subgroup
+          </button>
+          <button
+            className="btn"
+            onClick={() => setPanel(panel === 'invite' ? null : 'invite')}
+          >
+            <LinkIcon style={{ width: 16, height: 16 }} />
+            Invite
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              setPanel(panel === 'join-context' ? null : 'join-context')
+            }
+          >
+            <ArrowRightOnRectangleIcon style={{ width: 16, height: 16 }} />
+            Join Context
+          </button>
+          {showLeave ? (
+            <ConfirmButton
+              label="Leave"
+              confirmLabel="Confirm leave"
+              busyLabel="Leaving…"
+              busy={busy}
+              size="md"
+              onConfirm={leave}
+              icon={
+                <ArrowRightStartOnRectangleIcon
+                  style={{ width: 14, height: 14 }}
+                />
+              }
+              title="Leave this namespace"
+            />
+          ) : (
+            <ConfirmButton
+              label="Delete"
+              busyLabel="Deleting…"
+              busy={busy}
+              size="md"
+              onConfirm={removeNamespace}
+              icon={<TrashIcon style={{ width: 14, height: 14 }} />}
+              title="Delete this namespace, its subgroups and contexts"
+            />
+          )}
+        </div>
       </div>
 
-      {/* Stats */}
+      {panel === 'invite' && (
+        <InvitePanel
+          title="Invite to namespace"
+          hint="Anyone with this code can join the namespace."
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onCreate={() => createNamespaceInvitation(ns.namespaceId)}
+        />
+      )}
+      {panel === 'join-context' && (
+        <JoinPanel
+          title="Join a context"
+          hint="Paste an invitation code for a context or subgroup in this namespace."
+          confirmLabel="Join"
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onJoin={async (payload) => {
+            await joinGroup(payload);
+            showToast('Joined', 'success');
+            setPanel(null);
+            refreshTree();
+          }}
+        />
+      )}
+      {panel === 'create-context' && (
+        <CreateContextPanel
+          groupId={ns.namespaceId}
+          defaultApplicationId={ns.targetApplicationId}
+          installedApps={installedApps}
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onCreated={refreshTree}
+        />
+      )}
+      {panel === 'create-subgroup' && (
+        <CreateSubgroupPanel
+          withVisibility
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onSubmit={async (name, visibility) => {
+            const result = await createGroupInNamespace(ns.namespaceId, {
+              ...(name ? { groupName: name } : {}),
+              visibility,
+            });
+            showToast(
+              `Subgroup created: ${truncate(result.groupId)}`,
+              'success',
+            );
+            setPanel(null);
+            refreshTree();
+          }}
+        />
+      )}
+
       <div className="ns-stats-row">
         <div className="ns-stat-card">
-          <div className="ns-stat-value">{ns.memberCount}</div>
+          <div className="ns-stat-value">
+            {self ? self.members.length : '…'}
+          </div>
           <div className="ns-stat-label">Members</div>
         </div>
-        <div className="ns-stat-card">
-          <div className="ns-stat-value">{ns.contextCount}</div>
+        <div
+          className="ns-stat-card"
+          title="Counted across the namespace and every subgroup"
+        >
+          <div className="ns-stat-value">
+            {treeLoading && !tree ? '…' : contextCount}
+          </div>
           <div className="ns-stat-label">Contexts</div>
         </div>
-        <div className="ns-stat-card">
-          <div className="ns-stat-value">{ns.subgroupCount}</div>
-          <div className="ns-stat-label">Groups</div>
+        <div className="ns-stat-card" title="Counted recursively">
+          <div className="ns-stat-value">
+            {treeLoading && !tree ? '…' : subgroupCount}
+          </div>
+          <div className="ns-stat-label">Subgroups</div>
         </div>
         <div className="ns-stat-card">
           <div className="ns-stat-value ns-stat-small">{ns.upgradePolicy}</div>
@@ -713,19 +851,35 @@ function NamespaceDetail({
         </div>
       </div>
 
-      {/* Application */}
       <div className="ns-section">
         <h2>Application</h2>
         <div className="ns-kv-row">
-          <span className="ns-kv-label">Target Application ID</span>
-          <span className="ns-kv-value mono">
-            {truncate(ns.targetApplicationId, 40)}
+          <span className="ns-kv-label">Target application</span>
+          <span className="ns-kv-value">
+            {appName ? (
+              <>
+                {appName}
+                <span className="mono ns-muted">
+                  {truncate(ns.targetApplicationId)}
+                </span>
+              </>
+            ) : (
+              <span className="mono">
+                {truncate(ns.targetApplicationId, 40)}
+              </span>
+            )}
             <CopyBtn value={ns.targetApplicationId} />
           </span>
         </div>
+        {ns.appVersion && (
+          <div className="ns-kv-row">
+            <span className="ns-kv-label">Application version</span>
+            <span className="ns-kv-value">{ns.appVersion}</span>
+          </div>
+        )}
         {identity && (
           <div className="ns-kv-row">
-            <span className="ns-kv-label">Namespace Public Key</span>
+            <span className="ns-kv-label">Your namespace identity</span>
             <span className="ns-kv-value mono">
               {truncate(identity, 40)}
               <CopyBtn value={identity} />
@@ -734,857 +888,513 @@ function NamespaceDetail({
         )}
       </div>
 
-      {/* Groups */}
       <div className="ns-section">
         <div className="ns-section-header">
-          <h2>Groups ({groups.length})</h2>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <h2>Structure</h2>
+          <div className="ns-section-actions">
+            <span className="ns-muted">
+              {contextCount} contexts · {subgroupCount} subgroups
+            </span>
             <button
               className="btn btn-sm"
-              onClick={loadGroups}
-              disabled={loadingGroups}
+              onClick={refreshTree}
+              disabled={treeLoading}
             >
               <ArrowPathIcon
                 style={{ width: 14, height: 14 }}
-                className={loadingGroups ? 'spin' : ''}
+                className={treeLoading ? 'spin' : ''}
               />
               Refresh
             </button>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => setShowCreateGroup((v) => !v)}
-            >
-              <PlusIcon style={{ width: 14, height: 14 }} />
-              New Group
-            </button>
           </div>
         </div>
-
-        {showCreateGroup && (
-          <div className="ns-inline-form">
-            <input
-              className="ctx-start-input"
-              type="text"
-              placeholder="Alias (optional)"
-              value={groupAlias}
-              onChange={(e) => setGroupAlias(e.target.value)}
-            />
-            <select
-              className="ctx-start-input"
-              value={groupVisibility}
-              onChange={(e) =>
-                setGroupVisibility(e.target.value as 'open' | 'restricted')
-              }
-              style={{ width: 130 }}
-              title="Visibility: Open = parent group members can join automatically; Restricted = invite only"
-            >
-              <option value="open">Open (public)</option>
-              <option value="restricted">Restricted (private)</option>
-            </select>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={handleCreateGroup}
-              disabled={creatingGroup}
-            >
-              {creatingGroup ? 'Creating…' : 'Create Group'}
-            </button>
-            <button
-              className="btn btn-sm"
-              onClick={() => {
-                setShowCreateGroup(false);
-                setGroupAlias('');
-                setGroupVisibility('open');
-              }}
-            >
-              Cancel
-            </button>
+        {partial && (
+          <div className="alert alert-error">
+            Some groups could not be loaded — the structure and counts below may
+            be incomplete.
           </div>
         )}
-
-        {loadingGroups ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            Loading groups…
-          </p>
-        ) : groups.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            No groups in this namespace.
+        {treeLoading && !tree ? (
+          <p className="ns-muted">Loading structure…</p>
+        ) : !tree ||
+          (tree.rootContexts.length === 0 && tree.subgroups.length === 0) ? (
+          <p className="ns-muted">
+            Empty namespace. Create a context or a subgroup to get started.
           </p>
         ) : (
-          <div className="ns-group-list">
-            {groups.map((g) => (
-              <button
-                key={g.groupId}
-                className="ns-group-row"
-                onClick={() => onOpenGroup(g.groupId)}
-              >
-                <span className="mono" title={g.groupId}>
-                  {truncate(g.groupId)}
-                </span>
-                {g.alias && <span className="ns-group-alias">{g.alias}</span>}
-                <ChevronRightIcon
-                  style={{ width: 14, height: 14, marginLeft: 'auto' }}
-                />
-              </button>
-            ))}
-          </div>
+          <StructureTree
+            namespaceId={ns.namespaceId}
+            namespaceName={namespaceLabel(ns, installedApps)}
+            tree={tree}
+            onOpenGroup={onOpenGroup}
+            onDeleteGroup={async (groupId, name) => {
+              try {
+                await deleteGroup(groupId);
+                showToast(`Subgroup "${name}" deleted`, 'success');
+                refreshTree();
+              } catch (e: unknown) {
+                showToast(
+                  errorMessage(e, 'Failed to delete subgroup'),
+                  'error',
+                );
+              }
+            }}
+            onDeleteContext={async (contextId, name) => {
+              try {
+                await deleteContext(contextId);
+                showToast(`Context "${name}" deleted`, 'success');
+                refreshTree();
+              } catch (e: unknown) {
+                showToast(errorMessage(e, 'Failed to delete context'), 'error');
+              }
+            }}
+            onRenameContext={async (parentGroupId, contextId, name) => {
+              try {
+                await setContextMetadata(parentGroupId, contextId, { name });
+                showToast('Context renamed', 'success');
+                refreshTree();
+              } catch (e: unknown) {
+                showToast(errorMessage(e, 'Failed to rename context'), 'error');
+              }
+            }}
+          />
         )}
       </div>
 
-      {/* Invitation */}
-      <div className="ns-section">
-        <h2>Membership</h2>
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 12,
-          }}
-        >
-          <button
-            className="btn btn-sm"
-            onClick={handleCreateInvitation}
-            disabled={creatingInvite}
-          >
-            {creatingInvite ? 'Generating…' : 'Create Invitation'}
-          </button>
-          <button className="btn btn-sm" onClick={() => setShowJoin((v) => !v)}>
-            Join Namespace
-          </button>
-          {confirmLeaveNs ? (
-            <>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleLeaveNamespace}
-                disabled={leavingNs}
-              >
-                {leavingNs ? 'Leaving…' : 'Confirm Leave'}
-              </button>
-              <button
-                className="btn btn-sm"
-                onClick={() => setConfirmLeaveNs(false)}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              className="btn btn-sm"
-              disabled
-              onClick={() => setConfirmLeaveNs(true)}
-            >
-              Leave Namespace
-            </button>
-          )}
-        </div>
-
-        {invitation && (
-          <div className="ns-invitation-box">
-            <div className="ns-invitation-header">
-              <span>Invitation code — share this with the new member</span>
-              <button
-                className="ns-copy-btn"
-                onClick={() => copyToClipboard(invitation)}
-              >
-                <DocumentDuplicateIcon style={{ width: 13, height: 13 }} />
-                Copy
-              </button>
-            </div>
-            <textarea
-              className="ns-invitation-textarea"
-              readOnly
-              value={invitation}
-              rows={3}
-            />
-          </div>
-        )}
-
-        {showJoin && (
-          <div
-            className="ns-inline-form"
-            style={{ flexDirection: 'column', alignItems: 'stretch' }}
-          >
-            <label
-              style={{
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                marginBottom: 4,
-              }}
-            >
-              Paste invitation code
-            </label>
-            <textarea
-              className="ctx-start-input"
-              style={{
-                fontFamily: 'monospace',
-                fontSize: 12,
-                resize: 'vertical',
-              }}
-              rows={3}
-              value={joinJson}
-              onChange={(e) => setJoinJson(e.target.value)}
-              placeholder="Paste base58 invitation code or raw JSON…"
-            />
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleJoin}
-                disabled={joining || !joinJson.trim()}
-              >
-                {joining ? 'Joining…' : 'Join'}
-              </button>
-              <button
-                className="btn btn-sm"
-                onClick={() => {
-                  setShowJoin(false);
-                  setJoinJson('');
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <MembersSection
+        groupId={ns.namespaceId}
+        showToast={showToast}
+        onLoaded={setSelf}
+      />
     </>
   );
 }
 
-// ── Group Detail ────────────────────────────────────────────────────────────
+// ── Subgroup detail ─────────────────────────────────────────────────────────
 
 function GroupDetail({
   ns,
   groupId,
+  installedApps,
   onBack,
+  onGone,
   onOpenSubgroup,
   showToast,
 }: {
   ns: Namespace;
   groupId: string;
+  installedApps: InstalledApp[];
   onBack: () => void;
+  onGone: () => void;
   onOpenSubgroup: (groupId: string) => void;
-  showToast: (msg: string, type: 'success' | 'error') => void;
+  showToast: ShowToast;
 }) {
-  const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
-  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [info, setInfo] = useState<GroupInfo | null>(null);
   const [contexts, setContexts] = useState<GroupContextEntry[]>([]);
   const [subgroups, setSubgroups] = useState<SubgroupEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
-  const [removing, setRemoving] = useState<string | null>(null);
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [newIdentity, setNewIdentity] = useState('');
-  const [newRole, setNewRole] = useState('Member');
-  const [addingMember, setAddingMember] = useState(false);
-  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
-  const [invitation, setInvitation] = useState<string | null>(null);
-  const [creatingInvite, setCreatingInvite] = useState(false);
-  const [joinJson, setJoinJson] = useState('');
-  const [showJoin, setShowJoin] = useState(false);
-  const [joining, setJoining] = useState(false);
-  const [confirmLeaveGroup, setConfirmLeaveGroup] = useState(false);
-  const [leavingGroup, setLeavingGroup] = useState(false);
-  const [confirmLeaveCtx, setConfirmLeaveCtx] = useState<string | null>(null);
-  const [leavingCtx, setLeavingCtx] = useState<string | null>(null);
+  const [panel, setPanel] = useState<Panel>(null);
+  const [busy, setBusy] = useState(false);
+  const [self, setSelf] = useState<GroupMembersResult | null>(null);
 
-  const loadAll = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const [info, mems, ctxs, subs] = await Promise.allSettled([
-        getGroupInfo(groupId),
-        listGroupMembers(groupId),
-        listGroupContexts(groupId),
-        listSubgroups(groupId),
-      ]);
-      if (info.status === 'fulfilled') setGroupInfo(info.value);
-      if (mems.status === 'fulfilled')
-        setMembers(Array.isArray(mems.value) ? mems.value : []);
-      if (ctxs.status === 'fulfilled')
-        setContexts(Array.isArray(ctxs.value) ? ctxs.value : []);
-      if (subs.status === 'fulfilled')
-        setSubgroups(Array.isArray(subs.value) ? subs.value : []);
-    } finally {
-      setLoading(false);
+    const [infoRes, ctxRes, subRes] = await Promise.allSettled([
+      getGroupInfo(groupId),
+      listGroupContexts(groupId),
+      listSubgroups(groupId),
+    ]);
+    if (infoRes.status === 'fulfilled') setInfo(infoRes.value);
+    if (ctxRes.status === 'fulfilled') setContexts(ctxRes.value);
+    if (subRes.status === 'fulfilled') setSubgroups(subRes.value);
+    if (infoRes.status === 'rejected') {
+      showToast(
+        errorMessage(infoRes.reason, 'Failed to load the subgroup'),
+        'error',
+      );
     }
+    setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    load();
+  }, [load]);
 
-  const handleRemoveMember = async (identity: string) => {
-    setConfirmRemove(null);
-    setRemoving(identity);
-    try {
-      await removeGroupMembers(groupId, { members: [identity] });
-      showToast('Member removed', 'success');
-      setMembers((prev) => prev.filter((m) => m.identity !== identity));
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to remove member',
-        'error',
-      );
-    } finally {
-      setRemoving(null);
-    }
-  };
+  const name = info?.metadata?.name ?? undefined;
+  const myRole = self?.selfIdentity
+    ? self.members.find((m) => m.identity === self.selfIdentity)?.role
+    : undefined;
+  const showLeave =
+    myRole !== undefined && String(myRole).toLowerCase() !== 'admin';
 
-  const handleAddMember = async () => {
-    if (!newIdentity.trim()) return;
-    setAddingMember(true);
+  const visibility = (info?.subgroupVisibility ?? '').toLowerCase();
+
+  const rename = async (next: string) => {
+    setBusy(true);
     try {
-      await addGroupMembers(groupId, {
-        members: [{ identity: newIdentity.trim(), role: newRole }],
+      // Replace-semantics: send back the opaque `data` map we read, or the
+      // app's own properties would be wiped by the rename.
+      await setGroupMetadata(groupId, {
+        name: next,
+        data: info?.metadata?.data ?? {},
       });
-      showToast('Member added', 'success');
-      setShowAddMember(false);
-      setNewIdentity('');
-      setNewRole('Member');
-      await loadAll();
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to add member',
-        'error',
+      setInfo((prev) =>
+        prev
+          ? { ...prev, metadata: { ...(prev.metadata ?? {}), name: next } }
+          : prev,
       );
+      showToast('Subgroup renamed', 'success');
+    } catch (e: unknown) {
+      showToast(errorMessage(e, 'Failed to rename subgroup'), 'error');
     } finally {
-      setAddingMember(false);
+      setBusy(false);
     }
   };
 
-  const handleRoleChange = async (identity: string, role: string) => {
-    setUpdatingRole(identity);
+  const toggleVisibility = async () => {
+    const next: SubgroupVisibility =
+      visibility === 'open' ? 'restricted' : 'open';
+    setBusy(true);
     try {
-      await updateMemberRole(groupId, identity, role);
-      setMembers((prev) =>
-        prev.map((m) => (m.identity === identity ? { ...m, role } : m)),
-      );
-      showToast('Role updated', 'success');
+      await setSubgroupVisibility(groupId, next);
+      setInfo((prev) => (prev ? { ...prev, subgroupVisibility: next } : prev));
+      showToast(`Visibility set to ${next}`, 'success');
     } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to update role',
-        'error',
-      );
+      showToast(errorMessage(e, 'Failed to change visibility'), 'error');
     } finally {
-      setUpdatingRole(null);
+      setBusy(false);
     }
   };
-
-  const handleCreateInvitation = async () => {
-    setCreatingInvite(true);
-    try {
-      const result = await createGroupInvitation(groupId);
-      setInvitation(encodeInvitation(result));
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to create invitation',
-        'error',
-      );
-    } finally {
-      setCreatingInvite(false);
-    }
-  };
-
-  const handleJoinGroup = async () => {
-    setJoining(true);
-    try {
-      const parsed = decodeInvitation(joinJson) as Record<string, unknown>;
-      const invitationPayload = parsed.invitation ?? parsed;
-      await joinGroup({ invitation: invitationPayload });
-      showToast('Joined group', 'success');
-      setShowJoin(false);
-      setJoinJson('');
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to join group',
-        'error',
-      );
-    } finally {
-      setJoining(false);
-    }
-  };
-
-  const handleLeaveGroup = async () => {
-    setConfirmLeaveGroup(false);
-    setLeavingGroup(true);
-    try {
-      await leaveGroup(groupId);
-      showToast('Left group', 'success');
-      onBack();
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to leave group',
-        'error',
-      );
-    } finally {
-      setLeavingGroup(false);
-    }
-  };
-
-  const handleLeaveContext = async (contextId: string) => {
-    setConfirmLeaveCtx(null);
-    setLeavingCtx(contextId);
-    try {
-      await leaveContext(contextId);
-      showToast('Left context', 'success');
-      setContexts((prev) => prev.filter((c) => c.contextId !== contextId));
-    } catch (e: unknown) {
-      showToast(
-        e instanceof Error ? e.message : 'Failed to leave context',
-        'error',
-      );
-    } finally {
-      setLeavingCtx(null);
-    }
-  };
-
-  const alias = groupInfo?.alias;
 
   return (
     <>
       <div className="page-header">
         <div className="page-header-left">
-          <button className="btn" onClick={onBack} style={{ marginRight: 8 }}>
+          <button className="btn ns-back-btn" onClick={onBack}>
             <ArrowLeftIcon style={{ width: 14, height: 14 }} />
             Back
           </button>
           <div>
             <h1>
-              {alias || truncate(groupId, 20)}
-              <CopyBtn value={groupId} />
+              {name || truncate(groupId, 20)}
+              <RenameField
+                value={name}
+                placeholder="Subgroup name"
+                busy={busy}
+                onSave={rename}
+              />
             </h1>
-            <p style={{ fontFamily: 'monospace', fontSize: 12 }}>
-              {truncate(groupId, 32)} &middot; namespace:{' '}
-              {ns.alias || truncate(ns.namespaceId)}
+            <p className="mono">
+              {truncate(groupId, 32)}
+              <CopyBtn value={groupId} />
+              <span className="ns-muted">
+                {' '}
+                in {namespaceLabel(ns, installedApps)}
+              </span>
             </p>
           </div>
         </div>
-        <button className="btn btn-sm" onClick={loadAll} disabled={loading}>
-          <ArrowPathIcon
-            style={{ width: 14, height: 14 }}
-            className={loading ? 'spin' : ''}
-          />
-          Refresh
-        </button>
+        <div className="ns-header-actions">
+          <button className="btn btn-sm" onClick={load} disabled={loading}>
+            <ArrowPathIcon
+              style={{ width: 14, height: 14 }}
+              className={loading ? 'spin' : ''}
+            />
+            Refresh
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() =>
+              setPanel(panel === 'create-context' ? null : 'create-context')
+            }
+          >
+            <PlusIcon style={{ width: 16, height: 16 }} />
+            Create Context
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              setPanel(panel === 'create-subgroup' ? null : 'create-subgroup')
+            }
+          >
+            <FolderPlusIcon style={{ width: 16, height: 16 }} />
+            New Subgroup
+          </button>
+          <button
+            className="btn"
+            onClick={() => setPanel(panel === 'invite' ? null : 'invite')}
+          >
+            <LinkIcon style={{ width: 16, height: 16 }} />
+            Invite
+          </button>
+          {showLeave ? (
+            <ConfirmButton
+              label="Leave"
+              confirmLabel="Confirm leave"
+              busyLabel="Leaving…"
+              busy={busy}
+              size="md"
+              onConfirm={async () => {
+                setBusy(true);
+                try {
+                  await leaveGroup(groupId);
+                  showToast('Left subgroup', 'success');
+                  onGone();
+                } catch (e: unknown) {
+                  showToast(
+                    errorMessage(e, 'Failed to leave subgroup'),
+                    'error',
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              icon={
+                <ArrowRightStartOnRectangleIcon
+                  style={{ width: 14, height: 14 }}
+                />
+              }
+            />
+          ) : (
+            <ConfirmButton
+              label="Delete"
+              busyLabel="Deleting…"
+              busy={busy}
+              size="md"
+              onConfirm={async () => {
+                setBusy(true);
+                try {
+                  await deleteGroup(groupId);
+                  showToast('Subgroup deleted', 'success');
+                  onGone();
+                } catch (e: unknown) {
+                  showToast(
+                    errorMessage(e, 'Failed to delete subgroup'),
+                    'error',
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              icon={<TrashIcon style={{ width: 14, height: 14 }} />}
+              title="Delete this subgroup, its contexts and nested subgroups"
+            />
+          )}
+        </div>
       </div>
 
-      {groupInfo && (
-        <div className="ns-stats-row">
-          <div className="ns-stat-card">
-            <div className="ns-stat-value">{groupInfo.memberCount}</div>
-            <div className="ns-stat-label">Members</div>
-          </div>
-          <div className="ns-stat-card">
-            <div className="ns-stat-value">{groupInfo.contextCount}</div>
-            <div className="ns-stat-label">Contexts</div>
-          </div>
-          <div className="ns-stat-card">
-            <div className="ns-stat-value ns-stat-small">
-              {groupInfo.upgradePolicy}
-            </div>
-            <div className="ns-stat-label">Upgrade Policy</div>
-          </div>
-          <div className="ns-stat-card">
-            <div className="ns-stat-value ns-stat-small">
-              {groupInfo.defaultVisibility || '—'}
-            </div>
-            <div className="ns-stat-label">Visibility</div>
-          </div>
-        </div>
+      {panel === 'invite' && (
+        <InvitePanel
+          title="Invite to subgroup"
+          hint="Anyone with this code can join this subgroup."
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onCreate={() => createGroupInvitation(groupId)}
+        />
+      )}
+      {panel === 'create-context' && (
+        <CreateContextPanel
+          groupId={groupId}
+          defaultApplicationId={
+            info?.targetApplicationId || ns.targetApplicationId
+          }
+          installedApps={installedApps}
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onCreated={load}
+        />
+      )}
+      {panel === 'create-subgroup' && (
+        <CreateSubgroupPanel
+          withVisibility={false}
+          showToast={showToast}
+          onClose={() => setPanel(null)}
+          onSubmit={async (subName) => {
+            const result = await createSubgroup({
+              parentGroupId: groupId,
+              applicationId:
+                info?.targetApplicationId || ns.targetApplicationId,
+              upgradePolicy: info?.upgradePolicy || ns.upgradePolicy,
+              ...(subName ? { name: subName } : {}),
+            });
+            showToast(
+              `Subgroup created: ${truncate(result.groupId)}`,
+              'success',
+            );
+            setPanel(null);
+            await load();
+          }}
+        />
       )}
 
-      {/* Members */}
-      <div className="ns-section">
-        <div className="ns-section-header">
-          <h2>Members ({members.length})</h2>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowAddMember((v) => !v)}
-          >
-            <UserPlusIcon style={{ width: 14, height: 14 }} />
-            Add Member
-          </button>
+      <div className="ns-stats-row">
+        <div className="ns-stat-card">
+          <div className="ns-stat-value">
+            {self ? self.members.length : info?.memberCount ?? '…'}
+          </div>
+          <div className="ns-stat-label">Members</div>
         </div>
-
-        {showAddMember && (
-          <div className="ns-inline-form">
-            <input
-              className="ctx-start-input"
-              type="text"
-              placeholder="Identity (public key)"
-              value={newIdentity}
-              onChange={(e) => setNewIdentity(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <select
-              className="ctx-start-input"
-              value={newRole}
-              onChange={(e) => setNewRole(e.target.value)}
-              style={{ width: 120 }}
-            >
-              <option value="Admin">Admin</option>
-              <option value="Member">Member</option>
-              <option value="ReadOnly">ReadOnly</option>
-            </select>
+        <div className="ns-stat-card">
+          <div className="ns-stat-value">{contexts.length}</div>
+          <div className="ns-stat-label">Contexts</div>
+        </div>
+        <div className="ns-stat-card">
+          <div className="ns-stat-value">{subgroups.length}</div>
+          <div className="ns-stat-label">Subgroups</div>
+        </div>
+        <div className="ns-stat-card">
+          <div className="ns-stat-value ns-stat-small">
+            {info?.subgroupVisibility || '—'}
+          </div>
+          <div className="ns-stat-label">
+            Visibility
             <button
-              className="btn btn-primary btn-sm"
-              onClick={handleAddMember}
-              disabled={addingMember || !newIdentity.trim()}
+              className="ns-link-btn"
+              onClick={toggleVisibility}
+              disabled={busy || !info}
+              title="Open = parent members can join automatically; Restricted = invite only"
             >
-              {addingMember ? 'Adding…' : 'Add'}
-            </button>
-            <button
-              className="btn btn-sm"
-              onClick={() => {
-                setShowAddMember(false);
-                setNewIdentity('');
-              }}
-            >
-              Cancel
+              change
             </button>
           </div>
-        )}
-
-        {loading ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            Loading members…
-          </p>
-        ) : members.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            No members.
-          </p>
-        ) : (
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: 13,
-              marginTop: 8,
-            }}
-          >
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                {['Identity', 'Alias', 'Role', 'Actions'].map((h, i) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: i === 3 ? 'right' : 'left',
-                      padding: '6px 12px',
-                      color: 'var(--text-secondary)',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((m) => (
-                <tr
-                  key={m.identity}
-                  style={{ borderBottom: '1px solid var(--border-color)' }}
-                >
-                  <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>
-                    <span title={m.identity}>{truncate(m.identity)}</span>
-                    <CopyBtn value={m.identity} />
-                  </td>
-                  <td
-                    style={{
-                      padding: '8px 12px',
-                      color: 'var(--text-secondary)',
-                    }}
-                  >
-                    {m.alias || '—'}
-                  </td>
-                  <td style={{ padding: '8px 12px' }}>
-                    <select
-                      className="ns-role-select"
-                      value={m.role}
-                      onChange={(e) =>
-                        handleRoleChange(m.identity, e.target.value)
-                      }
-                      disabled={updatingRole === m.identity}
-                      data-role={m.role.toLowerCase()}
-                    >
-                      <option value="Admin">Admin</option>
-                      <option value="Member">Member</option>
-                      <option value="ReadOnly">ReadOnly</option>
-                    </select>
-                  </td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        gap: 6,
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      {m.role !== 'Admin' && (
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => handleRoleChange(m.identity, 'Admin')}
-                          disabled={updatingRole === m.identity}
-                          title="Promote to Admin"
-                        >
-                          Promote
-                        </button>
-                      )}
-                      {m.role === 'Admin' && (
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => handleRoleChange(m.identity, 'Member')}
-                          disabled={updatingRole === m.identity}
-                          title="Demote to Member"
-                        >
-                          Demote
-                        </button>
-                      )}
-                      {confirmRemove === m.identity ? (
-                        <>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleRemoveMember(m.identity)}
-                            disabled={removing === m.identity}
-                          >
-                            {removing === m.identity ? 'Kicking…' : 'Confirm'}
-                          </button>
-                          <button
-                            className="btn btn-sm"
-                            onClick={() => setConfirmRemove(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => setConfirmRemove(m.identity)}
-                          title="Kick member"
-                        >
-                          <UserMinusIcon style={{ width: 14, height: 14 }} />
-                          Kick
-                        </button>
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        </div>
       </div>
 
-      {/* Contexts */}
       <div className="ns-section">
         <h2>Contexts ({contexts.length})</h2>
         {loading ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            Loading contexts…
-          </p>
+          <p className="ns-muted">Loading contexts…</p>
         ) : contexts.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            No contexts in this group.
-          </p>
+          <p className="ns-muted">No contexts in this subgroup.</p>
         ) : (
           <div className="ns-group-list">
             {contexts.map((c) => (
-              <div
-                key={c.contextId}
-                className="ns-group-row"
-                style={{ cursor: 'default' }}
-              >
-                <span className="mono" title={c.contextId}>
-                  {truncate(c.contextId)}
-                </span>
-                {c.alias && <span className="ns-group-alias">{c.alias}</span>}
-                <CopyBtn value={c.contextId} />
-                <span style={{ marginLeft: 'auto' }}>
-                  {confirmLeaveCtx === c.contextId ? (
+              <div key={c.contextId} className="ns-group-row ns-group-row-flat">
+                <CubeIcon className="ns-tree-icon" />
+                <span className="ns-tree-label">
+                  {c.name ? (
                     <>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleLeaveContext(c.contextId)}
-                        disabled={leavingCtx === c.contextId}
-                        style={{ marginLeft: 8 }}
-                      >
-                        {leavingCtx === c.contextId ? 'Leaving…' : 'Confirm'}
-                      </button>
-                      <button
-                        className="btn btn-sm"
-                        onClick={() => setConfirmLeaveCtx(null)}
-                        style={{ marginLeft: 4 }}
-                      >
-                        Cancel
-                      </button>
+                      <span className="ns-tree-name">{c.name}</span>
+                      <span className="ns-tree-id mono">
+                        {truncate(c.contextId)}
+                      </span>
                     </>
                   ) : (
-                    <button
-                      className="btn btn-sm"
-                      disabled
-                      onClick={() => setConfirmLeaveCtx(c.contextId)}
-                      style={{ marginLeft: 8 }}
-                    >
-                      Leave
-                    </button>
+                    <span className="ns-tree-name mono">
+                      {truncate(c.contextId)}
+                    </span>
                   )}
                 </span>
+                <RenameField
+                  value={c.name}
+                  placeholder="Context name"
+                  onSave={async (next) => {
+                    try {
+                      await setContextMetadata(groupId, c.contextId, {
+                        name: next,
+                      });
+                      showToast('Context renamed', 'success');
+                      await load();
+                    } catch (e: unknown) {
+                      showToast(
+                        errorMessage(e, 'Failed to rename context'),
+                        'error',
+                      );
+                    }
+                  }}
+                />
+                <CopyBtn value={c.contextId} />
+                <div className="ns-row-actions">
+                  <ConfirmButton
+                    label="Delete"
+                    busyLabel="Deleting…"
+                    onConfirm={async () => {
+                      try {
+                        await deleteContext(c.contextId);
+                        showToast('Context deleted', 'success');
+                        await load();
+                      } catch (e: unknown) {
+                        showToast(
+                          errorMessage(e, 'Failed to delete context'),
+                          'error',
+                        );
+                      }
+                    }}
+                    icon={<TrashIcon style={{ width: 13, height: 13 }} />}
+                  />
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Subgroups */}
       <div className="ns-section">
         <h2>Subgroups ({subgroups.length})</h2>
         {loading ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            Loading subgroups…
-          </p>
+          <p className="ns-muted">Loading subgroups…</p>
         ) : subgroups.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            No subgroups.
-          </p>
+          <p className="ns-muted">No nested subgroups.</p>
         ) : (
           <div className="ns-group-list">
             {subgroups.map((g) => (
-              <button
-                key={g.groupId}
-                className="ns-group-row"
-                onClick={() => onOpenSubgroup(g.groupId)}
-              >
-                <span className="mono" title={g.groupId}>
-                  {truncate(g.groupId)}
-                </span>
-                {g.alias && <span className="ns-group-alias">{g.alias}</span>}
-                <ChevronRightIcon
-                  style={{ width: 14, height: 14, marginLeft: 'auto' }}
-                />
-              </button>
+              <div key={g.groupId} className="ns-group-row ns-group-row-flat">
+                <button
+                  className="ns-tree-label ns-tree-link"
+                  onClick={() => onOpenSubgroup(g.groupId)}
+                >
+                  {g.name ? (
+                    <>
+                      <span className="ns-tree-name">{g.name}</span>
+                      <span className="ns-tree-id mono">
+                        {truncate(g.groupId)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="ns-tree-name mono">
+                      {truncate(g.groupId)}
+                    </span>
+                  )}
+                </button>
+                <CopyBtn value={g.groupId} />
+                <div className="ns-row-actions">
+                  <ConfirmButton
+                    label="Delete"
+                    busyLabel="Deleting…"
+                    onConfirm={async () => {
+                      try {
+                        await deleteGroup(g.groupId);
+                        showToast('Subgroup deleted', 'success');
+                        await load();
+                      } catch (e: unknown) {
+                        showToast(
+                          errorMessage(e, 'Failed to delete subgroup'),
+                          'error',
+                        );
+                      }
+                    }}
+                    icon={<TrashIcon style={{ width: 13, height: 13 }} />}
+                  />
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => onOpenSubgroup(g.groupId)}
+                  >
+                    Open
+                    <ChevronRightIcon style={{ width: 14, height: 14 }} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Membership / Invitation */}
-      <div className="ns-section">
-        <h2>Membership</h2>
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 12,
-          }}
-        >
-          <button
-            className="btn btn-sm"
-            onClick={handleCreateInvitation}
-            disabled={creatingInvite}
-          >
-            {creatingInvite ? 'Generating…' : 'Create Group Invitation'}
-          </button>
-          <button className="btn btn-sm" onClick={() => setShowJoin((v) => !v)}>
-            Join Group
-          </button>
-          {confirmLeaveGroup ? (
-            <>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleLeaveGroup}
-                disabled={leavingGroup}
-              >
-                {leavingGroup ? 'Leaving…' : 'Confirm Leave'}
-              </button>
-              <button
-                className="btn btn-sm"
-                onClick={() => setConfirmLeaveGroup(false)}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              className="btn btn-sm"
-              disabled
-              onClick={() => setConfirmLeaveGroup(true)}
-            >
-              Leave Group
-            </button>
-          )}
-        </div>
-
-        {invitation && (
-          <div className="ns-invitation-box">
-            <div className="ns-invitation-header">
-              <span>
-                Group invitation code — share this with the new member
-              </span>
-              <button
-                className="ns-copy-btn"
-                onClick={() => copyToClipboard(invitation)}
-              >
-                <DocumentDuplicateIcon style={{ width: 13, height: 13 }} />
-                Copy
-              </button>
-            </div>
-            <textarea
-              className="ns-invitation-textarea"
-              readOnly
-              value={invitation}
-              rows={3}
-            />
-          </div>
-        )}
-
-        {showJoin && (
-          <div
-            className="ns-inline-form"
-            style={{ flexDirection: 'column', alignItems: 'stretch' }}
-          >
-            <label
-              style={{
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                marginBottom: 4,
-              }}
-            >
-              Paste group invitation code
-            </label>
-            <textarea
-              className="ctx-start-input"
-              style={{
-                fontFamily: 'monospace',
-                fontSize: 12,
-                resize: 'vertical',
-              }}
-              rows={3}
-              value={joinJson}
-              onChange={(e) => setJoinJson(e.target.value)}
-              placeholder="Paste base58 invitation code or raw JSON…"
-            />
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleJoinGroup}
-                disabled={joining || !joinJson.trim()}
-              >
-                {joining ? 'Joining…' : 'Join'}
-              </button>
-              <button
-                className="btn btn-sm"
-                onClick={() => {
-                  setShowJoin(false);
-                  setJoinJson('');
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <MembersSection
+        groupId={groupId}
+        showToast={showToast}
+        onLoaded={setSelf}
+      />
     </>
   );
 }

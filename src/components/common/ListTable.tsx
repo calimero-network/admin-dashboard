@@ -176,7 +176,7 @@ export default function ListTable<T>(props: ListTableProps<T>) {
     <ListWrapper
       $numOfColumns={props.numOfColumns ?? 0}
       $roundTopItem={props.roundTopItem}
-      $gridTemplateColumns={props.gridTemplateColumns}
+      $gridTemplateColumns={props.gridTemplateColumns ?? ''}
     >
       {props.listDescription && (
         <div className="table-description">{props.listDescription}</div>

@@ -177,7 +177,7 @@ export default function IdentityTable({
               numOfColumns={3}
               gridTemplateColumns={identityGridTemplate}
               listItems={keysList}
-              rowItem={(item, id, lastIndex) => (
+              rowItem={(item, id, _lastIndex) => (
                 <RowItem key={id}>
                   <div className="type">{getKeyName(item)}</div>
                   <div className="date">

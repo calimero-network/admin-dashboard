@@ -82,3 +82,18 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Live e2e: downloaded merod binary and its output
+/.merod/
+/test-results-live/
+/test-results-merobox/
+/playwright-report-merobox/
+# merobox writes each container's node state here — hundreds of MB per run.
+/data/
+/playwright-report-live/

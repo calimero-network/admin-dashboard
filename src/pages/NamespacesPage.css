@@ -1,3 +1,13 @@
+/*
+ * Namespaces page.
+ *
+ * Everything here uses the shared theme tokens from styles/index.css so the
+ * page follows the light/dark switch. (The previous revision fell back to
+ * hard-coded zinc hex values via `var(--card-bg, #18181b)` — a variable that
+ * does not exist — so the whole page was pinned to a dark palette that did not
+ * match the rest of the dashboard.)
+ */
+
 .ns-toast {
   position: fixed;
   top: 16px;
@@ -6,7 +16,142 @@
   max-width: 380px;
 }
 
-/* Stats row */
+.ns-muted {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ns-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ── Namespace cards ── */
+
+.ns-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.ns-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.ns-card:hover,
+.ns-card:focus-visible {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow);
+  outline: none;
+}
+
+.ns-card-skeleton {
+  cursor: default;
+  gap: 12px;
+}
+
+.ns-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ns-card-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-card-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.ns-card-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ns-card-app {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-card-version {
+  color: var(--accent-primary);
+}
+
+.ns-card-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ns-card-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ns-card-stats svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ns-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.ns-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* ── Stats row (detail views) ── */
+
 .ns-stats-row {
   display: flex;
   gap: 12px;
@@ -16,18 +161,18 @@
 
 .ns-stat-card {
   flex: 1;
-  min-width: 100px;
+  min-width: 120px;
   padding: 14px 16px;
-  background: var(--card-bg, #18181b);
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
   text-align: center;
 }
 
 .ns-stat-value {
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--text-primary, #fafafa);
+  color: var(--text-primary);
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -38,17 +183,40 @@
 }
 
 .ns-stat-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-size: 0.75rem;
-  color: var(--text-secondary, #a1a1aa);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-/* Sections */
+.ns-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ns-link-btn:disabled {
+  color: var(--text-tertiary);
+  cursor: default;
+}
+
+/* ── Sections ── */
+
 .ns-section {
-  background: var(--card-bg, #18181b);
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -56,7 +224,7 @@
 .ns-section h2 {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-secondary, #a1a1aa);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 14px;
@@ -66,6 +234,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 14px;
 }
 
@@ -73,13 +243,20 @@
   margin: 0;
 }
 
-/* Key-value rows */
+.ns-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Key/value rows ── */
+
 .ns-kv-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border-color, #27272a);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
   font-size: 13px;
 }
 
@@ -88,27 +265,274 @@
 }
 
 .ns-kv-label {
-  min-width: 160px;
-  color: var(--text-secondary, #a1a1aa);
+  min-width: 180px;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .ns-kv-value {
-  color: var(--text-primary, #fafafa);
   display: flex;
   align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Back button ── */
+
+/*
+ * The back button sits on its own line above the title, so it needs the gap
+ * itself — as an inline-flex button it contributes no bottom spacing.
+ */
+.ns-back-btn {
+  margin-bottom: 14px;
+}
+
+/* ── Panels (create / join / invite forms) ── */
+
+/*
+ * Sized like the desktop app's modals (`ns-modal` / `ns-modal-body` in
+ * tauri-app): a capped width so a form does not stretch across a wide screen,
+ * and real padding — 20px around a 16px-gapped body — instead of the cramped
+ * card these used to be.
+ */
+.ns-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px 24px 24px;
+  margin-bottom: 20px;
+  max-width: 640px;
+  box-shadow: var(--shadow-md);
+  animation: slideUp 0.25s ease;
+}
+
+.ns-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ns-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ns-panel > .ns-muted {
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.ns-panel-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.ns-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ns-form-field {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
-.ns-kv-value.mono {
-  font-family: monospace;
+/*
+ * Scoped to `.page-content` on purpose: the global `input[type='text']` rule
+ * in styles/index.css is (0,1,1) and would otherwise outrank a bare
+ * `.ns-input` (0,1,0), silently dropping the padding and background here.
+ */
+.page-content .ns-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
-/* Group / subgroup list */
+.page-content .ns-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.page-content .ns-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.ns-inline-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+/* ── Structure tree ── */
+
+.ns-tree {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ns-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 8px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ns-tree-row:last-child {
+  border-bottom: none;
+}
+
+.ns-tree-row:hover {
+  background: var(--bg-tertiary);
+}
+
+.ns-tree-toggle,
+.ns-tree-toggle-spacer {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.ns-tree-toggle:disabled {
+  cursor: default;
+}
+
+.ns-tree-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.15s;
+}
+
+.ns-tree-chevron-open {
+  transform: rotate(90deg);
+}
+
+.ns-tree-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.ns-tree-icon-root {
+  color: var(--accent-primary);
+}
+
+.ns-tree-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.ns-tree-link {
+  cursor: pointer;
+}
+
+.ns-tree-link:hover .ns-tree-name {
+  color: var(--accent-primary);
+}
+
+.ns-tree-name {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-tree-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.ns-tree-count {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  padding: 1px 8px;
+  flex-shrink: 0;
+}
+
+.ns-tree-danger {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ns-tree-danger:hover {
+  color: var(--error);
+}
+
+.ns-tree-empty {
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* ── Flat group/context rows (subgroup detail) ── */
+
 .ns-group-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .ns-group-row {
@@ -116,147 +540,234 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--input-bg, #09090b);
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text-primary, #fafafa);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   font-size: 13px;
   text-align: left;
-  transition: border-color 0.15s;
   width: 100%;
 }
 
-.ns-group-row:hover {
-  border-color: var(--accent-primary, #a5ff11);
+.ns-group-row-flat:hover {
+  border-color: var(--border-hover);
 }
 
-.ns-group-alias {
-  font-size: 11px;
-  color: var(--text-secondary, #a1a1aa);
-  padding: 2px 6px;
-  background: var(--card-bg, #18181b);
+/* ── Tables ── */
+
+.ns-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ns-table th {
+  text-align: left;
+  padding: 6px 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ns-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.ns-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ns-table-right {
+  text-align: right;
+}
+
+.ns-row-actions {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ns-member-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ns-you-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-dim);
+}
+
+.ns-role-select {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
 }
 
-/* Copy button */
+.ns-role-select[data-role='admin'] {
+  color: var(--accent-primary);
+  border-color: var(--accent-dim);
+}
+
+.ns-role-select[data-role='readonly'],
+.ns-role-select[data-role='readonlytee'] {
+  color: var(--text-tertiary);
+}
+
+/* ── Copy / rename controls ── */
+
 .ns-copy-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 2px 6px;
   font-size: 11px;
-  color: var(--text-secondary, #a1a1aa);
+  color: var(--text-secondary);
   background: transparent;
-  border: 1px solid var(--border-color, #27272a);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
+  flex-shrink: 0;
   transition:
     color 0.15s,
     border-color 0.15s;
 }
 
 .ns-copy-btn:hover {
-  color: var(--text-primary, #fafafa);
-  border-color: var(--text-secondary, #a1a1aa);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
 }
 
-/* Inline form */
-.ns-inline-form {
-  display: flex;
+.ns-rename-trigger {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 12px;
-  background: var(--input-bg, #09090b);
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-/* Role select */
-.ns-role-select {
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 4px;
-  background: var(--input-bg, #09090b);
-  color: var(--text-primary, #fafafa);
-  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin-left: 6px;
+  color: var(--text-tertiary);
   cursor: pointer;
+  vertical-align: middle;
 }
 
-.ns-role-select[data-role='admin'] {
-  color: var(--accent-primary, #a5ff11);
-  border-color: var(--accent-primary, #a5ff11);
+.ns-rename-trigger:hover {
+  color: var(--accent-primary);
 }
 
-.ns-role-select[data-role='readonly'] {
-  color: var(--text-tertiary, #71717a);
+.ns-rename-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
 }
 
-/* Invitation box */
+.page-content .ns-rename-input {
+  padding: 3px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  color: var(--text-primary);
+  outline: none;
+  min-width: 160px;
+}
+
+/* ── Invitation box ── */
+
 .ns-invitation-box {
-  border: 1px solid var(--border-color, #27272a);
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   overflow: hidden;
-  margin-top: 8px;
 }
 
 .ns-invitation-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--input-bg, #09090b);
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-primary);
   font-size: 12px;
-  color: var(--text-secondary, #a1a1aa);
-  border-bottom: 1px solid var(--border-color, #27272a);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
+/* Matches the desktop's `.ns-invite-payload`: a code is one long unbroken
+   string, so it has to wrap mid-token or it renders as a single clipped line. */
 .ns-invitation-textarea {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
-  background: var(--card-bg, #18181b);
+  padding: 14px 16px;
+  background: var(--bg-secondary);
   border: none;
-  color: var(--text-primary, #fafafa);
-  font-family: monospace;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
+  line-height: 1.6;
+  word-break: break-all;
   resize: vertical;
 }
 
-/* Form field */
-.ns-form-field {
+/* ── ABI-driven init block (create context) ── */
+
+.ns-init-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
 }
 
-.ns-form-field label {
+.ns-init-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ns-init-title {
   font-size: 13px;
-  color: var(--text-secondary, #a1a1aa);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-/* Toggle link (switch between dropdown and manual input) */
-.ns-toggle-link {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 12px;
-  color: var(--accent-primary, #a5ff11);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.ns-init-signature {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+  word-break: break-word;
 }
 
-.ns-toggle-link:hover {
-  opacity: 0.8;
+.ns-field-name {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
 }
 
-/* Mono utility */
-.mono {
-  font-family: monospace;
+.ns-field-type {
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.ns-init-error {
+  margin-top: 16px;
+  line-height: 1.5;
 }

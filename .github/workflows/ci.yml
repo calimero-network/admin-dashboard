@@ -1,0 +1,207 @@
+name: CI
+
+# The repo previously had no pull-request validation at all: release.yml runs
+# only on push to master, and it checks lint + formatting but never types, unit
+# tests or a build. This gates PRs on all of it.
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job here only reads the repo — nothing comments, tags or publishes. The
+# default token is far broader than that, so pin it down once at the top rather
+# than per job (CodeQL flags each unpinned job separately).
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Lint, format, types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm prettier:check
+
+      # `vite build` performs no type checking, so without this a type error
+      # ships silently.
+      - name: Typecheck
+        run: pnpm typecheck
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Unit tests
+        run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The build stamps `git describe` into the bundle, which needs tags.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # This zip is what core/crates/server/build.rs downloads and bakes into
+      # merod, so a PR that breaks its shape breaks the node build. Assert the
+      # entrypoint and the SPA fallback are both present.
+      - name: Verify release bundle shape
+        run: |
+          test -f build/index.html || { echo "::error::build/index.html missing"; exit 1; }
+          test -f build/public/404.html || { echo "::error::build/public/404.html missing"; exit 1; }
+          grep -q '/admin-dashboard/assets/' build/index.html \
+            || { echo "::error::index.html does not reference /admin-dashboard/assets/ — check vite base"; exit 1; }
+
+      - name: Create release zip
+        run: |
+          cd build
+          zip -qr ../admin-dashboard-build.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-dashboard-build
+          path: admin-dashboard-build.zip
+          retention-days: 7
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm test:e2e:install
+
+      # The suite mocks the node with page.route, so no merod is needed. It runs
+      # against `vite preview` on the real `/admin-dashboard/` path, because the
+      # node URL is derived from that path — the dev server at `/` would exercise
+      # a different branch.
+      - name: E2E
+        run: pnpm test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  e2e-live:
+    name: E2E against a real node
+    runs-on: ubuntu-latest
+    # Boots a real merod, mints a real admin token, and drives install /
+    # namespace / group / delete through the UI. This is what proves the wiring —
+    # request shapes, response envelopes, auth headers — that the mocked suite
+    # can only assume. It caught a bodyless DELETE that failed against every real
+    # node, so it is worth the extra minutes.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm test:e2e:install
+
+      # Cache the merod binary: it is a pinned release asset, so the key only
+      # changes when MEROD_VERSION does.
+      - name: Cache merod
+        id: merod-cache
+        uses: actions/cache@v4
+        with:
+          path: .merod
+          key: merod-${{ runner.os }}-${{ runner.arch }}-0.11.0-rc.20
+
+      - name: Download merod
+        if: steps.merod-cache.outputs.cache-hit != 'true'
+        run: pnpm merod:prepare
+        env:
+          # Unauthenticated GitHub API is 60 req/h per IP, which shared runners
+          # exhaust.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Live E2E
+        run: pnpm test:e2e:live
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-live
+          path: |
+            playwright-report-live/
+            test-results-live/
+          retention-days: 7

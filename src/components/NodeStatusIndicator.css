@@ -1,0 +1,69 @@
+/*
+ * Ported from the desktop's NodeStatusIndicator.css. The dropdown, `.clickable`
+ * and `.node-status-action` rules are dropped: this dashboard administers a
+ * single node and cannot restart it, so the pill is display-only.
+ */
+.node-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--surface-glass-soft);
+  color: var(--text-secondary);
+  cursor: default;
+  transition: all 0.15s;
+}
+
+.node-status-indicator.connected {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.node-status-indicator.connected .node-status-dot {
+  background: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.node-status-indicator.disconnected .node-status-dot {
+  background: var(--error);
+}
+
+.node-status-indicator[data-state='offline'] {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.node-status-indicator[data-state='checking'] .node-status-dot {
+  background: var(--warning);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.node-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.node-status-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.node-status-label {
+  white-space: nowrap;
+}

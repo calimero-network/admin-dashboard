@@ -178,3 +178,61 @@
   font-family: 'JetBrains Mono', monospace;
   color: var(--text-secondary);
 }
+
+/* ── Web additions (login screen) ── */
+.connect-logo-img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+[data-theme='light'] .connect-logo-img {
+  filter: brightness(0);
+}
+
+.connect-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.connect-secondary-btn {
+  justify-content: center;
+  padding: 10px 16px;
+}
+
+/* Auth bootstrap spinner — replaces the inline-styled block that used to live
+   in AuthWrapper. */
+.auth-loading {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+}
+
+.auth-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+/* Bootstrap screen copy, mirroring the desktop's loading screen. */
+.auth-loading {
+  flex-direction: column;
+  gap: 6px;
+}
+.auth-loading h2 {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.auth-loading p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}

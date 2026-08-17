@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Navigation } from '../components/Navigation';
 import IdentityTable from '../components/identity/IdentityTable';
 import { apiClient } from '@calimero-network/calimero-client';
 import {
@@ -80,37 +79,34 @@ export default function IdentityPage() {
   };
 
   return (
-    <div className="app-shell">
-      <Navigation />
-      <main className="page-content">
-        <div className="page-header">
-          <div className="page-header-left">
-            <h1>Identity</h1>
-            <p>Root and client keys for this node</p>
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleExportDID}
-          >
-            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} />
-            Export DID
-          </button>
+    <main className="page-content">
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1>Identity</h1>
+          <p>Root and client keys for this node</p>
         </div>
-        {exportToast && (
-          <div
-            className={`identity-toast ${exportToast.includes('Failed') ? 'error' : 'success'}`}
-          >
-            {exportToast}
-          </div>
-        )}
-        <IdentityTable
-          keysList={currentKeys}
-          keyType={keyType}
-          onKeyTypeChange={setKeyType}
-          errorMessage={errorMessage}
-        />
-      </main>
-    </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleExportDID}
+        >
+          <ArrowDownTrayIcon style={{ width: 16, height: 16 }} />
+          Export DID
+        </button>
+      </div>
+      {exportToast && (
+        <div
+          className={`identity-toast ${exportToast.includes('Failed') ? 'error' : 'success'}`}
+        >
+          {exportToast}
+        </div>
+      )}
+      <IdentityTable
+        keysList={currentKeys}
+        keyType={keyType}
+        onKeyTypeChange={setKeyType}
+        errorMessage={errorMessage}
+      />
+    </main>
   );
 }

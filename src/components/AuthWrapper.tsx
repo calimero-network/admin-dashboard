@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  getAppEndpointKey,
   setAppEndpointKey,
   getAccessToken,
   getRefreshToken,
   setAccessToken,
   setRefreshToken,
   setContextAndIdentityFromJWT,
-  clearAppEndpoint,
   clearAccessToken,
   clearRefreshToken,
   clearApplicationId,
@@ -15,10 +13,15 @@ import {
   clearExecutorPublicKey,
   apiClient,
 } from '@calimero-network/calimero-client';
-import ConnectPage from '../pages/ConnectPage';
 import LoginPage from '../pages/LoginPage';
+import { getNodeUrl } from '../utils/nodeUrl';
 
-type AuthState = 'loading' | 'no-url' | 'needs-login' | 'authenticated';
+/**
+ * `no-url` is gone compared with the pre-port flow: there is no ConnectPage and
+ * no node picker, because the node URL is derived from the origin that served
+ * this bundle (see utils/nodeUrl.ts).
+ */
+type AuthState = 'loading' | 'needs-login' | 'authenticated';
 
 export default function AuthWrapper({
   children,
@@ -30,71 +33,88 @@ export default function AuthWrapper({
   const checkAuth = useCallback(async () => {
     setState('loading');
 
-    // Handle OAuth callback tokens in URL hash
-    const fragment = window.location.hash.substring(1);
-    const fragmentParams = new URLSearchParams(fragment);
+    // The SDK keeps the node URL in its own storage; seed it from the origin on
+    // every load so a stale value from a previous deployment can never win.
+    setAppEndpointKey(getNodeUrl());
+
+    // Adopt tokens handed back by the auth frontend in the URL hash.
+    const fragmentParams = new URLSearchParams(
+      window.location.hash.substring(1),
+    );
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
     if (encodedAccessToken && encodedRefreshToken) {
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setContextAndIdentityFromJWT(accessToken);
-      fragmentParams.delete('access_token');
-      fragmentParams.delete('refresh_token');
-      const newFragment = fragmentParams.toString();
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname +
-          window.location.search +
-          (newFragment ? `#${newFragment}` : ''),
-      );
-      setState('authenticated');
+      // A malformed hash (bad percent-encoding, an unparseable JWT) throws
+      // synchronously here. `checkAuth` is invoked as `void checkAuth()`, so the
+      // rejection is swallowed, `setState` is never reached and the app sits on
+      // the spinner forever — unrecoverable without hand-editing the URL. Fall
+      // back to the login screen and strip the bad hash so a reload is clean.
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        setContextAndIdentityFromJWT(accessToken);
+        fragmentParams.delete('access_token');
+        fragmentParams.delete('refresh_token');
+        const newFragment = fragmentParams.toString();
+        window.history.replaceState(
+          {},
+          '',
+          window.location.pathname +
+            window.location.search +
+            (newFragment ? `#${newFragment}` : ''),
+        );
+        setState('authenticated');
+      } catch (e) {
+        console.error('Could not adopt tokens from the URL hash:', e);
+        window.history.replaceState(
+          {},
+          '',
+          window.location.pathname + window.location.search,
+        );
+        setState('needs-login');
+      }
       return;
     }
 
-    // No URL configured yet
-    if (!getAppEndpointKey()) {
-      setState('no-url');
-      return;
-    }
-
-    // If tokens exist, validate them against a real protected endpoint
-    // NOTE: /admin-api/is-authed is public and always returns 200 — cannot be used for token validation
+    // Validate stored tokens against a real protected endpoint.
+    // NOTE: /admin-api/is-authed is public and always 200s — it cannot be used
+    // to test a token.
     if (getAccessToken() && getRefreshToken()) {
       try {
         const res = await apiClient.node().getInstalledApplications();
-        if (res.error?.code === 401 || (res.error as any)?.code === '401') {
+        const code = res.error?.code as number | string | undefined;
+        if (code === 401 || code === '401') {
           clearAccessToken();
           clearRefreshToken();
           setState('needs-login');
         } else {
           setState('authenticated');
         }
-      } catch {
-        setState('needs-login');
+      } catch (e) {
+        // Only a confirmed 401 means the stored tokens are bad; that is handled
+        // above. Anything reaching here is the REQUEST failing — offline, DNS,
+        // CORS, a 5xx, a node still booting — and treating that as "not logged
+        // in" signs the user out over a network blip, discarding tokens that
+        // were fine. Stay authenticated and let the node-status pill report
+        // that the node is unreachable.
+        console.warn('Could not reach the node to validate the session:', e);
+        setState('authenticated');
       }
       return;
     }
 
-    // No tokens — admin dashboard always requires auth
     setState('needs-login');
   }, []);
 
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
   }, [checkAuth]);
 
-  const handleConnect = (url: string) => {
-    setAppEndpointKey(url);
-    checkAuth();
-  };
-
   const handleLogin = () => {
-    const url = getAppEndpointKey();
+    const url = getNodeUrl();
     if (!url) return;
     try {
       apiClient.auth().login({
@@ -110,44 +130,22 @@ export default function AuthWrapper({
   };
 
   const handleReset = () => {
-    clearAppEndpoint();
     clearAccessToken();
     clearRefreshToken();
     clearApplicationId();
     clearContextId();
     clearExecutorPublicKey();
-    checkAuth();
+    void checkAuth();
   };
 
   if (state === 'loading') {
     return (
-      <div
-        style={{
-          width: '100vw',
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#09090b',
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            border: '3px solid #27272a',
-            borderTopColor: '#a5ff11',
-            animation: 'spin 0.8s linear infinite',
-          }}
-        />
-        <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
+      <div className="auth-loading" data-testid="auth-loading">
+        <div className="auth-loading-spinner" />
+        <h2>Setting up Admin Dashboard</h2>
+        <p>Checking your node connection and configuration…</p>
       </div>
     );
-  }
-
-  if (state === 'no-url') {
-    return <ConnectPage onConnect={handleConnect} />;
   }
 
   if (state === 'needs-login') {

@@ -7,6 +7,11 @@ import {
   updateMemberRole,
   removeGroupMembers,
   addGroupMembers,
+  createGroupInNamespace,
+  listGroupMembers,
+  listNamespaces,
+  listSubgroups,
+  setGroupMetadata,
 } from '../api/namespaceApi';
 
 // Mock calimero-client before importing namespaceApi
@@ -113,6 +118,8 @@ describe('updateMemberRole', () => {
     mockFetch.mockReturnValueOnce(okResponse());
     await updateMemberRole('grp-1', 'identity-pub-key', 'Member');
     const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
     expect(JSON.parse(call[1].body)).toEqual({ role: 'Member' });
   });
 
@@ -156,9 +163,91 @@ describe('addGroupMembers', () => {
       members: [{ identity: 'new-key', role: 'Member' }],
     });
     const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
     expect(call[0]).toContain('/admin-api/groups/grp-1/members');
     expect(JSON.parse(call[1].body)).toEqual({
       members: [{ identity: 'new-key', role: 'Member' }],
     });
+  });
+});
+
+// ── Response envelopes ────────────────────────────────────────────────────────
+//
+// These three endpoints do NOT share an envelope, and each was previously
+// unwrapped as if it did — which produced a silently empty list rather than an
+// error, so members and subgroups never rendered at all.
+
+describe('response envelopes', () => {
+  it('listNamespaces reads { data: [...] }', async () => {
+    mockFetch.mockReturnValueOnce(
+      okResponse({ data: [{ namespaceId: 'ns-1', name: 'Team' }] }),
+    );
+    const result = await listNamespaces();
+    expect(result).toHaveLength(1);
+    expect(result[0]?.name).toBe('Team');
+  });
+
+  it('listGroupMembers reads { members, selfIdentity } — NOT { data }', async () => {
+    mockFetch.mockReturnValueOnce(
+      okResponse({
+        members: [{ identity: 'k1', role: 'Admin', name: 'Fran' }],
+        selfIdentity: 'k1',
+      }),
+    );
+    const result = await listGroupMembers('grp-1');
+    expect(result.members).toHaveLength(1);
+    expect(result.selfIdentity).toBe('k1');
+  });
+
+  it('listSubgroups reads { subgroups } — NOT { data }', async () => {
+    mockFetch.mockReturnValueOnce(
+      okResponse({ subgroups: [{ groupId: 'g-1', name: 'engineering' }] }),
+    );
+    const result = await listSubgroups('grp-1');
+    expect(result).toEqual([{ groupId: 'g-1', name: 'engineering' }]);
+  });
+
+  it('surfaces the node error message rather than the raw body', async () => {
+    mockFetch.mockReturnValueOnce(
+      errResponse(
+        400,
+        JSON.stringify({ error: 'namespace_id must be a root group' }),
+      ),
+    );
+    await expect(listSubgroups('grp-1')).rejects.toThrow(
+      '400: namespace_id must be a root group',
+    );
+  });
+});
+
+// ── Naming ────────────────────────────────────────────────────────────────────
+
+describe('names', () => {
+  it('createGroupInNamespace sends groupName, the key core actually reads', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: { groupId: 'g-1' } }));
+    await createGroupInNamespace('ns-1', {
+      groupName: 'engineering',
+      visibility: 'open',
+    });
+    const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
+    const body = JSON.parse(call[1].body);
+    // `name` alone is dropped by serde on this endpoint — that is the
+    // long-standing "subgroup names don't persist" bug.
+    expect(body.groupName).toBe('engineering');
+    expect(body.visibility).toBe('open');
+  });
+
+  it('setGroupMetadata always sends a data map, since core replaces the record', async () => {
+    mockFetch.mockReturnValueOnce(okResponse());
+    await setGroupMetadata('g-1', { name: 'design' });
+    const call = mockFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) return;
+    expect(call[0]).toContain('/admin-api/groups/g-1/metadata');
+    expect(call[1].method).toBe('PUT');
+    expect(JSON.parse(call[1].body)).toEqual({ name: 'design', data: {} });
   });
 });
