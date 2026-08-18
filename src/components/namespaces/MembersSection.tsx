@@ -9,6 +9,7 @@ import {
 import {
   addGroupMembers,
   listGroupMembers,
+  looksLikeAccountId,
   removeGroupMembers,
   setMemberMetadata,
   updateMemberRole,
@@ -16,6 +17,7 @@ import {
   type GroupMembersResult,
   type GroupRole,
 } from '../../api/namespaceApi';
+import { useNodeIdentity } from './useNodeIdentity';
 import {
   ConfirmButton,
   CopyBtn,
@@ -41,6 +43,10 @@ function neighbour(role: string, direction: 1 | -1): GroupRole | null {
 /**
  * Members of a namespace or subgroup — the same endpoint backs both, because a
  * namespace IS a group (a root one).
+ *
+ * Every id in this table is an ACCOUNT (64 hex). Since core 0.11.0-rc.23 a
+ * membership row is keyed by the person, not by one of their device keys, so
+ * two devices belonging to one person are one row here.
  */
 export function MembersSection({
   groupId,
@@ -50,14 +56,18 @@ export function MembersSection({
   groupId: string;
   showToast: ShowToast;
   /**
-   * Reports the member list up to the page, which needs it for the member
-   * count and — via `selfIdentity` — to decide whether the header offers
-   * Delete (admin) or Leave (everyone else).
+   * Reports the member list up to the page, which needs it for the member count
+   * and — matched against this node's account — to decide whether the header
+   * offers Delete (admin) or Leave (everyone else). The page reads the account
+   * from `useNodeIdentity()` itself; the list no longer carries it.
    */
   onLoaded?: (result: GroupMembersResult) => void;
 }) {
   const [members, setMembers] = useState<GroupMember[]>([]);
-  const [selfIdentity, setSelfIdentity] = useState<string | undefined>();
+  // Which row is "you". rc.23 removed `selfIdentity` from the member-list
+  // response, so this is the node's own account compared against each row.
+  const nodeIdentity = useNodeIdentity();
+  const selfAccount = nodeIdentity?.accountId;
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -70,24 +80,20 @@ export function MembersSection({
   const onLoadedRef = useRef(onLoaded);
   onLoadedRef.current = onLoaded;
 
-  const publish = useCallback(
-    (next: GroupMember[], identity: string | undefined) => {
-      onLoadedRef.current?.({ members: next, selfIdentity: identity });
-    },
-    [],
-  );
+  const publish = useCallback((next: GroupMember[]) => {
+    onLoadedRef.current?.({ members: next });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const result = await listGroupMembers(groupId);
       setMembers(result.members);
-      setSelfIdentity(result.selfIdentity);
-      publish(result.members, result.selfIdentity);
+      publish(result.members);
     } catch (e: unknown) {
       showToast(errorMessage(e, 'Failed to load members'), 'error');
       setMembers([]);
-      publish([], undefined);
+      publish([]);
     } finally {
       setLoading(false);
     }
@@ -100,15 +106,15 @@ export function MembersSection({
     load();
   }, [load]);
 
-  const changeRole = async (identity: string, role: GroupRole) => {
-    setBusy(identity);
+  const changeRole = async (account: string, role: GroupRole) => {
+    setBusy(account);
     try {
-      await updateMemberRole(groupId, identity, role);
+      await updateMemberRole(groupId, account, role);
       setMembers((prev) => {
         const next = prev.map((m) =>
-          m.identity === identity ? { ...m, role } : m,
+          m.identity === account ? { ...m, role } : m,
         );
-        publish(next, selfIdentity);
+        publish(next);
         return next;
       });
       showToast(`Role set to ${role}`, 'success');
@@ -119,13 +125,15 @@ export function MembersSection({
     }
   };
 
-  const remove = async (identity: string) => {
-    setBusy(identity);
+  const remove = async (account: string) => {
+    setBusy(account);
     try {
-      await removeGroupMembers(groupId, { members: [identity] });
+      // `members` here is a list of ACCOUNTS — the same ids the listing gave
+      // us. Sending the key a member signs with addresses nobody.
+      await removeGroupMembers(groupId, { members: [account] });
       setMembers((prev) => {
-        const next = prev.filter((m) => m.identity !== identity);
-        publish(next, selfIdentity);
+        const next = prev.filter((m) => m.identity !== account);
+        publish(next);
         return next;
       });
       showToast('Member removed', 'success');
@@ -136,12 +144,12 @@ export function MembersSection({
     }
   };
 
-  const rename = async (identity: string, name: string) => {
-    setBusy(identity);
+  const rename = async (account: string, name: string) => {
+    setBusy(account);
     try {
-      await setMemberMetadata(groupId, identity, { name });
+      await setMemberMetadata(groupId, account, { name });
       setMembers((prev) =>
-        prev.map((m) => (m.identity === identity ? { ...m, name } : m)),
+        prev.map((m) => (m.identity === account ? { ...m, name } : m)),
       );
       showToast('Member renamed', 'success');
     } catch (e: unknown) {
@@ -151,9 +159,14 @@ export function MembersSection({
     }
   };
 
+  // Add is the only member call that names a KEY rather than an account, so an
+  // id copied out of the table below (an account) silently addresses nobody
+  // here. Warn on the shape rather than let the node answer with a bare error.
+  const pastedAnAccount = looksLikeAccountId(newIdentity);
+
   const add = async () => {
     const identity = newIdentity.trim();
-    if (!identity) return;
+    if (!identity || pastedAnAccount) return;
     setAdding(true);
     try {
       await addGroupMembers(groupId, {
@@ -198,7 +211,9 @@ export function MembersSection({
           <input
             className="ns-input"
             type="text"
-            placeholder="Identity (public key)"
+            placeholder="Public key (base58)"
+            aria-label="Public key of the new member"
+            title="A public key, base58 — NOT the 64-hex account shown in the table. An add is the one call whose subject may not have an account on this node yet."
             value={newIdentity}
             onChange={(e) => setNewIdentity(e.target.value)}
             style={{ flex: 1, minWidth: 220 }}
@@ -221,7 +236,7 @@ export function MembersSection({
           <button
             className="btn btn-primary btn-sm"
             onClick={add}
-            disabled={adding || !newIdentity.trim()}
+            disabled={adding || !newIdentity.trim() || pastedAnAccount}
           >
             {adding ? 'Adding…' : 'Add'}
           </button>
@@ -234,6 +249,13 @@ export function MembersSection({
           >
             Cancel
           </button>
+          {pastedAnAccount && (
+            <p className="ns-muted" data-testid="ns-add-member-hint">
+              That looks like an account (64 hex). Add takes the public key the
+              person signs with, in base58 — the account is what the node
+              derives and shows back in the table.
+            </p>
+          )}
         </div>
       )}
 
@@ -246,14 +268,16 @@ export function MembersSection({
           <thead>
             <tr>
               <th>Name</th>
-              <th>Identity</th>
+              <th title="The member's account, 64 hex characters. A person, not a device key — one person with two devices is one row.">
+                Account
+              </th>
               <th>Role</th>
               <th className="ns-table-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {members.map((m) => {
-              const isSelf = !!selfIdentity && m.identity === selfIdentity;
+              const isSelf = !!selfAccount && m.identity === selfAccount;
               const higher = neighbour(m.role, 1);
               const lower = neighbour(m.role, -1);
               return (

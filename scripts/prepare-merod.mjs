@@ -12,7 +12,12 @@ import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const CORE_REPO = 'calimero-network/core';
-const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.20';
+// Keep this in step with the API surface the dashboard targets. rc.23 deleted
+// `GET /namespaces/:id/identity` and dropped `selfIdentity` from the member
+// list, so a suite still pinned to rc.20 would keep passing against shapes the
+// node no longer sends — which is precisely how 1.13.0 shipped broken.
+// The cache key in .github/workflows/ci.yml names this version too.
+const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.23';
 
 const rootDir = path.resolve(import.meta.dirname, '..');
 const binDir = path.join(rootDir, '.merod');

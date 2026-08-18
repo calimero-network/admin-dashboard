@@ -96,6 +96,16 @@ export interface MockNodeOptions {
   /** `GET /admin-api/namespaces`. */
   namespaces?: MockNamespace[];
   /**
+   * `GET /admin-api/identity` — who this node is.
+   *
+   * Node-level, taking no namespace: core 0.11.0-rc.23 deleted
+   * `GET /namespaces/:id/identity` (#3522) because it answered with the node's
+   * account whichever namespace you passed. Set to `null` to serve the 404 a
+   * node that has joined nothing answers with, which is a normal state and must
+   * not break the page.
+   */
+  nodeIdentity?: MockNodeIdentity | null;
+  /**
    * Per-group state, keyed by group id. A namespace IS a group, so its own
    * root entry is keyed by the namespace id.
    */
@@ -119,16 +129,36 @@ export interface MockNamespace {
   subgroupCount?: number;
 }
 
+export interface MockNodeIdentity {
+  /** 64 HEX characters. This is what a member row's `identity` holds. */
+  accountId: string;
+  /** Hex `DeviceId`. Absent on a node that has not enrolled yet. */
+  deviceId?: string;
+  /** base58 — the device's SIGNING key, which never appears in a member list. */
+  publicKey: string;
+  accountRootPublicKey?: string;
+}
+
 export interface MockGroup {
   /** Display name — lives in group metadata on the wire, not at the top level. */
   name?: string;
   subgroupVisibility?: string;
+  /**
+   * `identity` is an ACCOUNT (64 hex), not a key. rc.23 keys membership rows by
+   * the person rather than by one of their device keys.
+   */
   members?: { identity: string; role: string; name?: string }[];
-  /** The node reports the caller's own identity alongside the member list. */
-  selfIdentity?: string;
   contexts?: { contextId: string; name?: string }[];
   subgroups?: { groupId: string; name?: string }[];
 }
+
+/** A node identity whose ids are shaped the way the real ones are. */
+export const NODE_IDENTITY: MockNodeIdentity = {
+  accountId: 'ac'.repeat(32),
+  deviceId: 'de'.repeat(32),
+  publicKey: '2Fb1JXPZQZmGRoLPS9F6JsPRRTL1cKnQfCzYAeZLmDaG',
+  accountRootPublicKey: 'r0'.repeat(32),
+};
 
 const json = (route: Route, body: unknown, status = 200) =>
   route.fulfill({
@@ -229,13 +259,27 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     json(route, { data: { namespaces: [] } }),
   );
 
+  // `GET /admin-api/identity`. `nodeIdentity: null` opts into the 404 a node
+  // that holds neither a device nor an account root answers — the page must
+  // still render, just without marking anyone "you".
+  const nodeIdentity =
+    opts.nodeIdentity === undefined ? NODE_IDENTITY : opts.nodeIdentity;
+  await page.route('**/admin-api/identity', (route) =>
+    nodeIdentity
+      ? json(route, { data: nodeIdentity })
+      : json(
+          route,
+          { error: 'this node holds neither a device nor a root' },
+          404,
+        ),
+  );
+
   // Namespaces + groups (raw fetches in src/api/namespaceApi.ts).
   //
   // One dispatcher per prefix rather than a glob per endpoint: the response
-  // ENVELOPES differ between these routes (`{ data }` vs `{ members,
-  // selfIdentity }` vs `{ subgroups }`), and matching on the parsed path makes
-  // that explicit instead of depending on Playwright's reverse-order glob
-  // resolution.
+  // ENVELOPES differ between these routes (`{ data }` vs `{ members }` vs
+  // `{ subgroups }`), and matching on the parsed path makes that explicit
+  // instead of depending on Playwright's reverse-order glob resolution.
   const namespaces = opts.namespaces ?? [];
   const groups = opts.groups ?? {};
   const groupOf = (id: string): MockGroup => groups[id] ?? {};
@@ -258,9 +302,10 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
         })),
       });
     }
-    if (sub === 'identity') {
-      return json(route, { namespaceId: id, publicKey: `pk-${id}` });
-    }
+    // No `identity` branch on purpose. rc.23 deleted
+    // `GET /namespaces/:id/identity`, so it falls through to the catch-all
+    // below — anything that starts calling it again reads `{}` and fails
+    // visibly rather than being quietly served a shape the node no longer has.
     if (sub === 'groups') {
       return json(route, { data: groupOf(id).subgroups ?? [] });
     }
@@ -273,11 +318,11 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
       /\/admin-api\/groups(?:\/([^/]+))?(?:\/([^/]+))?/.exec(path) ?? [];
     const group = id ? groupOf(id) : {};
 
+    // `{ members }` and nothing else. rc.23 removed `selfIdentity` from this
+    // response; serving it anyway would keep the suite green against a shape
+    // the node no longer sends, which is the whole point of pinning it here.
     if (sub === 'members') {
-      return json(route, {
-        members: group.members ?? [],
-        ...(group.selfIdentity ? { selfIdentity: group.selfIdentity } : {}),
-      });
+      return json(route, { members: group.members ?? [] });
     }
     if (sub === 'contexts') {
       return json(route, { data: group.contexts ?? [] });

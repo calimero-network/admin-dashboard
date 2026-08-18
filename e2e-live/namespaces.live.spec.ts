@@ -19,9 +19,16 @@ import {
  *   • display names are `name` on the wire, not `alias`;
  *   • the subgroup-creation endpoint reads `groupName`, so a request carrying
  *     only `name` is accepted and the name is dropped;
- *   • `GET /groups/:id/members` answers `{ members, selfIdentity }` and
+ *   • `GET /groups/:id/members` answers `{ members }` and
  *     `GET /groups/:id/subgroups` answers `{ subgroups }` — neither is the
  *     `{ data }` envelope the rest of the API uses.
+ *
+ * And one that failed LOUDLY, in released code: core 0.11.0-rc.23 deleted
+ * `GET /namespaces/:id/identity` (#3522) and dropped `selfIdentity` from the
+ * member list. 1.13.0 of this dashboard used both. Against a real rc.23 node
+ * the "you" badge and the Delete-vs-Leave choice come from
+ * `GET /admin-api/identity` — an account, 64 hex characters, matched against a
+ * member row's `identity`.
  *
  * So these tests assert on names, not just ids: a name that survives the round
  * trip is the proof.
@@ -136,10 +143,38 @@ test.describe.serial('Live: namespaces', () => {
     ).toBeVisible();
 
     // The creator is a member of their own namespace, so an empty list here
-    // means the `{ members, selfIdentity }` envelope was misread.
+    // means the `{ members }` envelope was misread.
     const members = page.getByTestId('ns-members-section');
     await expect(members).not.toContainText('Members (0)');
+    // And "you" proves the node-level identity call lines up with the member
+    // rows — the account this node writes as is a row in its own namespace.
     await expect(members.getByText('you')).toBeVisible();
+
+    // The identity panel is node-level now. There is no per-namespace answer to
+    // show, and the route that pretended there was is gone.
+    const identity = page.getByTestId('ns-identity-section');
+    await expect(identity).toContainText('Your account');
+    await expect(identity).toContainText('Signing key');
+  });
+
+  test('the per-namespace identity route is gone, and the node-level one answers', async () => {
+    // Pin the break directly against the node, not just through the UI: if a
+    // future node revives the namespaced route, this fails and we learn about
+    // it rather than silently drifting back onto it.
+    const { status } = await adminApi(
+      'GET',
+      `/namespaces/${createdNamespaceId}/identity`,
+    );
+    expect(status).toBe(404);
+
+    const { status: nodeStatus, body } = await adminApi<{
+      data?: { accountId?: string; publicKey?: string };
+    }>('GET', '/identity');
+    expect(nodeStatus).toBe(200);
+    // An ACCOUNT renders as 64 hex characters; the signing key is base58 and is
+    // deliberately a different alphabet so a mix-up cannot resolve silently.
+    expect(body.data?.accountId).toMatch(/^[0-9a-f]{64}$/);
+    expect(body.data?.publicKey).not.toMatch(/^[0-9a-f]{64}$/);
   });
 
   test('creates a named subgroup, and the name persists', async ({ page }) => {

@@ -179,18 +179,27 @@ test.describe.serial('Merobox: membership between two nodes', () => {
 
     const members = page.getByTestId('ns-members-section');
     await expect(members).toContainText('Members (2)');
-    // Exactly one row is the local node — `selfIdentity` off the member-list
-    // response, not a guess from the JWT.
+    // Exactly one row is the local node — its ACCOUNT, read from
+    // `GET /admin-api/identity`, not a guess from the JWT. rc.23 removed
+    // `selfIdentity` from the member-list response.
     await expect(members.getByText('you')).toHaveCount(1);
   });
 
   test('promoting bob reaches bob', async ({ page }) => {
+    // Tell the two rows apart by asking alice's node who IT is: the member
+    // list carries `members` and nothing else since rc.23, so the one row that
+    // is not alice's own account is bob's.
+    const { body: aliceIdentity } = await aliceApi.get<{
+      data?: { accountId?: string };
+    }>('/identity');
+    const aliceAccount = aliceIdentity.data?.accountId;
+    expect(aliceAccount, 'alice has no account id').toBeTruthy();
+
     const { body: before } = await aliceApi.get<{
       members?: { identity: string; role: string }[];
-      selfIdentity?: string;
     }>(`/groups/${namespaceId}/members`);
     const bobIdentity = (before.members ?? []).find(
-      (m) => m.identity !== before.selfIdentity,
+      (m) => m.identity !== aliceAccount,
     )?.identity;
     expect(bobIdentity, 'could not tell the two members apart').toBeTruthy();
 
