@@ -24,7 +24,6 @@ import {
   deleteGroup,
   deleteNamespace,
   getGroupInfo,
-  getNamespaceIdentity,
   joinGroup,
   joinNamespace,
   leaveGroup,
@@ -50,6 +49,7 @@ import {
 } from '../components/namespaces/CreateContextPanel';
 import { InvitePanel, JoinPanel } from '../components/namespaces/InvitePanel';
 import { MembersSection } from '../components/namespaces/MembersSection';
+import { useNodeIdentity } from '../components/namespaces/useNodeIdentity';
 import { StructureTree } from '../components/namespaces/StructureTree';
 import {
   ConfirmButton,
@@ -606,7 +606,11 @@ function NamespaceDetail({
   showToast: ShowToast;
 }) {
   const [ns, setNs] = useState(initialNs);
-  const [identity, setIdentity] = useState<string | null>(null);
+  // Node-level, not per-namespace. `GET /namespaces/:id/identity` is gone
+  // (core #3522): it took a namespace and answered with the node's account
+  // whichever one you passed, because every namespace on a node resolves to the
+  // same account. `GET /admin-api/identity` says that plainly.
+  const identity = useNodeIdentity();
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
   const [treeVersion, setTreeVersion] = useState(0);
@@ -619,12 +623,6 @@ function NamespaceDetail({
     partial,
   } = useNamespaceTree(ns.namespaceId, treeVersion);
 
-  useEffect(() => {
-    getNamespaceIdentity(ns.namespaceId)
-      .then((id) => setIdentity(id.publicKey))
-      .catch(() => setIdentity(null));
-  }, [ns.namespaceId]);
-
   const appName = installedApps.find(
     (a) => a.id === ns.targetApplicationId,
   )?.name;
@@ -632,8 +630,12 @@ function NamespaceDetail({
   // Delete is admin-gated on the node; a plain member's only exit is Leave.
   // While the role is still unknown, keep offering Delete — the node enforces
   // it anyway, so the worst case is an error toast rather than a hidden action.
-  const myRole = self?.selfIdentity
-    ? self.members.find((m) => m.identity === self.selfIdentity)?.role
+  //
+  // Our own row is found by ACCOUNT. The member list used to carry a
+  // `selfIdentity` field and rc.23 removed it, so the match is against the
+  // node's own account id — which is what the rows are keyed by anyway.
+  const myRole = identity
+    ? self?.members.find((m) => m.identity === identity.accountId)?.role
     : undefined;
   const showLeave =
     myRole !== undefined && String(myRole).toLowerCase() !== 'admin';
@@ -877,16 +879,56 @@ function NamespaceDetail({
             <span className="ns-kv-value">{ns.appVersion}</span>
           </div>
         )}
-        {identity && (
+      </div>
+
+      {/* Not "your namespace identity" — there is no such thing. Every
+          namespace on this node resolves to the same account, which is why
+          core deleted the per-namespace route (#3522) in favour of a node-level
+          one. The account is the id the members table is keyed by; the signing
+          key never appears there, so both are labelled for what they are. */}
+      {identity && (
+        <div className="ns-section" data-testid="ns-identity-section">
+          <h2>This node</h2>
           <div className="ns-kv-row">
-            <span className="ns-kv-label">Your namespace identity</span>
+            <span
+              className="ns-kv-label"
+              title="Node-level, not per-namespace. This is the id that appears as your row in the members table below."
+            >
+              Your account
+            </span>
             <span className="ns-kv-value mono">
-              {truncate(identity, 40)}
-              <CopyBtn value={identity} />
+              {truncate(identity.accountId, 40)}
+              <CopyBtn value={identity.accountId} />
             </span>
           </div>
-        )}
-      </div>
+          {identity.deviceId && (
+            <div className="ns-kv-row">
+              <span
+                className="ns-kv-label"
+                title="This installation. Several devices can share one account, and membership is recorded against the account, not this."
+              >
+                Device
+              </span>
+              <span className="ns-kv-value mono">
+                {truncate(identity.deviceId, 40)}
+                <CopyBtn value={identity.deviceId} />
+              </span>
+            </div>
+          )}
+          <div className="ns-kv-row">
+            <span
+              className="ns-kv-label"
+              title="Base58, and the only base58 id on this page. It is what an operator adding you to a group types in — the add endpoint names a key, everything else names an account."
+            >
+              Signing key
+            </span>
+            <span className="ns-kv-value mono">
+              {truncate(identity.publicKey, 40)}
+              <CopyBtn value={identity.publicKey} />
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="ns-section">
         <div className="ns-section-header">
@@ -996,6 +1038,7 @@ function GroupDetail({
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
   const [self, setSelf] = useState<GroupMembersResult | null>(null);
+  const identity = useNodeIdentity();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1022,8 +1065,10 @@ function GroupDetail({
   }, [load]);
 
   const name = info?.metadata?.name ?? undefined;
-  const myRole = self?.selfIdentity
-    ? self.members.find((m) => m.identity === self.selfIdentity)?.role
+  // Same as the namespace header: match our own ACCOUNT against the rows,
+  // because rc.23 dropped `selfIdentity` from the member-list response.
+  const myRole = identity
+    ? self?.members.find((m) => m.identity === identity.accountId)?.role
     : undefined;
   const showLeave =
     myRole !== undefined && String(myRole).toLowerCase() !== 'admin';

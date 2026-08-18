@@ -16,10 +16,16 @@ import {
  *    the API and nowhere else since — reading `alias` yields `undefined`,
  *    which is why names silently never rendered.
  *  • Response envelopes are NOT uniform. Most endpoints answer `{ data: T }`,
- *    but `listGroupMembers` answers `{ members, selfIdentity }` and
- *    `listSubgroups` answers `{ subgroups }` — unwrapping `.data` on those
- *    gives `undefined`, and a naive `Array.isArray` guard then renders an
- *    empty list instead of failing loudly.
+ *    but `listGroupMembers` answers `{ members }` and `listSubgroups` answers
+ *    `{ subgroups }` — unwrapping `.data` on those gives `undefined`, and a
+ *    naive `Array.isArray` guard then renders an empty list instead of failing
+ *    loudly.
+ *  • A member is named by TWO different ids depending on the verb, and they
+ *    are deliberately rendered in different alphabets so a mix-up fails loudly
+ *    instead of resolving to the wrong principal. Since core 0.11.0-rc.23 the
+ *    listing, remove, role, capabilities and metadata calls all name a member
+ *    by ACCOUNT (`AccountId`, 64 hex characters); only add-member still names
+ *    a KEY (`PublicKey`, base58). Each affected function says which it wants.
  */
 
 // ---- Types ----
@@ -48,9 +54,28 @@ export interface Namespace {
   appVersion?: string;
 }
 
-export interface NamespaceIdentity {
-  namespaceId: string;
+/**
+ * Who this NODE is — `GET /admin-api/identity`, no namespace involved.
+ *
+ * There used to be a `GET /admin-api/namespaces/:id/identity`, and 1.13.0 of
+ * this dashboard called it. core 0.11.0-rc.23 deleted it (#3522) because it was
+ * a lie with an extra path segment: it took a namespace and answered with the
+ * node's account regardless of which one you passed. Every namespace on a node
+ * resolves to the same account, so there was never a per-namespace identity to
+ * report — asking a namespace who you are only ever made the answer look like
+ * it varied by scope.
+ */
+export interface NodeIdentity {
+  /** The account this node writes as. 64 HEX characters — this is the id the
+   *  member listing returns and every member-addressing endpoint expects. */
+  accountId: string;
+  /** Hex `DeviceId`, absent on a node that has not enrolled into an account. */
+  deviceId?: string;
+  /** The key this node signs ops with, base58 — the DEVICE key, not the
+   *  account root. Never appears in a member listing. */
   publicKey: string;
+  /** Hex epoch-0 root public key; what a second device pairs against. */
+  accountRootPublicKey?: string;
 }
 
 export interface SubgroupEntry {
@@ -82,15 +107,26 @@ export type UpgradePolicy = 'Automatic' | 'LazyOnAccess';
 export type GroupRole = 'Admin' | 'Member' | 'ReadOnly';
 
 export interface GroupMember {
+  /**
+   * The member's ACCOUNT — 64 hex characters, not the base58 a key renders as.
+   * A member is a person here, and a person may hold several keys, so the
+   * membership row is keyed by the account rather than by any one device key.
+   */
   identity: string;
   role: GroupRole | string;
   name?: string;
 }
 
+/**
+ * `{ members }` and nothing else.
+ *
+ * rc.23 removed `selfIdentity` from this response. It never belonged: it
+ * answered "who am I", which is a node-level question the member list of one
+ * group is a strange place to ask. Callers that need it read
+ * {@link getNodeIdentity} and compare `accountId` against `member.identity`.
+ */
 export interface GroupMembersResult {
   members: GroupMember[];
-  /** This node's own identity in the group, so the UI can mark "you". */
-  selfIdentity?: string | undefined;
 }
 
 export interface GroupContextEntry {
@@ -122,18 +158,61 @@ export interface CreateContextResponseData {
   groupCreated?: boolean;
 }
 
+/**
+ * The one member-addressing call that still takes a KEY.
+ *
+ * `identity` here is a base58 `PublicKey`, not the 64-hex account the listing
+ * hands back. That asymmetry is deliberate on core's side: an add is the only
+ * call whose subject may have no account on this node yet — the account is a
+ * hash of a genesis the node learns only once the person has joined — so an
+ * operator can only name them by the key they sign with. The apply resolves
+ * that key to the account the row is keyed by, and the listing is where the
+ * caller reads the account back.
+ *
+ * Pasting an id copied out of the members table here therefore addresses
+ * nobody. {@link looksLikeAccountId} exists so the UI can say so.
+ */
 export interface AddMembersRequest {
   members: Array<{ identity: string; role: GroupRole }>;
 }
 
+/** Members named by ACCOUNT (64 hex) — the principal the rows are keyed by. */
 export interface RemoveMembersRequest {
   members: string[];
+}
+
+/**
+ * True for a 64-hex `AccountId`, false for the base58 a `PublicKey` renders as.
+ *
+ * Base58 has no `0`, so a 64-character all-hex string is an account with
+ * near-certainty; this is a UI hint, not validation — the node is the authority
+ * and rejects a mismatch itself.
+ */
+export function looksLikeAccountId(value: string): boolean {
+  return /^[0-9a-f]{64}$/i.test(value.trim());
 }
 
 /** `{ invitation, groupName? }` — the unwrapped body of an invite response. */
 export interface InvitationPayload {
   invitation: Record<string, unknown>;
   groupName?: string;
+}
+
+/**
+ * What a join answers. Note the TWO ids, and which one is useful afterwards.
+ *
+ * `memberIdentity` is the base58 key the joiner signs with; `memberAccount`
+ * (added in rc.23) is the 64-hex account that key joined as, and it is the id
+ * every member-addressing endpoint expects. Anything that wants to look the new
+ * member up, change their role or remove them must use `memberAccount` —
+ * `memberIdentity` matches no row in the listing.
+ */
+export interface JoinResult {
+  groupId: string;
+  memberIdentity: string;
+  memberAccount: string;
+  /** Still present at rc.23; core#3528 to drop it is a draft. */
+  governanceOp?: string;
 }
 
 // ---- HTTP helpers ----
@@ -235,13 +314,15 @@ export async function getNamespace(namespaceId: string): Promise<Namespace> {
   return apiGet<Namespace>(`/admin-api/namespaces/${namespaceId}`);
 }
 
-export async function getNamespaceIdentity(
-  namespaceId: string,
-): Promise<NamespaceIdentity> {
-  return apiGet<NamespaceIdentity>(
-    `/admin-api/namespaces/${namespaceId}/identity`,
-    true,
-  );
+/**
+ * Who this node is. Takes no namespace, and that is the whole point of it.
+ *
+ * Rejects with 404 on a node that has taken part in nothing yet — it holds
+ * neither a device nor an account root, so there is no account to report rather
+ * than an empty one. Callers treat that as "unknown", not as an error.
+ */
+export async function getNodeIdentity(): Promise<NodeIdentity> {
+  return apiGet<NodeIdentity>('/admin-api/identity');
 }
 
 export async function createNamespace(
@@ -270,11 +351,8 @@ export async function createNamespaceInvitation(
 export async function joinNamespace(
   namespaceId: string,
   req: InvitationPayload,
-): Promise<{ groupId: string; memberIdentity: string }> {
-  return apiPost<{ groupId: string; memberIdentity: string }>(
-    `/admin-api/namespaces/${namespaceId}/join`,
-    req,
-  );
+): Promise<JoinResult> {
+  return apiPost<JoinResult>(`/admin-api/namespaces/${namespaceId}/join`, req);
 }
 
 /** Remove your own identity from the namespace (cascades to its subgroups). */
@@ -355,7 +433,10 @@ export async function createSubgroup(req: {
   });
 }
 
-/** `{ members, selfIdentity }` — NOT `{ data: [...] }`. */
+/**
+ * `{ members }` — NOT `{ data: [...] }`, and no longer `{ members,
+ * selfIdentity }`: rc.23 dropped the self field. Each `identity` is an ACCOUNT.
+ */
 export async function listGroupMembers(
   groupId: string,
 ): Promise<GroupMembersResult> {
@@ -363,10 +444,7 @@ export async function listGroupMembers(
     `/admin-api/groups/${groupId}/members`,
     true,
   );
-  return {
-    members: Array.isArray(result?.members) ? result.members : [],
-    selfIdentity: result?.selfIdentity,
-  };
+  return { members: Array.isArray(result?.members) ? result.members : [] };
 }
 
 export async function listGroupContexts(
@@ -387,6 +465,7 @@ export async function listSubgroups(groupId: string): Promise<SubgroupEntry[]> {
   return Array.isArray(result?.subgroups) ? result.subgroups : [];
 }
 
+/** Members named by KEY (base58) — the only such call. See {@link AddMembersRequest}. */
 export async function addGroupMembers(
   groupId: string,
   req: AddMembersRequest,
@@ -394,6 +473,7 @@ export async function addGroupMembers(
   await apiPost<void>(`/admin-api/groups/${groupId}/members`, req);
 }
 
+/** Members named by ACCOUNT (64 hex), exactly as `listGroupMembers` returns them. */
 export async function removeGroupMembers(
   groupId: string,
   req: RemoveMembersRequest,
@@ -401,12 +481,13 @@ export async function removeGroupMembers(
   await apiPost<void>(`/admin-api/groups/${groupId}/members/remove`, req);
 }
 
+/** `account` is the 64-hex `AccountId`; core's path segment is literally `:account`. */
 export async function updateMemberRole(
   groupId: string,
-  identity: string,
+  account: string,
   role: GroupRole,
 ): Promise<void> {
-  await apiPut<void>(`/admin-api/groups/${groupId}/members/${identity}/role`, {
+  await apiPut<void>(`/admin-api/groups/${groupId}/members/${account}/role`, {
     role,
   });
 }
@@ -417,13 +498,8 @@ export async function createGroupInvitation(
   return apiPost<InvitationPayload>(`/admin-api/groups/${groupId}/invite`, {});
 }
 
-export async function joinGroup(
-  req: InvitationPayload,
-): Promise<{ groupId: string; memberIdentity: string }> {
-  return apiPost<{ groupId: string; memberIdentity: string }>(
-    '/admin-api/groups/join',
-    req,
-  );
+export async function joinGroup(req: InvitationPayload): Promise<JoinResult> {
+  return apiPost<JoinResult>('/admin-api/groups/join', req);
 }
 
 export async function setSubgroupVisibility(
@@ -458,13 +534,14 @@ export async function getGroupMetadata(
   return apiGet<MetadataRecord | null>(`/admin-api/groups/${groupId}/metadata`);
 }
 
+/** `account` is the 64-hex `AccountId`, not the key the member signs with. */
 export async function setMemberMetadata(
   groupId: string,
-  identity: string,
+  account: string,
   req: { name?: string; data?: Record<string, string> },
 ): Promise<void> {
   await apiPut<void>(
-    `/admin-api/groups/${groupId}/members/${identity}/metadata`,
+    `/admin-api/groups/${groupId}/members/${account}/metadata`,
     {
       ...(req.name !== undefined ? { name: req.name } : {}),
       data: req.data ?? {},
