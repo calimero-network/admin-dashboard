@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/calimero-network/admin-dashboard/compare/v1.13.0...v1.13.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* follow core rc.23, which deleted the two identity APIs 1.13.0 uses ([#153](https://github.com/calimero-network/admin-dashboard/issues/153)) ([e9a4b61](https://github.com/calimero-network/admin-dashboard/commit/e9a4b6119ce379a224064fbf220ee33c8235d5bf))
+
 # [1.13.0](https://github.com/calimero-network/admin-dashboard/compare/v1.12.4...v1.13.0) (2026-08-17)
 
 
