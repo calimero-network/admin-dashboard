@@ -171,10 +171,23 @@ test.describe.serial('Live: namespaces', () => {
       data?: { accountId?: string; publicKey?: string };
     }>('GET', '/identity');
     expect(nodeStatus).toBe(200);
-    // An ACCOUNT renders as 64 hex characters; the signing key is base58 and is
-    // deliberately a different alphabet so a mix-up cannot resolve silently.
+    // ⚠️ THE TWO IDS NO LONGER HAVE DIFFERENT ALPHABETS, AND THAT IS THE POINT.
+    // This used to assert that an ACCOUNT is 64 hex while a signing key is
+    // base58 — "deliberately a different alphabet so a mix-up cannot resolve
+    // silently". rc.27 removed base58, so a DEVICE key and an ACCOUNT id are
+    // now both 64 lowercase hex and are indistinguishable by shape:
+    //
+    //   accountId  e3c1…  (64 hex)
+    //   publicKey  78e4…  (64 hex)
+    //
+    // The safety property is gone at the protocol level; asserting it here
+    // would only mean the suite disagreeing with the node. What is still worth
+    // pinning is that BOTH are well-formed and that they are not the same
+    // value — passing one where the other belongs is now a silent
+    // authorization no-op rather than a parse error.
     expect(body.data?.accountId).toMatch(/^[0-9a-f]{64}$/);
-    expect(body.data?.publicKey).not.toMatch(/^[0-9a-f]{64}$/);
+    expect(body.data?.publicKey).toMatch(/^[0-9a-f]{64}$/);
+    expect(body.data?.publicKey).not.toBe(body.data?.accountId);
   });
 
   test('creates a named subgroup, and the name persists', async ({ page }) => {

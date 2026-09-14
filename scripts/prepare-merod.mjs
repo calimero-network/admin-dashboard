@@ -17,7 +17,31 @@ const CORE_REPO = 'calimero-network/core';
 // list, so a suite still pinned to rc.20 would keep passing against shapes the
 // node no longer sends — which is precisely how 1.13.0 shipped broken.
 // The cache key in .github/workflows/ci.yml names this version too.
-const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.23';
+//
+// ⚠️ THE PIN ALSO HAS TO CLEAR WHAT THE REGISTRY PUBLISHES. The live suite
+// installs a REAL bundle from apps.calimero.network, and core refuses a bundle
+// whose `minRuntimeVersion` is newer than the node:
+//
+//   Failed to install: bundle requires runtime version 0.11.0-rc.28
+//                      but current runtime is 0.11.0-rc.23
+//
+// com.calimero.chat was republished at 3.1.1 / rc.28, which red-lined this leg
+// on every branch from 2026-08-18 onward — including a dependabot PR that
+// touched one devDependency. A bundle can be republished at any time, so this
+// pin is a floor that moves with the fleet, not a value that can be set once.
+//
+// ⚠️ AND A CEILING: rc.31 IS AS FAR AS THIS CAN GO TODAY. rc.31 made the admin
+// install route take COORDINATES and nothing else, so the url-based call the
+// dashboard's client makes is rejected outright:
+//
+//   unknown field `url`, expected `package` or `version`
+//
+// @calimero-network/calimero-client is already on its newest published build
+// (1.25.0-beta.2) and still posts { url, metadata, hash }, so there is no
+// client release that speaks rc.31+ yet. rc.30 is therefore the newest core
+// the dashboard can actually drive. Measured, not guessed — the live suite is
+// green on rc.28/29/30 and fails install on rc.31/32/33.
+const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.30';
 
 const rootDir = path.resolve(import.meta.dirname, '..');
 const binDir = path.join(rootDir, '.merod');
@@ -68,8 +92,19 @@ async function main() {
     const version = execFileSync(binaryPath, ['--version'], {
       encoding: 'utf8',
     }).trim();
-    console.log(`merod already present: ${version}`);
-    return;
+    // ⚠️ THE CACHED BINARY HAS TO BE THE PINNED ONE. This used to accept
+    // whatever was in .merod and print "already present", so bumping
+    // MEROD_VERSION changed nothing locally: the suite kept running the old
+    // node and the bump looked like it had worked. CI is shielded by a cache
+    // key that names the version; a developer's working copy is not.
+    if (version.includes(MEROD_VERSION)) {
+      console.log(`merod already present: ${version}`);
+      return;
+    }
+    console.log(
+      `merod at ${binaryPath} is ${version}, want ${MEROD_VERSION} — re-downloading.`,
+    );
+    await fs.rm(binDir, { recursive: true, force: true });
   }
 
   const suffix = assetSuffix();
