@@ -40,7 +40,6 @@ import {
   type Namespace,
   type SubgroupEntry,
   type SubgroupVisibility,
-  type UpgradePolicy,
 } from '../api/namespaceApi';
 import { namespaceIdFromInvitation } from '../utils/invitations';
 import {
@@ -105,16 +104,6 @@ export function namespaceLabel(
   if (app && app.name !== app.id) return app.name;
   return truncate(ns.namespaceId, 20);
 }
-
-const UPGRADE_POLICIES: Array<{ value: UpgradePolicy; label: string }> = [
-  // `Coordinated` existed in an older node and was removed — offering it only
-  // produces a 400.
-  {
-    value: 'Automatic',
-    label: 'Automatic — upgrade as soon as a new version lands',
-  },
-  { value: 'LazyOnAccess', label: 'LazyOnAccess — upgrade on next use' },
-];
 
 function useInstalledApps(): InstalledApp[] {
   const [apps, setApps] = useState<InstalledApp[]>([]);
@@ -222,7 +211,6 @@ function NamespaceList({
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const [appId, setAppId] = useState('');
-  const [policy, setPolicy] = useState<UpgradePolicy>('Automatic');
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -251,7 +239,6 @@ function NamespaceList({
     try {
       const result = await createNamespace({
         applicationId: appId.trim(),
-        upgradePolicy: policy,
         ...(name.trim() ? { name: name.trim() } : {}),
       });
       showToast(
@@ -366,20 +353,6 @@ function NamespaceList({
               </select>
             </label>
             <label className="ns-form-field">
-              <span>Upgrade policy</span>
-              <select
-                className="ns-input"
-                value={policy}
-                onChange={(e) => setPolicy(e.target.value as UpgradePolicy)}
-              >
-                {UPGRADE_POLICIES.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="ns-form-field">
               <span>Name (optional)</span>
               <input
                 className="ns-input"
@@ -483,7 +456,6 @@ function NamespaceList({
                 className="ns-card-footer"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="ns-badge">{ns.upgradePolicy}</span>
                 <ConfirmButton
                   label="Delete"
                   busyLabel="Deleting…"
@@ -847,9 +819,14 @@ function NamespaceDetail({
           </div>
           <div className="ns-stat-label">Subgroups</div>
         </div>
-        <div className="ns-stat-card">
-          <div className="ns-stat-value ns-stat-small">{ns.upgradePolicy}</div>
-          <div className="ns-stat-label">Upgrade Policy</div>
+        <div
+          className="ns-stat-card"
+          title="The bytecode blob this namespace is pinned to — the version concept that replaced the upgrade policy"
+        >
+          <div className="ns-stat-value ns-stat-small">
+            {ns.appKey ? truncate(ns.appKey, 12) : '—'}
+          </div>
+          <div className="ns-stat-label">Version pin</div>
         </div>
       </div>
 
@@ -1260,7 +1237,6 @@ function GroupDetail({
               parentGroupId: groupId,
               applicationId:
                 info?.targetApplicationId || ns.targetApplicationId,
-              upgradePolicy: info?.upgradePolicy || ns.upgradePolicy,
               ...(subName ? { name: subName } : {}),
             });
             showToast(
