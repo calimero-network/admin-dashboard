@@ -173,6 +173,33 @@ test.describe('Auth', () => {
     await expect(page.getByText(origin, { exact: false })).toBeVisible();
   });
 
+  test('Clear session unpins a node chosen with ?nodeUrl=', async ({
+    page,
+  }) => {
+    // The bug: `?nodeUrl=` is persisted and outranks the serving origin for the
+    // rest of the browser session, and "Clear session" cleared the tokens but
+    // left it — so a dashboard once pointed elsewhere could not be pointed
+    // back, and the button appeared to do nothing.
+    const origin = 'http://localhost:4173';
+    const other = 'http://localhost:9999';
+
+    await page.goto(`/admin-dashboard/dashboard?nodeUrl=${other}`);
+    await expect(page.getByTestId('login-screen')).toBeVisible();
+    await expect(page.getByText(other, { exact: false })).toBeVisible();
+
+    // It sticks across a navigation without the parameter — that is the trap.
+    await page.goto('/admin-dashboard/dashboard');
+    await expect(page.getByText(other, { exact: false })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Clear session' }).click();
+
+    // Back to the node that served the page, and the LABEL has to move too:
+    // the override was already being cleared correctly while the screen kept
+    // showing the old node, which is indistinguishable from a no-op.
+    await expect(page.getByText(origin, { exact: false })).toBeVisible();
+    await expect(page.getByText(other, { exact: false })).toHaveCount(0);
+  });
+
   test('a 401 from the node sends the user back to login', async ({ page }) => {
     await mockNode(page);
     // Re-register the applications route to 401 AFTER the fixture, so it wins.

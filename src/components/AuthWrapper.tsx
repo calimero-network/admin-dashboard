@@ -29,13 +29,19 @@ export default function AuthWrapper({
   children: React.ReactNode;
 }) {
   const [state, setState] = useState<AuthState>('loading');
+  // Kept in state so the login screen's "Node:" line is driven by the same read
+  // that seeds the SDK, rather than by a getNodeUrl() call during render that
+  // React has no reason to re-run.
+  const [nodeUrl, setNodeUrl] = useState<string>(() => getNodeUrl());
 
   const checkAuth = useCallback(async () => {
     setState('loading');
 
     // The SDK keeps the node URL in its own storage; seed it from the origin on
     // every load so a stale value from a previous deployment can never win.
-    setAppEndpointKey(getNodeUrl());
+    const resolvedNodeUrl = getNodeUrl();
+    setAppEndpointKey(resolvedNodeUrl);
+    setNodeUrl(resolvedNodeUrl);
 
     // Adopt tokens handed back by the auth frontend in the URL hash.
     const fragmentParams = new URLSearchParams(
@@ -156,7 +162,13 @@ export default function AuthWrapper({
   }
 
   if (state === 'needs-login') {
-    return <LoginPage onLogin={handleLogin} onReset={handleReset} />;
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        onReset={handleReset}
+        nodeUrl={nodeUrl}
+      />
+    );
   }
 
   return <>{children}</>;
