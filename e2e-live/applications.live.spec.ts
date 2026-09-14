@@ -31,14 +31,16 @@ test.describe('Live: Marketplace reads a registry', () => {
     const card = page.getByTestId('app-card').filter({ hasText: PROBE_NAME });
     await expect(card).toHaveCount(1);
     await expect(card).toContainText(`v${PROBE_VERSION}`);
-    await expect(card.getByRole('button', { name: 'Install' })).toBeVisible();
 
+    // ⚠️ THE CARD NO LONGER CARRIES AN INSTALL BUTTON. Opening it navigates to
+    // the application page, which is where the version picker and Install live.
     await card.click();
-    const modal = page.getByTestId('app-detail-modal');
-    await expect(modal).toBeVisible();
+    const detail = page.getByTestId('app-detail-page');
+    await expect(detail).toBeVisible();
+    await expect(detail.getByTestId('detail-install')).toBeVisible();
 
     // The stub publishes 1.4.2 and 1.0.0; the newest non-yanked must be default.
-    const picker = modal.getByTestId('version-picker');
+    const picker = detail.getByTestId('version-picker');
     await expect(picker.locator('option')).toHaveCount(2);
     await expect(picker).toHaveValue(PROBE_VERSION);
   });
@@ -98,12 +100,12 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     await expect(card).toBeVisible();
     await card.click();
 
-    const modal = page.getByTestId('app-detail-modal');
-    await expect(modal).toBeVisible();
+    const detail = page.getByTestId('app-detail-page');
+    await expect(detail).toBeVisible();
     // Prove we opened the package we meant to.
-    await expect(modal).toContainText(REAL_PACKAGE);
+    await expect(detail).toContainText(REAL_PACKAGE);
 
-    const install = modal.getByTestId('modal-install');
+    const install = detail.getByTestId('detail-install');
     // The button is disabled while the version list loads; clicking then would
     // silently do nothing and the poll below would time out with no clue why.
     await expect(install).toBeEnabled();
@@ -125,9 +127,9 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       );
     }
 
-    // Assert against the node, not the modal: the node downloading the artifact
+    // Assert against the node, not the page: the node downloading the artifact
     // is the slow part, and it is also the source of truth. Polling it avoids
-    // depending on exactly when the modal's button label flips.
+    // depending on exactly when the button label flips.
     //
     // This is the ONE test in the suite that reaches the public internet — the
     // node must fetch from apps.calimero.network because core refuses loopback
@@ -166,17 +168,21 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
 
     // The regression this whole port turns on: `name` and `version` come from
     // the bundle manifest's flat metadata JSON, not the legacy
-    // `applicationName` keys, and this cell was blank before.
-    // `.first()` — the description cell also contains the app name.
-    await expect(
-      page.getByRole('cell', { name: new RegExp(REAL_APP_NAME) }).first(),
-    ).toBeVisible();
-
-    const row = page.locator('tr').filter({ hasText: REAL_APP_NAME }).first();
-    // A real 300KB-ish artifact, so the size column must show a real figure.
-    await expect(row).toContainText(/\d+\.\d{2} (KB|MB)/);
+    // `applicationName` keys, and this was blank before.
+    const row = page
+      .getByTestId('installed-app-card')
+      .filter({ hasText: REAL_APP_NAME })
+      .first();
+    await expect(row).toBeVisible();
+    // A real 300KB-ish artifact, so the size must show a real figure.
+    // ⚠️ No longer `\d+\.\d{2}` — formatBytes drops the trailing `.00` the old
+    // table printed, so "300 KB" is now as valid as "1.2 MB".
+    await expect(row).toContainText(/\d+(\.\d)? (KB|MB)/);
     // The bundle declares links.frontend, so Open must be offered.
     await expect(row.getByTestId('open-app')).toBeVisible();
+
+    // The whole point of the redesign: this bundle carries metadata.icon.
+    await expect(row.locator('img.app-icon-img')).toBeVisible();
   });
 
   test('Open hands the app an access token and no refresh token', async ({
@@ -209,7 +215,10 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     );
 
     await openDashboard(page, '/admin-dashboard/applications');
-    const row = page.locator('tr').filter({ hasText: REAL_APP_NAME }).first();
+    const row = page
+      .getByTestId('installed-app-card')
+      .filter({ hasText: REAL_APP_NAME })
+      .first();
 
     const popupPromise = context.waitForEvent('page');
     await row.getByTestId('open-app').click();
@@ -237,7 +246,8 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     // registry publishes two packages both displayed as "Mero Chat", so
     // `.first()` on the display name can land on the one that was never
     // installed — non-deterministically, depending on registry ordering. The
-    // package id is an attribute, not text: the card never renders it.
+    // package id is an attribute as well as text, and the attribute is the
+    // stable half.
     const card = page.locator(
       `[data-testid="app-card"][data-package="${REAL_PACKAGE}"]`,
     );
@@ -247,8 +257,11 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
   test('uninstalls it through the confirmation page', async ({ page }) => {
     await openDashboard(page, '/admin-dashboard/applications');
 
-    const row = page.locator('tr').filter({ hasText: REAL_APP_NAME }).first();
-    await row.getByRole('button', { name: 'More options' }).click();
+    const row = page
+      .getByTestId('installed-app-card')
+      .filter({ hasText: REAL_APP_NAME })
+      .first();
+    await row.getByRole('button', { name: /More options/ }).click();
     await page.getByRole('button', { name: /Uninstall/ }).click();
 
     await expect(
