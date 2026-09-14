@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/calimero-network/admin-dashboard/compare/v1.13.1...v1.14.0) (2026-09-14)
+
+
+### Features
+
+* **apps:** registry-style cards with icons, and an application page you can install from ([#155](https://github.com/calimero-network/admin-dashboard/issues/155)) ([09466a7](https://github.com/calimero-network/admin-dashboard/commit/09466a728aed2f189f3f0cda07a591bb747a3f45))
+
 ## [1.13.1](https://github.com/calimero-network/admin-dashboard/compare/v1.13.0...v1.13.1) (2026-08-18)
 
 
