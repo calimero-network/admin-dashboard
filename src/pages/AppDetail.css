@@ -1,0 +1,232 @@
+.app-detail-page {
+  padding: 24px 32px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-detail-back:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.app-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.app-detail-identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-detail-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.app-detail-package {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.app-detail-mono {
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.app-detail-description {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.app-detail-installed-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--success);
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+}
+
+.app-detail-install {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-surface), var(--surface-glass);
+}
+
+.app-detail-version {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.app-detail-version label {
+  color: var(--text-tertiary);
+}
+
+.app-detail-version-select {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.app-detail-version-select:hover:not(:disabled) {
+  border-color: var(--accent-dim);
+}
+
+.app-detail-version-select:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.app-detail-version-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.app-detail-version-static,
+.app-detail-versions-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.app-detail-meta {
+  margin-top: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.app-detail-meta-row {
+  display: flex;
+  gap: 16px;
+  padding: 11px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-detail-meta-row:last-child {
+  border-bottom: none;
+}
+
+.app-detail-meta-label {
+  flex: 0 0 120px;
+  color: var(--text-tertiary);
+}
+
+.app-detail-meta-value {
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.app-detail-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.app-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.app-detail-tag {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.app-detail-error {
+  margin-top: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.app-detail-error h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.app-detail-error p {
+  margin: 0 0 20px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .app-detail-page {
+    padding: 16px 16px 32px;
+  }
+
+  .app-detail-header {
+    gap: 14px;
+  }
+
+  .app-detail-title {
+    font-size: 20px;
+  }
+
+  .app-detail-meta-row {
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .app-detail-meta-label {
+    flex: none;
+  }
+}

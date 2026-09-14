@@ -1,0 +1,19 @@
+.app-icon-img {
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.app-icon-fallback {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+  /* See AppIcon.tsx: fixed, NOT var(--text-primary). The tile is dark in both
+     themes, so a token that inverts puts near-black on it in light mode. */
+  color: rgba(255, 255, 255, 0.92);
+}

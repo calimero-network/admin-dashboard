@@ -2,6 +2,48 @@
  * Registry client utility for fetching applications from configured registries
  */
 
+/** The ten browse categories the registry enforces at upload. */
+export const CATEGORIES = [
+  'games',
+  'productivity',
+  'communication',
+  'social',
+  'art-design',
+  'media',
+  'planning',
+  'security',
+  'utilities',
+  'developer-tools',
+] as const;
+
+export type Category = (typeof CATEGORIES)[number];
+
+/**
+ * Work out which browse category a bundle belongs to.
+ *
+ * ⚠️ THE REGISTRY SERVES NO TOP-LEVEL `category` ON ANY BUNDLE TODAY (measured
+ * against apps.calimero.network: 0 of 21), so reading one directly yields a card
+ * that never shows a category. What bundles DO carry is `metadata.tags` (19 of
+ * 21), and some of those tags are category names — `developer-tools` is in the
+ * wild right now. So an explicit field wins when present, and otherwise the
+ * first tag that names a real category is promoted. A tag that is not a
+ * category ("multiplayer", "crdt") is left alone: it is a keyword, not a shelf.
+ */
+export function resolveCategory(
+  explicit?: unknown,
+  tags?: unknown,
+): Category | undefined {
+  const isCategory = (v: unknown): v is Category =>
+    typeof v === 'string' && (CATEGORIES as readonly string[]).includes(v);
+
+  if (isCategory(explicit)) return explicit;
+  if (Array.isArray(tags)) {
+    const hit = tags.find(isCategory);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 export interface AppSummary {
   id: string;
   name: string;
@@ -12,6 +54,39 @@ export interface AppSummary {
   description?: string;
   author?: string;
   downloads?: number;
+  /**
+   * `metadata.icon` — a `data:image/png;base64,…` URI carried inside the signed
+   * bundle. The SAME field the desktop already passes to `create_desktop_shortcut`
+   * for launcher icons, so it is known-good data that this listing was simply
+   * throwing away.
+   *
+   * ⚠️ Absent on 3 of the 21 published bundles, so a fallback is a NORMAL state,
+   * not an error state.
+   */
+  icon?: string | undefined;
+  /**
+   * An admin approved THIS PACKAGE. ⚠️ Not the publisher — see
+   * `publisherVerified`. Two separate claims; do not render one value twice.
+   */
+  verified?: boolean | undefined;
+  /** The account that published it is verified. */
+  publisherVerified?: boolean | undefined;
+  /**
+   * Size of the `.mpk` in bytes, measured by the registry at upload.
+   * ⚠️ `null` for every bundle published before the metadata policy shipped —
+   * which today is ALL 21 of them. Render nothing, never `0 bytes`.
+   */
+  installSize?: number | null;
+  /** ISO timestamp stamped at upload; null for all but one bundle today. */
+  publishedAt?: string | null;
+  tags?: string[] | undefined;
+  /**
+   * Resolved browse category. ⚠️ The registry does not serve a top-level
+   * `category` on any bundle yet — it is derived from `metadata.category` when
+   * present, else from a `tags` entry that names a category. Never read
+   * `metadata.category` directly; use `resolveCategory`.
+   */
+  category?: Category | undefined;
 }
 
 export interface VersionInfo {
@@ -102,6 +177,10 @@ export async function fetchAppsFromRegistry(
     const bundlesArray = Array.isArray(bundles) ? bundles : [];
 
     // Transform V2 BundleManifest to AppSummary format
+    // ⚠️ EVERY FIELD THE CARD NEEDS IS ALREADY ON THE WIRE. This mapper used to
+    // keep six keys and drop the rest, which is the whole reason the marketplace
+    // rendered a generic box glyph for every app while the registry — reading
+    // the same endpoint — rendered real launcher icons.
     return bundlesArray.map((bundle: any) => ({
       id: bundle.package,
       name: bundle.metadata?.name || bundle.package,
@@ -113,6 +192,18 @@ export async function fetchAppsFromRegistry(
       author: bundle.metadata?.author,
       minRuntimeVersion: bundle.minRuntimeVersion,
       downloads: bundle.downloads ?? 0,
+      icon: bundle.metadata?.icon,
+      verified: bundle.verified === true,
+      publisherVerified: bundle.publisherVerified === true,
+      // `?? null`, not `|| undefined`: absent and zero are different answers and
+      // the card renders nothing for the first.
+      installSize: bundle.installSize ?? null,
+      publishedAt: bundle.publishedAt ?? null,
+      tags: Array.isArray(bundle.metadata?.tags) ? bundle.metadata.tags : [],
+      category: resolveCategory(
+        bundle.metadata?.category,
+        bundle.metadata?.tags,
+      ),
     }));
   } catch (error) {
     console.error(`Failed to fetch apps from registry ${registryUrl}:`, error);

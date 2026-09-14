@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockNode } from './fixtures/node';
+import { mockNode, PNG_1PX } from './fixtures/node';
 
 test.describe('Marketplace', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,9 +8,20 @@ test.describe('Marketplace', () => {
         {
           package: 'com.calimero.merochat',
           appVersion: '1.2.0',
-          metadata: { name: 'Mero Chat', description: 'Chat over Calimero.' },
+          metadata: {
+            name: 'Mero Chat',
+            description: 'Chat over Calimero.',
+            author: 'Calimero',
+            icon: PNG_1PX,
+            tags: ['communication', 'chat'],
+          },
+          verified: true,
+          publisherVerified: true,
+          downloads: 42,
         },
         {
+          // Deliberately icon-less: 3 of the 21 published bundles are, so the
+          // fallback needs a case in the suite.
           package: 'com.calimero.meroblocks',
           appVersion: '0.1.1',
           metadata: { name: 'Mero Blocks', description: 'Voxel sandbox.' },
@@ -59,29 +70,112 @@ test.describe('Marketplace', () => {
     await expect(page.getByTestId('app-card')).toHaveCount(2);
   });
 
-  test('opens a detail modal with package metadata', async ({ page }) => {
-    await page.getByTestId('app-card').filter({ hasText: 'Mero Chat' }).click();
-    const modal = page.getByTestId('app-detail-modal');
-    await expect(modal).toBeVisible();
-    await expect(modal.getByText('com.calimero.merochat')).toBeVisible();
-    await expect(modal.getByTestId('modal-install')).toBeVisible();
-
-    await modal.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(modal).toBeHidden();
+  test('cards render the bundle icon, not a generic glyph', async ({
+    page,
+  }) => {
+    // The listing used to draw one lucide box for every app while the registry,
+    // reading the SAME endpoint, drew real launcher icons — the mapper was
+    // dropping `metadata.icon`. Assert the <img> is really there, because the
+    // component falls back to a letter tile the moment it fails to decode.
+    const card = page.getByTestId('app-card').filter({ hasText: 'Mero Chat' });
+    const icon = card.locator('img.app-icon-img');
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveJSProperty('naturalWidth', 1);
   });
 
-  test('the version shown belongs to the app that was opened', async ({
+  test('a bundle with no icon gets the lettered fallback, not a broken image', async ({
+    page,
+  }) => {
+    // 3 of the 21 published bundles carry no icon, so this is a normal state.
+    const card = page
+      .getByTestId('app-card')
+      .filter({ hasText: 'Mero Blocks' });
+    await expect(card.getByTestId('app-icon-fallback')).toHaveText('M');
+    await expect(card.locator('img.app-icon-img')).toHaveCount(0);
+  });
+
+  test('cards carry the structured metadata the table never showed', async ({
+    page,
+  }) => {
+    const card = page.getByTestId('app-card').filter({ hasText: 'Mero Chat' });
+    await expect(card).toContainText('com.calimero.merochat');
+    await expect(card).toContainText('Chat over Calimero.');
+    await expect(card).toContainText('42');
+    await expect(card).toContainText('v1.2.0');
+    // Two DIFFERENT claims, so two separately labelled marks.
+    await expect(card.getByLabel('Verified package')).toBeVisible();
+    await expect(card.getByLabel('Verified author')).toBeVisible();
+  });
+
+  test('opening a card navigates to the application page', async ({ page }) => {
+    await page.getByTestId('app-card').filter({ hasText: 'Mero Chat' }).click();
+    await expect(page).toHaveURL(/\/marketplace\/com\.calimero\.merochat$/);
+    const detail = page.getByTestId('app-detail-page');
+    await expect(detail).toBeVisible();
+    await expect(
+      detail.getByText('com.calimero.merochat').first(),
+    ).toBeVisible();
+    await expect(detail.getByTestId('detail-install')).toBeVisible();
+  });
+
+  test('the application page survives a reload', async ({ page }) => {
+    // The whole reason this is a route and not a modal. Landing on it directly
+    // means there is no in-memory listing to read, so the page has to refetch.
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const detail = page.getByTestId('app-detail-page');
+    await expect(detail).toBeVisible();
+    await expect(detail.getByText('Mero Chat')).toBeVisible();
+  });
+
+  test('the version picker offers this app versions and not another app', async ({
     page,
   }) => {
     // Regression guard: fetchAppVersions trusted the registry's ?package=
     // filter, so an unfiltered response offered another app's versions — the
-    // Mero Blocks modal showed Mero Chat's 1.2.0 and installing it would have
+    // Mero Blocks page showed Mero Chat's 1.2.0 and installing it would have
     // resolved an artifact URL that does not exist for this package.
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const picker = page.getByTestId('version-picker');
+    await expect(picker).toBeVisible();
+    await expect(picker).toContainText('1.2.0');
+    await expect(picker).not.toContainText('0.1.1');
+  });
+
+  test('Install posts the chosen version to the node', async ({ page }) => {
+    // The install path moved out of the listing when the modal became a page,
+    // so this asserts the button still reaches the node — and that it installs
+    // the version the PICKER is on, not `latest_version`.
+    // ⚠️ `admin-api/install-application`, NOT a POST to `admin-api/applications`
+    // — that is the route the SDK actually uses, and routing the plural one
+    // catches nothing while the fixture's catch-all still answers 200, so the
+    // success toast appears and the assertion passes against zero requests.
+    const posted: string[] = [];
+    await page.route('**/admin-api/install-application', (route) => {
+      posted.push(route.request().postData() ?? '');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { applicationId: 'installed-1' } }),
+      });
+    });
+
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    await expect(page.getByTestId('version-picker')).toBeVisible();
+    await page.getByTestId('detail-install').click();
+
+    await expect(page.getByText(/Mero Chat installed/)).toBeVisible();
+    expect(posted).toHaveLength(1);
+    expect(posted[0]).toContain('com.calimero.merochat-1.2.0.mpk');
+  });
+
+  test('back returns to the listing', async ({ page }) => {
     await page.getByTestId('app-card').filter({ hasText: 'Mero Chat' }).click();
-    const modal = page.getByTestId('app-detail-modal');
-    await expect(modal.getByText('com.calimero.merochat')).toBeVisible();
-    await expect(modal).toContainText('1.2.0');
-    await expect(modal).not.toContainText('0.1.1');
+    await expect(page.getByTestId('app-detail-page')).toBeVisible();
+    await page
+      .getByTestId('app-detail-page')
+      .getByRole('link', { name: 'Marketplace' })
+      .click();
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
   });
 
   test('empty registry shows the empty state', async ({ page }) => {

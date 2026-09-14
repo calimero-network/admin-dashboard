@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { apiClient } from '@calimero-network/calimero-client';
-import {
-  RefreshCw,
-  MoreHorizontal,
-  Trash2,
-  Copy,
-  ExternalLink,
-} from 'lucide-react';
-import DataTable from '../components/DataTable';
+import { RefreshCw, Package } from 'lucide-react';
 import ContextMenu from '../components/ContextMenu';
+import InstalledAppCard, {
+  InstalledAppMenu,
+} from '../components/InstalledAppCard';
 import Skeleton from '../components/Skeleton';
 import ConfirmAction from './ConfirmAction';
 import { useToast } from '../contexts/ToastContext';
@@ -17,11 +19,11 @@ import {
   decodeMetadata,
   appDisplayName,
   appFrontendUrl,
-  formatSize,
   parseApiError,
   type AppMetadata,
 } from '../utils/appUtils';
 import { openAppInNewTab } from '../utils/openApp';
+import { compareSemverDesc } from '../utils/registry';
 import './InstalledApps.css';
 
 interface InstalledApplication {
@@ -35,6 +37,15 @@ interface InstalledApplication {
 
 /** Keep the skeleton up this long so it never flashes. Matches the desktop. */
 const SKELETON_MIN_MS = 1000;
+
+type SortKey = 'name-asc' | 'name-desc' | 'version' | 'size';
+
+const SORT_LABELS: Record<SortKey, string> = {
+  'name-asc': 'Name (A–Z)',
+  'name-desc': 'Name (Z–A)',
+  version: 'Version',
+  size: 'Size (largest)',
+};
 
 export default function ApplicationsPage() {
   const toast = useToast();
@@ -55,6 +66,10 @@ export default function ApplicationsPage() {
     appName: string;
   } | null>(null);
   const [uninstalling, setUninstalling] = useState(false);
+  // ⚠️ THE TABLE THIS GRID REPLACED HAD SORTABLE COLUMNS. Dropping to cards
+  // would have quietly removed that, so the three sorts it offered — name,
+  // version, size — survive here as an explicit control.
+  const [sort, setSort] = useState<SortKey>('name-asc');
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -181,6 +196,28 @@ export default function ApplicationsPage() {
   const meta = (app: InstalledApplication): AppMetadata | null =>
     decodeMetadata(app.metadata);
 
+  const sortedApps = useMemo(() => {
+    const name = (a: InstalledApplication) =>
+      appDisplayName(a, decodeMetadata(a.metadata)).toLowerCase();
+    const version = (a: InstalledApplication) =>
+      decodeMetadata(a.metadata)?.version ?? a.version ?? '';
+    const out = [...apps];
+    switch (sort) {
+      case 'name-desc':
+        return out.sort((a, b) => name(b).localeCompare(name(a)));
+      case 'version':
+        return out.sort((a, b) => compareSemverDesc(version(a), version(b)));
+      case 'size':
+        return out.sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
+      default:
+        return out.sort((a, b) => name(a).localeCompare(name(b)));
+    }
+  }, [apps, sort]);
+
+  const openMenuApp = openMenuAppId
+    ? apps.find((a) => a.id === openMenuAppId) ?? null
+    : null;
+
   if (confirm) {
     return (
       <ConfirmAction
@@ -205,15 +242,32 @@ export default function ApplicationsPage() {
           <h1>Applications</h1>
           <p>Manage your installed applications</p>
         </div>
-        <button
-          onClick={() => void load()}
-          className="installed-refresh-btn"
-          disabled={loading}
-          title="Refresh"
-          aria-label="Refresh"
-        >
-          <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-        </button>
+        <div className="installed-apps-controls">
+          <label className="installed-sort">
+            <span className="installed-sort-label">Sort</span>
+            <select
+              className="installed-sort-select"
+              data-testid="installed-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+            >
+              {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (
+                <option key={k} value={k}>
+                  {SORT_LABELS[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            onClick={() => void load()}
+            className="installed-refresh-btn"
+            disabled={loading}
+            title="Refresh"
+            aria-label="Refresh"
+          >
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+          </button>
+        </div>
       </header>
 
       <main className="installed-apps-main">
@@ -258,206 +312,93 @@ export default function ApplicationsPage() {
           })()}
 
         {loading ? (
-          <div className="data-table-container data-table-compact">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '25%' }}>Name</th>
-                  <th style={{ width: '12%' }}>Version</th>
-                  <th style={{ width: '10%' }}>Size</th>
-                  <th style={{ width: '33%' }}>Description</th>
-                  <th style={{ width: '20%' }} />
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i}>
-                    <td>
-                      <Skeleton variant="text" width="60%" height="13px" />
-                    </td>
-                    <td>
-                      <Skeleton variant="text" width="45%" height="13px" />
-                    </td>
-                    <td>
-                      <Skeleton variant="text" width="55%" height="13px" />
-                    </td>
-                    <td>
-                      <Skeleton variant="text" width="80%" height="13px" />
-                    </td>
-                    <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: 6,
-                          justifyContent: 'flex-end',
-                        }}
-                      >
-                        <Skeleton
-                          variant="rectangular"
-                          width="52px"
-                          height="26px"
-                          borderRadius="6px"
-                        />
-                        <Skeleton
-                          variant="rectangular"
-                          width="28px"
-                          height="26px"
-                          borderRadius="6px"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="installed-apps-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="app-card installed-app-card" aria-hidden>
+                <div className="app-card-top">
+                  <Skeleton
+                    variant="rectangular"
+                    width="48px"
+                    height="48px"
+                    borderRadius="12px"
+                  />
+                  <div className="app-card-headings">
+                    <Skeleton variant="text" width="62%" height="14px" />
+                    <Skeleton variant="text" width="80%" height="11px" />
+                  </div>
+                </div>
+                <Skeleton variant="text" width="100%" height="12px" />
+                <Skeleton variant="text" width="70%" height="12px" />
+                <div className="installed-app-actions">
+                  <Skeleton
+                    variant="rectangular"
+                    width="72px"
+                    height="28px"
+                    borderRadius="6px"
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    width="32px"
+                    height="28px"
+                    borderRadius="6px"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : sortedApps.length === 0 ? (
+          <div className="empty-state">
+            <Package size={48} className="empty-icon" />
+            <h3>No applications installed</h3>
+            <p>Visit the Marketplace to install apps on this node.</p>
           </div>
         ) : (
-          <DataTable
-            data={apps}
-            compact
-            onRowContextMenu={handleRowContextMenu}
-            keyExtractor={(app, index) => app.id || `installed-${index}`}
-            columns={[
-              {
-                key: 'name',
-                label: 'Name',
-                sortable: true,
-                width: '25%',
-                sortValue: (app) => appDisplayName(app, meta(app)),
-                render: (app) => (
-                  <div className="table-cell-name">
-                    <div className="table-cell-primary">
-                      {appDisplayName(app, meta(app))}
-                    </div>
-                    <div className="table-cell-secondary">
-                      ID: {app.id ? `${app.id.substring(0, 16)}…` : 'N/A'}
-                    </div>
-                  </div>
+          <div
+            className="installed-apps-grid"
+            data-testid="installed-apps-grid"
+          >
+            {sortedApps.map((app, index) => {
+              const m = meta(app);
+              return (
+                <InstalledAppCard
+                  key={app.id || `installed-${index}`}
+                  app={app}
+                  metadata={m}
+                  menuOpen={openMenuAppId === app.id}
+                  onContextMenu={(e) => handleRowContextMenu(e, app)}
+                  onToggleMenu={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setMenuPos({
+                      top: rect.bottom + 4,
+                      right: window.innerWidth - rect.right,
+                    });
+                    setOpenMenuAppId(openMenuAppId === app.id ? null : app.id);
+                  }}
+                  onOpen={(frontendUrl) => handleOpen(frontendUrl, app)}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {openMenuApp && menuPos && (
+          <InstalledAppMenu
+            style={{ top: menuPos.top, right: menuPos.right }}
+            onCopyId={() => {
+              setOpenMenuAppId(null);
+              void navigator.clipboard.writeText(openMenuApp.id);
+              toast.success('ID copied');
+            }}
+            onUninstall={() => {
+              setOpenMenuAppId(null);
+              requestUninstall(
+                openMenuApp.id,
+                appDisplayName(
+                  openMenuApp,
+                  decodeMetadata(openMenuApp.metadata),
                 ),
-              },
-              {
-                key: 'version',
-                label: 'Version',
-                sortable: true,
-                width: '12%',
-                sortValue: (app) =>
-                  meta(app)?.version ?? app.version ?? 'Unknown',
-                render: (app) => meta(app)?.version ?? app.version ?? 'Unknown',
-              },
-              {
-                key: 'size',
-                label: 'Size',
-                sortable: true,
-                width: '10%',
-                sortValue: (app) => app.size ?? 0,
-                render: (app) => formatSize(app.size),
-              },
-              {
-                key: 'description',
-                label: 'Description',
-                width: '33%',
-                render: (app) => {
-                  const d = meta(app)?.description;
-                  return d ? (
-                    <div className="table-cell-description" title={d}>
-                      {d.length > 80 ? `${d.substring(0, 80)}…` : d}
-                    </div>
-                  ) : (
-                    <span className="table-cell-empty">—</span>
-                  );
-                },
-              },
-              {
-                key: 'actions',
-                label: '',
-                width: '20%',
-                render: (app) => {
-                  const m = meta(app);
-                  const name = appDisplayName(app, m);
-                  const frontendUrl = appFrontendUrl(m);
-                  return (
-                    <div className="table-cell-actions">
-                      {frontendUrl && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpen(frontendUrl, app);
-                          }}
-                          className="btn-open"
-                          data-testid="open-app"
-                          title={`Open ${name} in a new tab`}
-                        >
-                          Open
-                          <ExternalLink size={12} />
-                        </button>
-                      )}
-                      <div
-                        className="app-actions-more"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          className="btn-more"
-                          title="More options"
-                          aria-label="More options"
-                          onClick={(e) => {
-                            const rect =
-                              e.currentTarget.getBoundingClientRect();
-                            setMenuPos({
-                              top: rect.bottom + 4,
-                              right: window.innerWidth - rect.right,
-                            });
-                            setOpenMenuAppId(
-                              openMenuAppId === app.id ? null : app.id,
-                            );
-                          }}
-                        >
-                          <MoreHorizontal size={15} />
-                        </button>
-                        {openMenuAppId === app.id && menuPos && (
-                          <div
-                            className="app-actions-dropdown"
-                            style={{
-                              position: 'fixed',
-                              top: menuPos.top,
-                              right: menuPos.right,
-                            }}
-                          >
-                            <button
-                              className="dropdown-item"
-                              onClick={() => {
-                                setOpenMenuAppId(null);
-                                void navigator.clipboard.writeText(app.id);
-                                toast.success('ID copied');
-                              }}
-                            >
-                              <Copy size={13} />
-                              Copy ID
-                            </button>
-                            <div className="dropdown-divider" />
-                            <button
-                              className="dropdown-item dropdown-item-danger"
-                              onClick={() => {
-                                setOpenMenuAppId(null);
-                                requestUninstall(app.id, name);
-                              }}
-                            >
-                              <Trash2 size={13} />
-                              Uninstall
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                },
-              },
-            ]}
-            emptyMessage={
-              <div className="empty-state">
-                <h3>No applications installed</h3>
-                <p>Visit the Marketplace to install apps on this node.</p>
-              </div>
-            }
+              );
+            }}
           />
         )}
       </main>
