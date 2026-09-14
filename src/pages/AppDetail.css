@@ -11,8 +11,15 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
+  font-family: inherit;
   color: var(--text-secondary);
   text-decoration: none;
+  /* The desktop renders this as a <button> (no router there), the dashboard as
+     an <a>. Without these resets the button arrives wearing the browser's
+     default chrome — a filled light pill on a dark page. */
+  background: none;
+  border: none;
+  cursor: pointer;
   padding: 6px 10px 6px 6px;
   border-radius: var(--radius-sm);
   transition:

@@ -68,13 +68,6 @@ export default function AppCard({
             {app.verified && <VerifiedMark label="Verified package" />}
           </p>
         </div>
-
-        {app.installed && (
-          <span className="app-card-installed">
-            <CheckCircle2 size={14} aria-hidden="true" />
-            Installed
-          </span>
-        )}
       </div>
 
       <p className="app-card-description">
@@ -110,13 +103,26 @@ export default function AppCard({
         </span>
       </div>
 
+      {/* ⚠️ THE "INSTALLED" PILL SITS HERE, NOT NEXT TO THE TITLE. In the
+          header row it competed with the name and the package id for a card
+          that is ~300px wide at desktop width, and the result was
+          "Blockchain D…" above "only-peers-c…" — both of the things a reader
+          needs truncated, to make room for a badge. The footer row is short. */}
       <div className="app-card-footer">
         {category ? (
           <span className="app-card-category">{category}</span>
         ) : (
           <span />
         )}
-        <span className="app-card-version">v{app.latest_version}</span>
+        <span className="app-card-footer-right">
+          {app.installed && (
+            <span className="app-card-installed">
+              <CheckCircle2 size={13} aria-hidden="true" />
+              Installed
+            </span>
+          )}
+          <span className="app-card-version">v{app.latest_version}</span>
+        </span>
       </div>
     </button>
   );
