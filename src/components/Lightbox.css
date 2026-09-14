@@ -1,0 +1,143 @@
+/* Full-screen preview. Rendered in a portal — see Lightbox.tsx for why. */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 56px 24px 72px;
+  box-sizing: border-box;
+  /* Deliberately near-opaque rather than themed: the point is to get the app
+     out of the way, and a translucent scrim over a light page leaves the
+     screenshot competing with the UI behind it. */
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(4px);
+  animation: lightbox-in 0.12s ease-out;
+}
+
+.lightbox:focus {
+  outline: none;
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lightbox-image {
+  grid-column: 2;
+  max-width: 100%;
+  /* Bounded by the viewport minus the chrome above and below, so a tall
+     screenshot cannot push the caption off-screen. */
+  max-height: calc(100vh - 128px);
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-close,
+.lightbox-nav {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  /* Fixed light-on-dark, NOT theme tokens: this sits on a near-black scrim in
+     both themes, so a token that inverts would make the controls vanish on a
+     light theme — the same trap the icon fallback's letter falls into. */
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.lightbox-close:hover,
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-close:focus-visible,
+.lightbox-nav:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+}
+
+.lightbox-nav {
+  width: 44px;
+  height: 44px;
+}
+
+.lightbox-prev {
+  grid-column: 1;
+}
+
+.lightbox-next {
+  grid-column: 3;
+}
+
+.lightbox-caption {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12.5px;
+}
+
+.lightbox-alt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+.lightbox-count {
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* The arrows would eat most of a phone's width; the caption, Escape and the
+   close button still get you around. */
+@media (max-width: 640px) {
+  .lightbox {
+    grid-template-columns: 1fr;
+    padding: 56px 12px 72px;
+  }
+
+  .lightbox-image {
+    grid-column: 1;
+  }
+
+  .lightbox-nav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox {
+    animation: none;
+  }
+}

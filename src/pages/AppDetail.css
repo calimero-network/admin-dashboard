@@ -266,6 +266,8 @@
 .app-detail-shot {
   flex: 0 0 auto;
   display: block;
+  padding: 0;
+  cursor: pointer;
   width: 260px;
   height: 160px;
   border: 1px solid var(--border-color);

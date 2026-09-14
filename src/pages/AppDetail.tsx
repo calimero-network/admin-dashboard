@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import AppIcon from '../components/AppIcon';
 import { VerifiedMark } from '../components/AppCard';
+import { Lightbox } from '../components/Lightbox';
 import Skeleton from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
 import { getSettings } from '../utils/settings';
@@ -181,6 +182,8 @@ export default function AppDetail() {
   // empty case rather than an empty region.
   const [assets, setAssets] = useState<PackageAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
+  /** Index of the preview opened full screen, or null when the strip is idle. */
+  const [lightboxAt, setLightboxAt] = useState<number | null>(null);
   useEffect(() => {
     if (!app) return;
     let cancelled = false;
@@ -379,12 +382,16 @@ export default function AppDetail() {
         ) : assets.length > 0 ? (
           <div className="app-detail-preview-strip">
             {assets.map((a, i) => (
-              <a
-                key={a.id ?? a.url ?? i}
+              // A button, not a link: this opens the image in place rather
+              // than navigating away, and the strip used to send people to a
+              // new tab showing a bare image on the registry's origin.
+              <button
+                key={a.id || a.url || i}
+                type="button"
                 className="app-detail-shot"
-                href={a.url}
-                target="_blank"
-                rel="noreferrer noopener"
+                data-testid="app-detail-shot"
+                aria-label={`Open ${a.alt ?? `screenshot ${i + 1}`} full screen`}
+                onClick={() => setLightboxAt(i)}
               >
                 <img
                   src={a.thumbUrl ?? a.url}
@@ -392,7 +399,7 @@ export default function AppDetail() {
                   loading="lazy"
                   decoding="async"
                 />
-              </a>
+              </button>
             ))}
           </div>
         ) : (
@@ -452,6 +459,22 @@ export default function AppDetail() {
             </span>
           ))}
         </section>
+      )}
+
+      {lightboxAt !== null && (
+        <Lightbox
+          items={assets.map((a, i) => ({
+            id: a.id || String(i),
+            // ⚠️ THE FULL IMAGE, not the thumbnail the strip renders. Blowing
+            // a downscaled copy up to the viewport is the one thing a
+            // full-screen view must not do.
+            url: a.url ?? '',
+            alt: a.alt ?? `${title} screenshot ${i + 1}`,
+          }))}
+          index={lightboxAt}
+          onIndexChange={setLightboxAt}
+          onClose={() => setLightboxAt(null)}
+        />
       )}
     </div>
   );
