@@ -1,0 +1,105 @@
+/* Installed-app card: the storefront card plus its own controls. Shares
+   AppCard.css for everything above the action row. */
+
+.installed-app-card {
+  cursor: default;
+}
+
+/* The marketplace card lifts because the whole thing is one click target. This
+   one is not clickable as a whole — its buttons are — so lifting it would
+   promise an interaction that does not exist. */
+.installed-app-card:hover {
+  transform: none;
+  border-color: var(--border-hover);
+  box-shadow: none;
+}
+
+.installed-app-version {
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  color: var(--accent-primary);
+}
+
+.installed-app-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.installed-app-open {
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.installed-app-no-frontend {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.installed-app-more {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.installed-app-more-btn {
+  padding: 6px 8px;
+}
+
+/* The card sets `overflow: hidden` so the icon corners stay rounded, which
+   would clip a dropdown drawn inside it — hence `position: fixed`, placed from
+   the button's measured rect by the page. */
+.app-actions-dropdown {
+  position: fixed;
+  z-index: 60;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.dropdown-item-danger {
+  color: var(--error);
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border-color);
+}
+
+.installed-apps-grid {
+  display: grid;
+  /* Same reasoning as the marketplace grid: a minimum column width rather than
+     a fixed column count, so a card is the same size on every screen. */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
+}

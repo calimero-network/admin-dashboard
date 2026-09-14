@@ -1,5 +1,9 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { fetchAppVersions, compareSemverDesc } from '../utils/registry';
+import {
+  fetchAppVersions,
+  fetchPackageAssets,
+  compareSemverDesc,
+} from '../utils/registry';
 
 const REGISTRY = 'https://registry.example/';
 
@@ -75,5 +79,111 @@ describe('compareSemverDesc', () => {
 
   it('ignores build metadata', () => {
     expect(compareSemverDesc('1.0.0+abc', '1.0.0+def')).toBe(0);
+  });
+});
+
+describe('fetchPackageAssets', () => {
+  const realFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  /** The shape the registry actually answers with, verbatim. */
+  const WIRE = {
+    assets: [
+      {
+        id: 'b2',
+        kind: 'image',
+        contentType: 'image/png',
+        bytes: 118344,
+        alt: 'Login2',
+        order: 1,
+        url: '/api/v2/packages/com.calimero.mdtest-good/assets/b2/raw',
+        thumbUrl: '/api/v2/packages/com.calimero.mdtest-good/assets/b2/raw',
+        hasThumb: false,
+      },
+      {
+        id: 'a1',
+        kind: 'image',
+        contentType: 'image/png',
+        bytes: 118344,
+        alt: 'Login Screen',
+        order: 0,
+        url: '/api/v2/packages/com.calimero.mdtest-good/assets/a1/raw',
+        thumbUrl: '/api/v2/packages/com.calimero.mdtest-good/assets/a1/thumb',
+        hasThumb: true,
+      },
+    ],
+    state: 'approved',
+  };
+
+  const mock = (body: unknown, ok = true, status = 200) =>
+    vi.fn().mockResolvedValue({
+      ok,
+      status,
+      statusText: 'OK',
+      json: async () => body,
+    } as unknown as Response);
+
+  it('resolves the registry relative URLs to absolute ones', async () => {
+    // ⚠️ THE BUG THIS EXISTS FOR. The registry answers with a ROOT-RELATIVE
+    // path, and an <img src> resolves that against whatever origin is running
+    // the app rather than the registry. In the dashboard that is the vite dev
+    // server, which answered with "The server is configured with a public base
+    // URL of /admin-dashboard/ — did you mean to visit
+    // /admin-dashboard/api/v2/packages/…/raw instead?" and every preview
+    // rendered broken.
+    global.fetch = mock(WIRE);
+    const assets = await fetchPackageAssets(
+      REGISTRY,
+      'com.calimero.mdtest-good',
+    );
+
+    expect(assets).toHaveLength(2);
+    for (const a of assets) {
+      expect(a.url?.startsWith('https://registry.example/api/v2/')).toBe(true);
+      expect(a.thumbUrl?.startsWith('https://registry.example/api/v2/')).toBe(
+        true,
+      );
+    }
+  });
+
+  it('reads thumbUrl, and only when the registry says a thumb exists', async () => {
+    // The wire field is `thumbUrl`; spelling it `thumbnailUrl` yields undefined
+    // on every asset and silently serves the full image instead.
+    global.fetch = mock(WIRE);
+    const [first, second] = await fetchPackageAssets(REGISTRY, 'com.x');
+
+    // a1 has a real thumb, so the thumb URL differs from the full image.
+    expect(first?.thumbUrl).toContain('/a1/thumb');
+    expect(first?.url).toContain('/a1/raw');
+    // b2 has none: the thumb falls back to the full image rather than to a
+    // path the registry would 404.
+    expect(second?.thumbUrl).toBe(second?.url);
+  });
+
+  it('honours the registry running order', async () => {
+    global.fetch = mock(WIRE);
+    const assets = await fetchPackageAssets(REGISTRY, 'com.x');
+    expect(assets.map((a) => a.id)).toEqual(['a1', 'b2']);
+  });
+
+  it('drops anything that is not an image, but keeps records with no kind', async () => {
+    global.fetch = mock({
+      assets: [
+        { id: 'vid', kind: 'video', url: '/api/v2/a/raw' },
+        { id: 'old', url: '/api/v2/b/raw' },
+      ],
+    });
+    const assets = await fetchPackageAssets(REGISTRY, 'com.x');
+    expect(assets.map((a) => a.id)).toEqual(['old']);
+  });
+
+  it('treats a 404 or a throw as "nothing to show", not an error', async () => {
+    global.fetch = mock(null, false, 404);
+    expect(await fetchPackageAssets(REGISTRY, 'com.x')).toEqual([]);
+
+    global.fetch = vi.fn().mockRejectedValue(new Error('offline'));
+    expect(await fetchPackageAssets(REGISTRY, 'com.x')).toEqual([]);
   });
 });

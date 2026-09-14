@@ -5,6 +5,7 @@ import AppShell from './components/AppShell';
 
 import Dashboard from './pages/Dashboard';
 import Marketplace from './pages/Marketplace';
+import AppDetail from './pages/AppDetail';
 import ApplicationsPage from './pages/Applications';
 import BlobsPage from './pages/Blobs';
 import NamespacesPage from './pages/Namespaces';
@@ -50,6 +51,17 @@ export default function App() {
             element={
               <Shell title="Marketplace">
                 <Marketplace />
+              </Shell>
+            }
+          />
+          {/* ⚠️ The package id is a dotted string (`com.calimero.chat`), not a
+              slug — it is url-encoded on the way in and react-router hands it
+              back decoded, so no extra unescaping here. */}
+          <Route
+            path="/marketplace/:packageId"
+            element={
+              <Shell title="Marketplace">
+                <AppDetail />
               </Shell>
             }
           />

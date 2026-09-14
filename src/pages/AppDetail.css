@@ -1,0 +1,348 @@
+.app-detail-page {
+  padding: 24px 32px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-secondary);
+  text-decoration: none;
+  /* The desktop renders this as a <button> (no router there), the dashboard as
+     an <a>. Without these resets the button arrives wearing the browser's
+     default chrome — a filled light pill on a dark page. */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-detail-back:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.app-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.app-detail-identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-detail-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.app-detail-package {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.app-detail-mono {
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.app-detail-description {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.app-detail-installed-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--success);
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+}
+
+.app-detail-install {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-surface), var(--surface-glass);
+}
+
+.app-detail-version {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.app-detail-version label {
+  color: var(--text-tertiary);
+}
+
+.app-detail-version-select {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.app-detail-version-select:hover:not(:disabled) {
+  border-color: var(--accent-dim);
+}
+
+.app-detail-version-select:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.app-detail-version-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.app-detail-version-static,
+.app-detail-versions-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.app-detail-meta {
+  margin-top: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.app-detail-meta-row {
+  display: flex;
+  gap: 16px;
+  padding: 11px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-detail-meta-row:last-child {
+  border-bottom: none;
+}
+
+.app-detail-meta-label {
+  flex: 0 0 120px;
+  color: var(--text-tertiary);
+}
+
+.app-detail-meta-value {
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.app-detail-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.app-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.app-detail-tag {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.app-detail-error {
+  margin-top: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.app-detail-error h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.app-detail-error p {
+  margin: 0 0 20px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .app-detail-page {
+    padding: 16px 16px 32px;
+  }
+
+  .app-detail-header {
+    gap: 14px;
+  }
+
+  .app-detail-title {
+    font-size: 20px;
+  }
+
+  .app-detail-meta-row {
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .app-detail-meta-label {
+    flex: none;
+  }
+}
+
+/* ── Sections: preview, links ───────────────────────────────────────────── */
+
+.app-detail-section {
+  margin-top: 28px;
+}
+
+.app-detail-section-heading {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* A horizontal strip, because screenshots are wide and a grid of them at card
+   width would shrink each one past the point of telling you anything. */
+.app-detail-preview-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.app-detail-shot {
+  flex: 0 0 auto;
+  display: block;
+  padding: 0;
+  cursor: pointer;
+  width: 260px;
+  height: 160px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.app-detail-shot:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+}
+
+.app-detail-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.app-detail-preview-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+}
+
+.app-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-detail-link-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--gradient-surface), var(--surface-glass);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.app-detail-link-card:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent-primary);
+}
+
+.app-detail-link-label {
+  white-space: nowrap;
+}
+
+.app-detail-signer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success);
+}
+
+.app-detail-signer .app-detail-mono {
+  color: var(--text-primary);
+  word-break: break-all;
+}

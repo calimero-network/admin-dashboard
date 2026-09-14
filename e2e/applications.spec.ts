@@ -1,9 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import {
   mockNode,
   APP_WITH_FRONTEND,
   APP_WITHOUT_FRONTEND,
 } from './fixtures/node';
+
+/** One installed-app card, picked by the name it renders. */
+function card(page: Page, name: string) {
+  return page.getByTestId('installed-app-card').filter({ hasText: name });
+}
 
 test.describe('Applications', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,20 +18,35 @@ test.describe('Applications', () => {
 
   test('shows the name and version from bundle metadata', async ({ page }) => {
     // Regression guard for the metadata-schema bug: the pre-port dashboard read
-    // `applicationName`, which core never emits, so this cell was blank.
-    await expect(page.getByRole('cell', { name: /Mero Blocks/ })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '0.1.1' })).toBeVisible();
-    await expect(
-      page.getByRole('cell', { name: /Headless Service/ }),
-    ).toBeVisible();
-    await expect(page.getByRole('cell', { name: '2.5.0' })).toBeVisible();
+    // `applicationName`, which core never emits, so this was blank.
+    const blocks = card(page, 'Mero Blocks');
+    await expect(blocks).toContainText('v0.1.1');
+    await expect(card(page, 'Headless Service')).toContainText('v2.5.0');
   });
 
-  test('renders size and description columns', async ({ page }) => {
-    await expect(page.getByText('512.00 KB')).toBeVisible();
+  test('renders size and description on the card', async ({ page }) => {
+    const blocks = card(page, 'Mero Blocks');
+    // 512 KB exactly — formatBytes drops the trailing `.00` the table printed.
+    await expect(blocks).toContainText('512 KB');
+    await expect(blocks).toContainText('Minecraft-style P2P voxel sandbox.');
+    await expect(blocks).toContainText('com.calimero.meroblocks');
+  });
+
+  test('cards render the bundle icon instead of a row of text', async ({
+    page,
+  }) => {
+    // The whole point of the grid: these bundles have carried a launcher icon
+    // in their metadata all along — the desktop already hands the same field to
+    // create_desktop_shortcut — and the table never showed it.
+    const icon = card(page, 'Mero Blocks').locator('img.app-icon-img');
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveJSProperty('naturalWidth', 1);
+  });
+
+  test('an app with no icon falls back to a letter tile', async ({ page }) => {
     await expect(
-      page.getByText('Minecraft-style P2P voxel sandbox.').first(),
-    ).toBeVisible();
+      card(page, 'Headless Service').getByTestId('app-icon-fallback'),
+    ).toHaveText('H');
   });
 
   test('offers Open only for apps that declare a frontend', async ({
@@ -35,10 +55,12 @@ test.describe('Applications', () => {
     const openButtons = page.getByTestId('open-app');
     await expect(openButtons).toHaveCount(1);
 
-    const row = page
-      .locator('tr', { has: page.getByText('Headless Service') })
-      .first();
-    await expect(row.getByTestId('open-app')).toHaveCount(0);
+    await expect(
+      card(page, 'Headless Service').getByTestId('open-app'),
+    ).toHaveCount(0);
+    await expect(card(page, 'Headless Service')).toContainText(
+      'No web frontend',
+    );
   });
 
   test('Open launches the app frontend in a new tab with an SSO hash', async ({
@@ -74,26 +96,35 @@ test.describe('Applications', () => {
   });
 
   test('sorts by name', async ({ page }) => {
-    // The loading skeleton renders its own non-interactive <th>Name</th> for the
-    // first second. Clicking before the real table mounts loses the click.
-    await expect(page.getByRole('cell', { name: /Mero Blocks/ })).toBeVisible();
+    // The table's sortable columns went with the table; the sorts it offered
+    // are a control now. Guarding that the capability survived the redesign.
+    await expect(card(page, 'Mero Blocks')).toBeVisible();
+    const first = () => page.getByTestId('installed-app-card').first();
 
-    const nameHeader = page.getByRole('columnheader', { name: /Name/ });
-    const firstCell = () =>
-      page.locator('tbody tr').first().locator('td').first();
+    await expect(first()).toContainText('Headless Service');
+    await page.getByTestId('installed-sort').selectOption('name-desc');
+    await expect(first()).toContainText('Mero Blocks');
+    await page.getByTestId('installed-sort').selectOption('name-asc');
+    await expect(first()).toContainText('Headless Service');
+  });
 
-    await nameHeader.click();
-    await expect(firstCell()).toContainText('Headless Service');
-
-    await nameHeader.click();
-    await expect(firstCell()).toContainText('Mero Blocks');
+  test('sorts by size', async ({ page }) => {
+    await expect(card(page, 'Mero Blocks')).toBeVisible();
+    await page.getByTestId('installed-sort').selectOption('size');
+    // Headless Service is 1 MB, Mero Blocks 512 KB.
+    await expect(page.getByTestId('installed-app-card').first()).toContainText(
+      'Headless Service',
+    );
+    await page.getByTestId('installed-sort').selectOption('name-asc');
+    await expect(page.getByTestId('installed-app-card').first()).toContainText(
+      'Headless Service',
+    );
   });
 
   test('uninstall routes through a confirmation page', async ({ page }) => {
-    const row = page
-      .locator('tr', { has: page.getByText('Mero Blocks') })
-      .first();
-    await row.getByRole('button', { name: 'More options' }).click();
+    await card(page, 'Mero Blocks')
+      .getByRole('button', { name: /More options/ })
+      .click();
     await page.getByRole('button', { name: /Uninstall/ }).click();
 
     await expect(
@@ -106,10 +137,7 @@ test.describe('Applications', () => {
   });
 
   test('right-click opens a context menu', async ({ page }) => {
-    await page
-      .locator('tr', { has: page.getByText('Mero Blocks') })
-      .first()
-      .click({ button: 'right' });
+    await card(page, 'Mero Blocks').click({ button: 'right' });
     await expect(
       page.getByRole('button', { name: 'Open in new tab' }),
     ).toBeVisible();

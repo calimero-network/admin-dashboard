@@ -1,0 +1,185 @@
+/* The storefront card. Self-contained so the Marketplace listing and the
+   installed-apps grid render the same object without one page's stylesheet
+   reaching into the other's. */
+
+.app-card {
+  background: var(--gradient-surface), var(--surface-glass);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.app-card:hover {
+  border-color: var(--accent-dim);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-3px);
+}
+
+.app-card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* The grid renders twenty of these at once and a transform on each one is what
+   makes a filter keystroke feel like the whole page moved. */
+@media (prefers-reduced-motion: reduce) {
+  .app-card {
+    transition: none;
+  }
+  .app-card:hover {
+    transform: none;
+  }
+}
+
+.app-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.app-card-headings {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-card-package {
+  margin: 2px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.app-card-package-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-card-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.app-card-installed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--success);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+}
+
+.app-card-description {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  /* Two lines, always: a one-line description and a four-line one in the same
+     row made the grid ragged. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+.app-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 7px;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  min-width: 0;
+}
+
+.app-card-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.app-card-author {
+  max-width: 100%;
+}
+
+.app-card-author-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.app-card-dot {
+  color: var(--border-hover);
+}
+
+.app-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.app-card-category {
+  display: inline-block;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.app-card-version {
+  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.app-verified-mark {
+  flex-shrink: 0;
+  color: var(--success);
+}

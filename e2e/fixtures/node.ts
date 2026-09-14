@@ -10,6 +10,16 @@ import type { Page, Route } from '@playwright/test';
  * silently matches nothing and the app just sees a dead node.
  */
 
+/**
+ * A real 1x1 PNG.
+ *
+ * ⚠️ IT HAS TO DECODE. AppIcon falls back to the letter tile on the <img>'s
+ * `onError`, so a bogus `data:` URI would render the fallback and an "icon is
+ * shown" assertion would pass against the wrong element.
+ */
+export const PNG_1PX =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
 /** Metadata exactly as `BundleManifest::to_metadata_json` emits it. */
 export function bundleMetadata(overrides: Record<string, unknown> = {}) {
   return {
@@ -37,7 +47,7 @@ export interface MockApp {
 export const APP_WITH_FRONTEND: MockApp = {
   id: 'AppWithFrontend1111111111111111111111111111',
   size: 512 * 1024,
-  metadata: metadataBytes(bundleMetadata()),
+  metadata: metadataBytes(bundleMetadata({ icon: PNG_1PX })),
 };
 
 /**
@@ -73,7 +83,18 @@ export const APP_WITHOUT_FRONTEND: MockApp = {
   id: 'AppNoFrontend22222222222222222222222222222',
   size: 1024 * 1024,
   metadata: metadataBytes(
-    bundleMetadata({ name: 'Headless Service', version: '2.5.0', links: {} }),
+    // ⚠️ OVERRIDE `package` AND `description` TOO, not just the name. This is
+    // built from the Mero Blocks base, so without these the Headless Service
+    // card rendered Mero Blocks' package id and Mero Blocks' description —
+    // one fixture app claiming to be another. It is deliberately icon-less,
+    // which is what gives the suite a case for the lettered fallback.
+    bundleMetadata({
+      name: 'Headless Service',
+      package: 'com.calimero.headless',
+      description: 'A bundle with no web frontend.',
+      version: '2.5.0',
+      links: {},
+    }),
   ),
 };
 
@@ -87,6 +108,11 @@ export interface MockNodeOptions {
     package: string;
     appVersion: string;
     metadata?: Record<string, unknown>;
+    verified?: boolean;
+    publisherVerified?: boolean;
+    downloads?: number;
+    installSize?: number | null;
+    publishedAt?: string | null;
   }[];
   /** `GET /admin-api/blobs` — snake_case, exactly as the node returns it. */
   blobs?: { blob_id: string; size: number }[];
@@ -349,12 +375,80 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     return json(route, { data: {} });
   });
 
+  // GET /api/v2/packages/<pkg>/assets — preview images.
+  //
+  // ⚠️ THE URLS ARE ROOT-RELATIVE, exactly as the real registry serves them.
+  // Used verbatim in an <img src> they resolve against the APP's origin rather
+  // than the registry's, which is how every preview came to render broken —
+  // the dev server answered "did you mean /admin-dashboard/api/v2/…" instead
+  // of an image.
+  await page.route(
+    (url) => /\/api\/v2\/packages\/[^/]+\/assets$/.test(url.pathname),
+    (route) => {
+      const pkg = new URL(route.request().url()).pathname.split('/')[4];
+      return json(route, {
+        state: 'approved',
+        assets:
+          pkg === 'com.calimero.merochat'
+            ? [
+                {
+                  id: 'shot2',
+                  kind: 'image',
+                  contentType: 'image/png',
+                  alt: 'Second',
+                  order: 1,
+                  url: `/api/v2/packages/${pkg}/assets/shot2/raw`,
+                  thumbUrl: `/api/v2/packages/${pkg}/assets/shot2/raw`,
+                  hasThumb: false,
+                },
+                {
+                  id: 'shot1',
+                  kind: 'image',
+                  contentType: 'image/png',
+                  alt: 'First',
+                  order: 0,
+                  url: `/api/v2/packages/${pkg}/assets/shot1/raw`,
+                  thumbUrl: `/api/v2/packages/${pkg}/assets/shot1/raw`,
+                  hasThumb: false,
+                },
+              ]
+            : [],
+      });
+    },
+  );
+
+  // The bytes behind those URLs.
+  //
+  // ⚠️ MATCHED ON THE REGISTRY'S HOST, NOT THE PATH ALONE, AND THAT IS WHAT
+  // MAKES THE TEST MEAN ANYTHING. A path-only route answers wherever the
+  // request is aimed, so a still-relative URL would be served a valid PNG and
+  // the spec would pass while the real page rendered nothing.
+  await page.route(
+    (url) => /\/assets\/[^/]+\/raw$/.test(url.pathname),
+    (route) => {
+      const host = new URL(route.request().url()).host;
+      if (host !== 'apps.calimero.network') return route.abort();
+      return route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: Buffer.from(PNG_1PX.split(',')[1] ?? '', 'base64'),
+      });
+    },
+  );
+
   // Registry (Marketplace). Matched on the registry host, not the node.
   const bundles = opts.bundles ?? [
     {
       package: 'com.calimero.merochat',
       appVersion: '1.2.0',
-      metadata: { name: 'Mero Chat', description: 'Chat over Calimero.' },
+      metadata: {
+        name: 'Mero Chat',
+        description: 'Chat over Calimero.',
+        icon: PNG_1PX,
+      },
+      verified: true,
+      publisherVerified: true,
+      downloads: 42,
     },
   ];
   // A bare array, matching the real contract: GET /api/v2/bundles returns
@@ -366,6 +460,34 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     const pkg = new URL(route.request().url()).searchParams.get('package');
     const list = pkg ? bundles.filter((b) => b.package === pkg) : bundles;
     return json(route, list);
+  });
+
+  // ⚠️ REGISTERED AFTER THE LISTING, AND IT HAS TO BE. Playwright resolves
+  // routes in REVERSE registration order, so the last match wins — and
+  // `**/api/v2/bundles**` also matches this path. Registered first, the
+  // listing answers this request with its ARRAY and every field below reads
+  // undefined.
+  //
+  // GET /api/v2/bundles/{package}/{version} — one bundle, which is what the
+  // Install button resolves an artifact from.
+  //
+  // ⚠️ THIS RETURNS A RAW BUNDLE, NOT AN AppManifest. `fetchAppManifest` does
+  // the transform itself and reads `bundle.package` / `bundle.appVersion` to
+  // build the .mpk URL, so answering with the already-transformed shape yields
+  // `/artifacts/undefined/undefined/undefined-undefined.mpk` — and the node
+  // would still return 200, so only an assertion on the posted URL catches it.
+  await page.route('**/api/v2/bundles/*/*', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const [, pkg, version] =
+      /\/api\/v2\/bundles\/([^/]+)\/([^/]+)$/.exec(path) ?? [];
+    return json(route, {
+      package: pkg,
+      appVersion: version,
+      version: '2.0',
+      minRuntimeVersion: '0.1.0',
+      metadata: { name: pkg, description: 'from manifest' },
+      signature: { pubkey: 'unknown' },
+    });
   });
 
   // App frontends opened in a new tab. Registered on the context because a popup

@@ -71,17 +71,23 @@ test.describe.serial('Live: create context', () => {
     await uninstallAllApps();
   });
 
-  test('the node really does refuse `{}` with an opaque 500', async () => {
-    // Pinning the behaviour the form exists to route around. If core ever
-    // starts reporting the reason, this failing is good news — read the body
-    // and simplify the form's error copy.
+  test('the node refuses `{}` as a client error, not an opaque 500', async () => {
+    // ⚠️ THIS USED TO ASSERT 500 / "Internal server error", and the note here
+    // said that if core ever started reporting the reason, the failure would be
+    // GOOD NEWS. That happened: somewhere in rc.24-rc.28 a malformed init
+    // payload became a 400 instead of a 500, so the node is now telling the
+    // caller it is their input at fault.
+    //
+    // Still asserted against the node rather than deleted: the generated form
+    // exists to keep users out of this path at all, and a regression back to an
+    // opaque 500 would change what its error copy has to say.
     const res = await adminApi<{ error?: string }>('POST', '/contexts', {
       applicationId: appId,
       groupId: namespaceId,
       initializationParams: Array.from(new TextEncoder().encode('{}')),
     });
-    expect(res.status).toBe(500);
-    expect(res.body.error).toBe('Internal server error');
+    expect(res.status).toBe(400);
+    expect(res.status).toBeLessThan(500);
   });
 
   test('the form is generated from the application ABI', async ({ page }) => {

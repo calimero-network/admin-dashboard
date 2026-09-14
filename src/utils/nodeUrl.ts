@@ -103,6 +103,39 @@ function readExplicitOverride(): string | null {
 }
 
 /**
+ * Forget a `?nodeUrl=` override, so the dashboard falls back to whatever node
+ * would otherwise serve it.
+ *
+ * ⚠️ IT CLEARS THE ADDRESS BAR TOO, AND HAS TO. `readExplicitOverride` reads
+ * the query FIRST and re-persists it, so wiping sessionStorage on a page whose
+ * URL still carries `?nodeUrl=` re-pins the dashboard on the very next call —
+ * the reset appears to do nothing at all. Both halves or neither.
+ *
+ * This is what made "Clear session" unable to unpin a node: it cleared tokens
+ * and ids but never this, so a dashboard that had once been pointed at another
+ * node stayed pointed at it for the rest of the browser session with no way
+ * back short of knowing to clear storage by hand.
+ */
+export function clearNodeUrlOverride(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(DEV_OVERRIDE_KEY);
+  } catch {
+    // sessionStorage can throw in hardened/private modes; the URL strip below
+    // is still worth doing.
+  }
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('nodeUrl')) {
+      url.searchParams.delete('nodeUrl');
+      window.history.replaceState({}, '', url.toString());
+    }
+  } catch {
+    // A URL we cannot parse is one we cannot rewrite; nothing else to do.
+  }
+}
+
+/**
  * `VITE_NODE_URL`, honoured only in a dev build. In production the serving
  * origin is authoritative and this is ignored entirely, so a stale `.env` can
  * never redirect a deployed dashboard's admin-API calls or the SSO hash it hands

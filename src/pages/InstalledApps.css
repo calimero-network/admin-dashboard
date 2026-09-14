@@ -216,3 +216,48 @@
   background: var(--border-color);
   margin: 4px 0;
 }
+
+/* ── Card grid controls ──
+   The list is a grid of cards now, not a table. The table's sortable column
+   headers went with it, so the sorts it offered live in this control instead. */
+
+.installed-apps-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.installed-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.installed-sort-select {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  font-family: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.installed-sort-select:hover {
+  border-color: var(--accent-dim);
+}
+
+.installed-sort-select:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+@media (max-width: 640px) {
+  .installed-sort-label {
+    display: none;
+  }
+}

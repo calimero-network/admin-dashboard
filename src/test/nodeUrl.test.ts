@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
+  clearNodeUrlOverride,
   getNodeUrl,
   getAdminApiUrl,
   isDevOverrideActive,
@@ -17,6 +18,18 @@ function setLocation(href: string) {
       pathname: url.pathname,
       search: url.search,
       protocol: url.protocol,
+    },
+  });
+}
+
+/** Swap in a history whose replaceState updates the stubbed location. */
+function stubHistory() {
+  Object.defineProperty(window, 'history', {
+    writable: true,
+    configurable: true,
+    value: {
+      replaceState: (_s: unknown, _t: string, href: string) =>
+        setLocation(new URL(href, window.location.href).href),
     },
   });
 }
@@ -174,5 +187,52 @@ describe('isMixedContent', () => {
   it('does not flag an unparseable URL', () => {
     setLocation('https://node.example/admin-dashboard/');
     expect(isMixedContent('not a url')).toBe(false);
+  });
+});
+
+describe('clearNodeUrlOverride', () => {
+  // The bug this exists for: "Clear session" cleared tokens and ids but not the
+  // node override, so a dashboard once pointed at another node stayed pointed
+  // at it for the rest of the browser session with no way back.
+  //
+  // Asserted in a PRODUCTION build so the serving origin is the thing the
+  // override has to give way to. In a dev build `VITE_NODE_URL` from .env is a
+  // legitimate fallback and would muddy what is being tested.
+  beforeEach(() => {
+    vi.stubEnv('DEV', false);
+    stubHistory();
+  });
+
+  it('forgets a stored override so the serving origin wins again', () => {
+    setLocation(
+      'http://localhost:2528/admin-dashboard/?nodeUrl=http://localhost:2529',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:2529');
+
+    clearNodeUrlOverride();
+
+    expect(isDevOverrideActive()).toBe(false);
+    expect(getNodeUrl()).toBe('http://localhost:2528');
+  });
+
+  it('strips ?nodeUrl= from the address bar, not just storage', () => {
+    // ⚠️ THE HALF-FIX FAILS HERE. readExplicitOverride reads the query FIRST
+    // and re-persists it, so clearing sessionStorage alone re-pins on the very
+    // next call and the reset looks like it did nothing at all.
+    setLocation(
+      'http://localhost:2528/admin-dashboard/?nodeUrl=http://localhost:2529',
+    );
+    getNodeUrl();
+
+    clearNodeUrlOverride();
+
+    expect(window.location.search).not.toContain('nodeUrl');
+    expect(getNodeUrl()).toBe('http://localhost:2528');
+  });
+
+  it('is a no-op when nothing was overridden', () => {
+    setLocation('http://localhost:2528/admin-dashboard/');
+    expect(() => clearNodeUrlOverride()).not.toThrow();
+    expect(getNodeUrl()).toBe('http://localhost:2528');
   });
 });

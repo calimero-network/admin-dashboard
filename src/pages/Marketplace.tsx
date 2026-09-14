@@ -5,123 +5,35 @@ import React, {
   useRef,
   useCallback,
 } from 'react';
-import { apiClient } from '@calimero-network/calimero-client';
-import bs58 from 'bs58';
-import {
-  Search,
-  RefreshCw,
-  Package,
-  Download,
-  CheckCircle2,
-  X,
-  ExternalLink,
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, RefreshCw, Package, X, ExternalLink } from 'lucide-react';
+import AppCard, { type AppCardApp } from '../components/AppCard';
+import AppIcon from '../components/AppIcon';
 import Skeleton from '../components/Skeleton';
-import { useToast } from '../contexts/ToastContext';
 import { getSettings } from '../utils/settings';
-import {
-  fetchAppsFromAllRegistries,
-  fetchAppVersions,
-  fetchAppManifest,
-  recordDownload,
-  type AppSummary,
-  type VersionInfo,
-  type AppManifest,
-} from '../utils/registry';
+import { fetchAppsFromAllRegistries, type AppSummary } from '../utils/registry';
 import {
   getMarketplaceCache,
   setMarketplaceCache,
   touchMarketplaceCache,
   invalidateMarketplaceCache,
 } from '../utils/marketplaceCache';
-import { decodeMetadata, parseApiError } from '../utils/appUtils';
+import {
+  fetchInstalledApplications,
+  installedKeySet,
+} from '../utils/installedApps';
+import { parseApiError } from '../utils/appUtils';
 import { openExternal } from '../utils/openApp';
 import './Marketplace.css';
 
-interface MarketplaceApp extends AppSummary {
+interface MarketplaceApp extends AppCardApp {
   registry: string;
-  installed?: boolean;
 }
 
 type InstalledFilter = 'all' | 'installed' | 'not-installed';
 
-function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max)}…` : text;
-}
-
-/**
- * Resolve the artifact to install from a registry manifest.
- *
- * Handles v1 (`artifact`), v2 (`artifacts[]`, preferring `mpk` over `wasm`), and
- * the by-convention fallback for v2 bundle records that carry no artifacts block
- * at all — the last of which the pre-port dashboard relied on and the desktop
- * does not implement.
- */
-export function resolveArtifact(
-  manifest: AppManifest,
-  registryUrl: string,
-  packageId: string,
-  version: string,
-): { url: string; hashHex: string | null } {
-  const strip = (s: string | undefined | null) =>
-    s ? s.replace('sha256:', '') : null;
-
-  if (manifest.artifact) {
-    if (!manifest.artifact.uri) {
-      throw new Error('Invalid manifest: artifact URI is missing');
-    }
-    return {
-      url: manifest.artifact.uri,
-      hashHex: strip(manifest.artifact.digest),
-    };
-  }
-
-  if (manifest.artifacts && manifest.artifacts.length > 0) {
-    const mpk = manifest.artifacts.find((a) => a.type === 'mpk');
-    const wasm = manifest.artifacts.find((a) => a.type === 'wasm');
-    const chosen = mpk ?? wasm;
-    if (!chosen) {
-      throw new Error('No MPK or WASM artifact found in application manifest');
-    }
-    const url =
-      chosen.mirrors?.[0] ?? `https://ipfs.io/ipfs/${chosen.cid ?? ''}`;
-    let hashHex = strip(chosen.sha256);
-    // Some registries put a plain hex digest in `cid`.
-    if (!hashHex && chosen.cid && /^[0-9a-f]{64}$/i.test(chosen.cid)) {
-      hashHex = chosen.cid;
-    }
-    return { url, hashHex };
-  }
-
-  // Registry v2 bundles with no artifacts block: build the MPK URL by
-  // convention — /artifacts/{package}/{version}/{package}-{version}.mpk
-  const base = registryUrl.replace(/\/+$/, '');
-  const p = encodeURIComponent(packageId);
-  const v = encodeURIComponent(version);
-  return {
-    url: `${base}/artifacts/${p}/${v}/${p}-${v}.mpk`,
-    hashHex: null,
-  };
-}
-
-/**
- * Convert a 64-char hex digest to the base58 the node expects.
- *
- * The character check is load-bearing, not defensive noise: `parseInt` answers
- * `NaN` for a non-hex pair and `Uint8Array.from` coerces that to 0 WITHOUT
- * throwing, so a malformed digest would encode cleanly into a hash that simply
- * isn't the artifact's. Better to send no hash — and skip the integrity check
- * — than to send a confidently wrong one.
- */
-export function hexToBase58(hashHex: string | null): string | undefined {
-  if (!hashHex || !/^[0-9a-f]{64}$/i.test(hashHex)) return undefined;
-  const pairs = hashHex.match(/.{2}/g);
-  if (!pairs) return undefined;
-  return bs58.encode(Uint8Array.from(pairs.map((b) => parseInt(b, 16))));
-}
-
 export default function Marketplace() {
-  const toast = useToast();
+  const navigate = useNavigate();
   const [apps, setApps] = useState<MarketplaceApp[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,11 +42,6 @@ export default function Marketplace() {
   const [installedNames, setInstalledNames] = useState<Set<string>>(new Set());
   const [filterInstalled, setFilterInstalled] =
     useState<InstalledFilter>('all');
-  const [installingAppId, setInstallingAppId] = useState<string | null>(null);
-  const [selectedApp, setSelectedApp] = useState<MarketplaceApp | null>(null);
-  const [availableVersions, setAvailableVersions] = useState<VersionInfo[]>([]);
-  const [selectedVersion, setSelectedVersion] = useState('');
-  const [versionsLoading, setVersionsLoading] = useState(false);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -159,28 +66,9 @@ export default function Marketplace() {
     [],
   );
 
-  /**
-   * The node-assigned application id is a hash and never matches a registry
-   * package id, so installed-state is correlated by the name/package recorded in
-   * the app's metadata.
-   */
   const loadInstalled = useCallback(async (): Promise<Set<string>> => {
     try {
-      const res = await apiClient.node().getInstalledApplications();
-      const raw = res.data as
-        | { apps?: unknown[]; data?: { apps?: unknown[] } }
-        | undefined;
-      const list = raw?.data?.apps ?? raw?.apps ?? [];
-      const names = new Set<string>();
-      for (const entry of list as {
-        metadata?: number[] | string;
-        source?: string;
-      }[]) {
-        const meta = decodeMetadata(entry.metadata);
-        if (meta?.name) names.add(meta.name);
-        if (meta?.package) names.add(meta.package);
-        if (entry.source) names.add(entry.source);
-      }
+      const names = installedKeySet(await fetchInstalledApplications());
       if (mounted.current) setInstalledNames(names);
       return names;
     } catch {
@@ -263,39 +151,6 @@ export default function Marketplace() {
     });
   }, [installedNames]);
 
-  // Load the open app's published versions; default to the newest non-yanked.
-  // Keyed on id+registry so flipping `installed` does not reset the user's pick.
-  const selectedId = selectedApp?.id;
-  const selectedRegistry = selectedApp?.registry;
-  const selectedLatest = selectedApp?.latest_version;
-  useEffect(() => {
-    if (!selectedId || !selectedRegistry) {
-      setAvailableVersions([]);
-      setSelectedVersion('');
-      setVersionsLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setAvailableVersions([]);
-    setSelectedVersion(selectedLatest ?? '');
-    setVersionsLoading(true);
-    fetchAppVersions(selectedRegistry, selectedId)
-      .then((versions) => {
-        if (cancelled) return;
-        setAvailableVersions(versions);
-        setSelectedVersion(versions[0]?.semver ?? selectedLatest ?? '');
-        setVersionsLoading(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setAvailableVersions([]);
-        setVersionsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedId, selectedRegistry, selectedLatest]);
-
   const handleForceRefresh = useCallback(async () => {
     invalidateMarketplaceCache();
     const installed = await loadInstalled();
@@ -312,6 +167,7 @@ export default function Marketplace() {
           app.description ?? '',
           app.id,
           app.author ?? app.developer_pubkey ?? '',
+          ...(app.tags ?? []),
         ].some((field) => field.toLowerCase().includes(q)),
       );
     }
@@ -322,58 +178,6 @@ export default function Marketplace() {
       (a.alias ?? a.name).localeCompare(b.alias ?? b.name),
     );
   }, [apps, filterInstalled, searchQuery]);
-
-  const handleInstall = async (app: MarketplaceApp, version: string) => {
-    if (!/^[\w.+-]+$/.test(version)) {
-      toast.error('Invalid version string');
-      return;
-    }
-    setInstallingAppId(app.id);
-    try {
-      const manifest = await fetchAppManifest(app.registry, app.id, version);
-      const { url, hashHex } = resolveArtifact(
-        manifest,
-        app.registry,
-        app.id,
-        version,
-      );
-
-      const isBundle = url.endsWith('.mpk');
-      // Bundles carry their own manifest metadata and the node prefers it, so we
-      // send empty metadata; raw wasm has none, so we synthesise it.
-      const metadata = isBundle
-        ? new Uint8Array(0)
-        : new TextEncoder().encode(
-            JSON.stringify({
-              name: app.name,
-              description:
-                manifest.metadata?.description ?? app.description ?? '',
-              version,
-              author: app.author ?? app.developer_pubkey ?? '',
-            }),
-          );
-      // Only send a hash we know matches the file being downloaded. For bundles
-      // the registry digest covers the wasm, not the .mpk, so the node computes
-      // it during download instead.
-      const hash = isBundle ? undefined : hexToBase58(hashHex);
-
-      const res = await apiClient
-        .node()
-        .installApplication(url, metadata, hash);
-      if (res.error) throw new Error(res.error.message);
-
-      toast.success(`${app.alias ?? app.name} installed`);
-      recordDownload(app.registry, app.id, version);
-      await loadInstalled();
-      setSelectedApp((prev) =>
-        prev?.id === app.id ? { ...prev, installed: true } : prev,
-      );
-    } catch (e) {
-      toast.error(`Failed to install: ${truncate(parseApiError(e), 120)}`);
-    } finally {
-      setInstallingAppId(null);
-    }
-  };
 
   const registryOrigin = useMemo(() => {
     const first = getSettings().registries[0];
@@ -461,32 +265,8 @@ export default function Marketplace() {
 
         {loading ? (
           <div className="apps-grid">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="app-card skeleton-card">
-                <div className="app-card-header">
-                  <Skeleton
-                    variant="rectangular"
-                    width="40px"
-                    height="40px"
-                    borderRadius="10px"
-                  />
-                  <div className="app-title-section">
-                    <Skeleton variant="text" width="70%" height="16px" />
-                    <Skeleton variant="text" width="40%" height="12px" />
-                  </div>
-                </div>
-                <div className="app-card-description">
-                  <Skeleton variant="text" width="100%" height="13px" />
-                </div>
-                <div className="app-card-actions">
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height="38px"
-                    borderRadius="10px"
-                  />
-                </div>
-              </div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <MarketplaceCardSkeleton key={i} />
             ))}
           </div>
         ) : filteredApps.length === 0 ? (
@@ -501,239 +281,48 @@ export default function Marketplace() {
           </div>
         ) : (
           <div className="apps-grid">
-            {filteredApps.map((app) => {
-              const shortKey =
-                app.developer_pubkey && app.developer_pubkey.length > 12
-                  ? `${app.developer_pubkey.slice(0, 6)}...${app.developer_pubkey.slice(-4)}`
-                  : app.developer_pubkey;
-              return (
-                <div
-                  key={`${app.registry}-${app.id}`}
-                  className="app-card"
-                  data-testid="app-card"
-                  // The package id, which the card does not render: the
-                  // registry publishes distinct packages that share a display
-                  // name ("Mero Chat" is both com.calimero.chat and
-                  // com.calimero.curb), so a test picking a card by its title
-                  // picks non-deterministically between them.
-                  data-package={app.id}
-                  onClick={() => setSelectedApp(app)}
-                >
-                  <div className="app-card-header">
-                    <div className="app-icon-wrapper">
-                      <Package className="app-icon" size={20} />
-                    </div>
-                    <div className="app-title-section">
-                      <h3>{app.alias ?? app.name}</h3>
-                      {app.latest_version && (
-                        <span className="app-version-badge">
-                          v{app.latest_version}
-                        </span>
-                      )}
-                    </div>
-                    {app.installed && (
-                      <CheckCircle2 className="installed-icon" size={18} />
-                    )}
-                  </div>
-
-                  <div className="app-card-description">
-                    <p>{app.description ?? 'No description available.'}</p>
-                  </div>
-
-                  <div className="app-card-footer">
-                    <div className="app-meta">
-                      <div className="app-meta-row">
-                        <span className="app-meta-label">Author:</span>
-                        <span className="app-meta-value">
-                          {app.author ??
-                            (shortKey && shortKey !== 'unknown'
-                              ? shortKey
-                              : '—')}
-                        </span>
-                      </div>
-                      <div className="app-meta-row">
-                        <span className="app-meta-label">Downloads:</span>
-                        <span className="app-meta-value">
-                          {(app.downloads ?? 0).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    className="app-card-actions"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {app.installed ? (
-                      <button className="button button-success" disabled>
-                        <CheckCircle2 size={16} />
-                        Installed
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setSelectedApp(app)}
-                        className="button button-primary"
-                        disabled={installingAppId === app.id}
-                      >
-                        <Download size={16} />
-                        Install
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {filteredApps.map((app) => (
+              <AppCard
+                key={`${app.registry}-${app.id}`}
+                app={app}
+                onOpen={(a) =>
+                  navigate(`/marketplace/${encodeURIComponent(a.id)}`)
+                }
+              />
+            ))}
           </div>
         )}
       </main>
+    </div>
+  );
+}
 
-      {selectedApp && (
-        <div
-          className="app-detail-overlay"
-          onClick={() => setSelectedApp(null)}
-        >
-          <div
-            className="app-detail-modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-label={selectedApp.alias ?? selectedApp.name}
-            data-testid="app-detail-modal"
-          >
-            <button
-              className="modal-close"
-              onClick={() => setSelectedApp(null)}
-              aria-label="Close dialog"
-            >
-              <X size={18} />
-            </button>
-            <div className="modal-header">
-              <div className="app-icon-wrapper modal-icon">
-                <Package size={28} className="app-icon" />
-              </div>
-              <div className="modal-title">
-                <h2>{selectedApp.alias ?? selectedApp.name}</h2>
-                {selectedApp.latest_version && (
-                  <span className="app-version-badge">
-                    v{selectedApp.latest_version}
-                  </span>
-                )}
-              </div>
-              {selectedApp.installed && (
-                <CheckCircle2 className="installed-icon" size={22} />
-              )}
-            </div>
-            <p className="modal-description">
-              {selectedApp.description ?? 'No description available.'}
-            </p>
-            <div className="modal-meta">
-              <div className="modal-meta-row">
-                <span className="modal-meta-label">Package ID</span>
-                <span className="modal-meta-value mono">{selectedApp.id}</span>
-              </div>
-              <div className="modal-meta-row">
-                <span className="modal-meta-label">Author</span>
-                <span className="modal-meta-value">
-                  {selectedApp.author ?? selectedApp.developer_pubkey ?? '—'}
-                </span>
-              </div>
-              <div className="modal-meta-row">
-                <span className="modal-meta-label">Downloads</span>
-                <span className="modal-meta-value">
-                  {(selectedApp.downloads ?? 0).toLocaleString()}
-                </span>
-              </div>
-              <div className="modal-meta-row">
-                <span className="modal-meta-label">Version</span>
-                {versionsLoading ? (
-                  <span className="modal-meta-value modal-versions-loading">
-                    <RefreshCw size={12} className="spinning" /> Loading…
-                  </span>
-                ) : availableVersions.length > 1 ? (
-                  <select
-                    className="modal-version-select"
-                    value={selectedVersion}
-                    onChange={(e) => setSelectedVersion(e.target.value)}
-                    disabled={
-                      installingAppId === selectedApp.id ||
-                      selectedApp.installed
-                    }
-                    data-testid="version-picker"
-                  >
-                    {availableVersions.map((v, i) => (
-                      <option key={v.semver} value={v.semver}>
-                        {i === 0 ? `${v.semver} (latest)` : v.semver}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="modal-meta-value">
-                    {selectedVersion || selectedApp.latest_version}
-                  </span>
-                )}
-              </div>
-              <div className="modal-meta-row">
-                <span className="modal-meta-label">Registry</span>
-                <button
-                  className="modal-meta-link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const base = (() => {
-                      try {
-                        return new URL(selectedApp.registry).origin;
-                      } catch {
-                        return selectedApp.registry.replace(/\/+$/, '');
-                      }
-                    })();
-                    openExternal(
-                      `${base}/apps/${encodeURIComponent(selectedApp.id)}`,
-                    );
-                  }}
-                >
-                  View on Registry
-                </button>
-              </div>
-            </div>
-            <div className="modal-actions">
-              {selectedApp.installed ? (
-                <button className="button button-success" disabled>
-                  <CheckCircle2 size={16} />
-                  Installed
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    void handleInstall(
-                      selectedApp,
-                      selectedVersion || selectedApp.latest_version,
-                    )
-                  }
-                  className="button button-primary"
-                  disabled={
-                    installingAppId === selectedApp.id || versionsLoading
-                  }
-                  data-testid="modal-install"
-                >
-                  {installingAppId === selectedApp.id ? (
-                    <>
-                      <RefreshCw size={16} className="spinning" /> Installing…
-                    </>
-                  ) : (
-                    <>
-                      <Download size={16} /> Install
-                    </>
-                  )}
-                </button>
-              )}
-              <button
-                className="button button-secondary"
-                onClick={() => setSelectedApp(null)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
+/**
+ * The loading card mirrors the real one's boxes, not a generic block: a
+ * skeleton with a different shape from what replaces it makes the grid jump
+ * once the data lands, which is the thing a skeleton exists to avoid.
+ */
+function MarketplaceCardSkeleton() {
+  return (
+    <div className="app-card app-card-skeleton" aria-hidden="true">
+      <div className="app-card-top">
+        <AppIcon seed="skeleton" name="" size={48} className="app-icon-muted" />
+        <div className="app-card-headings">
+          <Skeleton variant="text" width="65%" height="14px" />
+          <Skeleton variant="text" width="85%" height="11px" />
         </div>
-      )}
+      </div>
+      <Skeleton variant="text" width="100%" height="12px" />
+      <Skeleton variant="text" width="72%" height="12px" />
+      <div className="app-card-footer">
+        <Skeleton
+          variant="rectangular"
+          width="70px"
+          height="18px"
+          borderRadius="6px"
+        />
+        <Skeleton variant="text" width="44px" height="11px" />
+      </div>
     </div>
   );
 }
