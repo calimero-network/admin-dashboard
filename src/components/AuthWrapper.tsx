@@ -14,7 +14,7 @@ import {
   apiClient,
 } from '@calimero-network/calimero-client';
 import LoginPage from '../pages/LoginPage';
-import { getNodeUrl } from '../utils/nodeUrl';
+import { clearNodeUrlOverride, getNodeUrl } from '../utils/nodeUrl';
 
 /**
  * `no-url` is gone compared with the pre-port flow: there is no ConnectPage and
@@ -135,6 +135,13 @@ export default function AuthWrapper({
     clearApplicationId();
     clearContextId();
     clearExecutorPublicKey();
+    // ⚠️ THE NODE OVERRIDE IS PART OF THE SESSION. A `?nodeUrl=` is persisted
+    // to sessionStorage and then outranks the serving origin, so without this
+    // "Clear session" could not unpin a dashboard that had once been pointed
+    // at another node — it cleared the tokens and left the target.
+    // `checkAuth` re-seeds the SDK from getNodeUrl() immediately below, so the
+    // client follows the reset rather than keeping the old endpoint.
+    clearNodeUrlOverride();
     void checkAuth();
   };
 
