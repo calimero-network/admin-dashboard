@@ -521,27 +521,69 @@ export async function fetchAppsFromAllRegistries(
 
 /** One preview image the registry holds for a package. */
 export interface PackageAsset {
-  id?: string;
-  url?: string;
-  thumbnailUrl?: string;
-  contentType?: string;
-  alt?: string;
+  id: string;
+  /** `image` today; anything else is not renderable as a preview. */
+  kind?: string | undefined;
+  contentType?: string | undefined;
+  bytes?: number | undefined;
+  alt?: string | undefined;
+  order?: number | undefined;
+  /**
+   * Absolute URL of the full image.
+   *
+   * ⚠️ ABSOLUTE BECAUSE `fetchPackageAssets` MADE IT SO. The registry answers
+   * with a ROOT-RELATIVE path — `/api/v2/packages/<pkg>/assets/<id>/raw` — and
+   * putting that straight into an <img src> resolves it against whatever
+   * origin is running the app, not the registry. In the dashboard that is the
+   * vite dev server, which answers the request with:
+   *
+   *   The server is configured with a public base URL of /admin-dashboard/ —
+   *   did you mean to visit /admin-dashboard/api/v2/packages/…/raw instead?
+   *
+   * and every preview renders broken. Resolved once here so no caller can
+   * forget.
+   */
+  url?: string | undefined;
+  /**
+   * Absolute URL of the thumbnail. ⚠️ The wire field is `thumbUrl`, NOT
+   * `thumbnailUrl` — spelling it the second way silently yields undefined on
+   * every asset and quietly falls back to the full image.
+   */
+  thumbUrl?: string | undefined;
+  /** False when the registry holds no smaller copy; `thumbUrl` then equals `url`. */
+  hasThumb?: boolean | undefined;
 }
 
 /**
- * Preview images for a package.
+ * Preview images for a package, newest registry shape, ready to render.
  *
- * ⚠️ EXPECT AN EMPTY LIST. Measured against apps.calimero.network: every one of
- * the published packages returns `assets: []` today — the asset bucket is still
- * open infrastructure work (plan.MD item 4). So the caller must render an
- * honest "no preview" state rather than an empty region, and a 404 from an
- * older registry is an empty list, not an error worth surfacing.
+ * Returns an empty list rather than throwing: a 404 from an older registry, a
+ * package with no images, or an unreachable host are all "nothing to show"
+ * rather than errors worth putting in front of a user.
  */
 export async function fetchPackageAssets(
   registryUrl: string,
   packageId: string,
 ): Promise<PackageAsset[]> {
   if (!APP_ID_RE.test(packageId)) return [];
+  const origin = (() => {
+    try {
+      return new URL(registryUrl).origin;
+    } catch {
+      return registryUrl.replace(/\/+$/, '');
+    }
+  })();
+  // Root-relative -> absolute against the REGISTRY. Anything already absolute
+  // is left alone, so a registry that starts serving a CDN URL still works.
+  const absolute = (u?: string): string | undefined => {
+    if (!u) return undefined;
+    try {
+      return new URL(u, `${origin}/`).toString();
+    } catch {
+      return undefined;
+    }
+  };
+
   try {
     const url = new URL(
       `/api/v2/packages/${encodeURIComponent(packageId)}/assets`,
@@ -552,7 +594,31 @@ export async function fetchPackageAssets(
     });
     if (!res.ok) return [];
     const body = await res.json();
-    return Array.isArray(body?.assets) ? body.assets : [];
+    const raw: unknown[] = Array.isArray(body?.assets) ? body.assets : [];
+    return (
+      raw
+        .map((a) => a as Record<string, unknown>)
+        // `kind` is absent on older records, so only a value that is present AND
+        // not an image disqualifies one.
+        .filter((a) => a['kind'] === undefined || a['kind'] === 'image')
+        .map((a) => ({
+          id: String(a['id'] ?? ''),
+          kind: a['kind'] as string | undefined,
+          contentType: a['contentType'] as string | undefined,
+          bytes: a['bytes'] as number | undefined,
+          alt: a['alt'] as string | undefined,
+          order: a['order'] as number | undefined,
+          url: absolute(a['url'] as string | undefined),
+          thumbUrl: absolute(
+            (a['hasThumb'] ? a['thumbUrl'] : a['url']) as string | undefined,
+          ),
+          hasThumb: a['hasThumb'] === true,
+        }))
+        .filter((a) => !!a.url)
+        // The registry gives an explicit running order; respect it rather than
+        // whatever order the store happened to return.
+        .sort((x, y) => (x.order ?? 0) - (y.order ?? 0))
+    );
   } catch {
     return [];
   }

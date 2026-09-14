@@ -113,6 +113,29 @@ test.describe('Marketplace', () => {
     await expect(card.getByLabel('Verified author')).toBeVisible();
   });
 
+  test('preview images load from the registry, not from the app origin', async ({
+    page,
+  }) => {
+    // ⚠️ THE REGISTRY SERVES ROOT-RELATIVE ASSET URLS. Used verbatim in an
+    // <img src> they resolve against the dashboard's own origin — the vite dev
+    // server — which answers "The server is configured with a public base URL
+    // of /admin-dashboard/ — did you mean to visit /admin-dashboard/api/v2/…"
+    // instead of an image, and every preview renders broken.
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const shots = page.locator('.app-detail-shot img');
+    await expect(shots).toHaveCount(2);
+    // Decoded, not merely requested: a broken image has naturalWidth 0.
+    await expect(shots.first()).toHaveJSProperty('naturalWidth', 1);
+    await expect(shots.last()).toHaveJSProperty('naturalWidth', 1);
+    // Rendered in the registry's stated order, not the store's.
+    await expect(shots.first()).toHaveAttribute('alt', 'First');
+  });
+
+  test('an app with no preview images says so', async ({ page }) => {
+    await page.goto('/admin-dashboard/marketplace/com.calimero.meroblocks');
+    await expect(page.getByText('No preview images published')).toBeVisible();
+  });
+
   test('opening a card navigates to the application page', async ({ page }) => {
     await page.getByTestId('app-card').filter({ hasText: 'Mero Chat' }).click();
     await expect(page).toHaveURL(/\/marketplace\/com\.calimero\.merochat$/);

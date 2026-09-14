@@ -375,6 +375,67 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     return json(route, { data: {} });
   });
 
+  // GET /api/v2/packages/<pkg>/assets — preview images.
+  //
+  // ⚠️ THE URLS ARE ROOT-RELATIVE, exactly as the real registry serves them.
+  // Used verbatim in an <img src> they resolve against the APP's origin rather
+  // than the registry's, which is how every preview came to render broken —
+  // the dev server answered "did you mean /admin-dashboard/api/v2/…" instead
+  // of an image.
+  await page.route(
+    (url) => /\/api\/v2\/packages\/[^/]+\/assets$/.test(url.pathname),
+    (route) => {
+      const pkg = new URL(route.request().url()).pathname.split('/')[4];
+      return json(route, {
+        state: 'approved',
+        assets:
+          pkg === 'com.calimero.merochat'
+            ? [
+                {
+                  id: 'shot2',
+                  kind: 'image',
+                  contentType: 'image/png',
+                  alt: 'Second',
+                  order: 1,
+                  url: `/api/v2/packages/${pkg}/assets/shot2/raw`,
+                  thumbUrl: `/api/v2/packages/${pkg}/assets/shot2/raw`,
+                  hasThumb: false,
+                },
+                {
+                  id: 'shot1',
+                  kind: 'image',
+                  contentType: 'image/png',
+                  alt: 'First',
+                  order: 0,
+                  url: `/api/v2/packages/${pkg}/assets/shot1/raw`,
+                  thumbUrl: `/api/v2/packages/${pkg}/assets/shot1/raw`,
+                  hasThumb: false,
+                },
+              ]
+            : [],
+      });
+    },
+  );
+
+  // The bytes behind those URLs.
+  //
+  // ⚠️ MATCHED ON THE REGISTRY'S HOST, NOT THE PATH ALONE, AND THAT IS WHAT
+  // MAKES THE TEST MEAN ANYTHING. A path-only route answers wherever the
+  // request is aimed, so a still-relative URL would be served a valid PNG and
+  // the spec would pass while the real page rendered nothing.
+  await page.route(
+    (url) => /\/assets\/[^/]+\/raw$/.test(url.pathname),
+    (route) => {
+      const host = new URL(route.request().url()).host;
+      if (host !== 'apps.calimero.network') return route.abort();
+      return route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: Buffer.from(PNG_1PX.split(',')[1] ?? '', 'base64'),
+      });
+    },
+  );
+
   // Registry (Marketplace). Matched on the registry host, not the node.
   const bundles = opts.bundles ?? [
     {

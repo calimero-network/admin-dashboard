@@ -387,7 +387,7 @@ export default function AppDetail() {
                 rel="noreferrer noopener"
               >
                 <img
-                  src={a.thumbnailUrl ?? a.url}
+                  src={a.thumbUrl ?? a.url}
                   alt={a.alt ?? `${title} screenshot ${i + 1}`}
                   loading="lazy"
                   decoding="async"
