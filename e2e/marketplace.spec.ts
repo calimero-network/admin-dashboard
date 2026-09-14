@@ -31,7 +31,13 @@ test.describe('Marketplace', () => {
     // The cache is keyed on the registry list and served stale-while-revalidate,
     // so a leftover entry from another test would mask the fetch under test.
     await page.addInitScript(() =>
-      localStorage.removeItem('calimero-marketplace-cache'),
+      // ⚠️ BY PREFIX, NOT BY EXACT KEY. The cache key carries a schema version
+      // suffix, so clearing the literal name silently stops clearing anything
+      // the next time that version is bumped — and the spec then runs against
+      // a warm cache while looking like it controls the state.
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('calimero-marketplace-cache'))
+        .forEach((k) => localStorage.removeItem(k)),
     );
     await page.goto('/admin-dashboard/marketplace');
   });
@@ -181,7 +187,13 @@ test.describe('Marketplace', () => {
   test('empty registry shows the empty state', async ({ page }) => {
     await mockNode(page, { bundles: [] });
     await page.addInitScript(() =>
-      localStorage.removeItem('calimero-marketplace-cache'),
+      // ⚠️ BY PREFIX, NOT BY EXACT KEY. The cache key carries a schema version
+      // suffix, so clearing the literal name silently stops clearing anything
+      // the next time that version is bumped — and the spec then runs against
+      // a warm cache while looking like it controls the state.
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('calimero-marketplace-cache'))
+        .forEach((k) => localStorage.removeItem(k)),
     );
     await page.goto('/admin-dashboard/marketplace');
     await expect(page.getByText('No applications found')).toBeVisible();

@@ -237,3 +237,110 @@
     flex: none;
   }
 }
+
+/* ── Sections: preview, links ───────────────────────────────────────────── */
+
+.app-detail-section {
+  margin-top: 28px;
+}
+
+.app-detail-section-heading {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* A horizontal strip, because screenshots are wide and a grid of them at card
+   width would shrink each one past the point of telling you anything. */
+.app-detail-preview-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.app-detail-shot {
+  flex: 0 0 auto;
+  display: block;
+  width: 260px;
+  height: 160px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.app-detail-shot:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+}
+
+.app-detail-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.app-detail-preview-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+}
+
+.app-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-detail-link-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--gradient-surface), var(--surface-glass);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.app-detail-link-card:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent-primary);
+}
+
+.app-detail-link-label {
+  white-space: nowrap;
+}
+
+.app-detail-signer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success);
+}
+
+.app-detail-signer .app-detail-mono {
+  color: var(--text-primary);
+  word-break: break-all;
+}

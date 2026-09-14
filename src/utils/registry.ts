@@ -87,6 +87,31 @@ export interface AppSummary {
    * `metadata.category` directly; use `resolveCategory`.
    */
   category?: Category | undefined;
+  /** `links` — the app's own frontend, source and docs. Any may be absent. */
+  links?: { frontend?: string; github?: string; docs?: string } | undefined;
+  /**
+   * The runtime this bundle demands.
+   *
+   * ⚠️ WORTH SURFACING, NOT JUST STORING. Core refuses to install a bundle
+   * whose floor is above the node — "bundle requires runtime version
+   * 0.11.0-rc.28 but current runtime is 0.11.0-rc.23" — and today the only way
+   * a user learns that is by pressing Install and reading a toast.
+   */
+  minRuntimeVersion?: string | undefined;
+  /**
+   * The compiled module. ⚠️ ITS SIZE IS THE ONLY REAL SIZE THE REGISTRY
+   * SERVES: `installSize` is null on all 21 published bundles while
+   * `wasm.size` is populated on every one, so a size row that reads only
+   * `installSize` never appears at all.
+   */
+  wasm?: { hash?: string; path?: string; size?: number } | undefined;
+  /** The embedded ABI, when the bundle carries one. */
+  abi?: { hash?: string; path?: string; size?: number } | undefined;
+  signature?:
+    | { algorithm?: string; publicKey?: string; signature?: string }
+    | undefined;
+  /** `did:key:…` of whoever signed the bundle. */
+  signerId?: string | undefined;
 }
 
 export interface VersionInfo {
@@ -190,7 +215,6 @@ export async function fetchAppsFromRegistry(
       alias: bundle.metadata?.name,
       description: bundle.metadata?.description,
       author: bundle.metadata?.author,
-      minRuntimeVersion: bundle.minRuntimeVersion,
       downloads: bundle.downloads ?? 0,
       icon: bundle.metadata?.icon,
       verified: bundle.verified === true,
@@ -204,6 +228,12 @@ export async function fetchAppsFromRegistry(
         bundle.metadata?.category,
         bundle.metadata?.tags,
       ),
+      links: bundle.links,
+      minRuntimeVersion: bundle.minRuntimeVersion ?? bundle.min_runtime_version,
+      wasm: bundle.wasm,
+      abi: bundle.abi,
+      signature: bundle.signature,
+      signerId: bundle.signerId,
     }));
   } catch (error) {
     console.error(`Failed to fetch apps from registry ${registryUrl}:`, error);
@@ -487,4 +517,43 @@ export async function fetchAppsFromAllRegistries(
       }> => result.status === 'fulfilled',
     )
     .map((result) => result.value);
+}
+
+/** One preview image the registry holds for a package. */
+export interface PackageAsset {
+  id?: string;
+  url?: string;
+  thumbnailUrl?: string;
+  contentType?: string;
+  alt?: string;
+}
+
+/**
+ * Preview images for a package.
+ *
+ * ⚠️ EXPECT AN EMPTY LIST. Measured against apps.calimero.network: every one of
+ * the published packages returns `assets: []` today — the asset bucket is still
+ * open infrastructure work (plan.MD item 4). So the caller must render an
+ * honest "no preview" state rather than an empty region, and a 404 from an
+ * older registry is an empty list, not an error worth surfacing.
+ */
+export async function fetchPackageAssets(
+  registryUrl: string,
+  packageId: string,
+): Promise<PackageAsset[]> {
+  if (!APP_ID_RE.test(packageId)) return [];
+  try {
+    const url = new URL(
+      `/api/v2/packages/${encodeURIComponent(packageId)}/assets`,
+      registryUrl,
+    );
+    const res = await fetch(url.toString(), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return [];
+    const body = await res.json();
+    return Array.isArray(body?.assets) ? body.assets : [];
+  } catch {
+    return [];
+  }
 }

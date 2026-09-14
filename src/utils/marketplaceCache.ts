@@ -44,7 +44,23 @@ interface CacheEntry {
 // Constants
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'calimero-marketplace-cache';
+/**
+ * ⚠️ THE KEY CARRIES A SCHEMA VERSION, AND IT HAS TO.
+ *
+ * This cache stores whole `AppSummary` objects. When that type gains a field —
+ * as it just did with icon, verified, links, wasm and minRuntimeVersion — every
+ * existing user still holds entries written under the OLD shape, and the
+ * Marketplace serves them cache-first. The result is a card with no icon and a
+ * detail page with no Links or Size section, on a build that renders all of
+ * them correctly: nothing errors, the data is simply absent, and it stays that
+ * way until a background revalidation happens to land.
+ *
+ * Bumping this suffix whenever the stored shape changes turns that into a
+ * one-time refetch. It is cheap: the entry is a listing that is refetched on a
+ * 5-minute TTL anyway.
+ */
+const CACHE_SCHEMA = 'v2';
+const STORAGE_KEY = `calimero-marketplace-cache-${CACHE_SCHEMA}`;
 
 /** Default time-to-live: 5 minutes */
 const DEFAULT_TTL_MS = 5 * 60 * 1000;

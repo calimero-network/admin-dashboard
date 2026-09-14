@@ -36,7 +36,10 @@ export default function AppCard({
   onOpen: (app: AppCardApp) => void;
 }) {
   const title = app.alias ?? app.name;
-  const bytes = formatBytes(app.installSize);
+  // ⚠️ `installSize ?? wasm.size`. The registry serves `installSize` as null on
+  // all 21 published bundles and `wasm.size` on every one, so reading only the
+  // first meant the size row never appeared on any card.
+  const bytes = formatBytes(app.installSize ?? app.wasm?.size);
   const when = formatRelativeDate(app.publishedAt);
   const category = formatCategory(app.category);
   const author = app.author ?? shortenKey(app.developer_pubkey);
