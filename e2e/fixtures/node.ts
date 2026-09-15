@@ -147,7 +147,6 @@ export interface MockNodeOptions {
 export interface MockNamespace {
   namespaceId: string;
   targetApplicationId: string;
-  upgradePolicy?: string;
   name?: string;
   appVersion?: string;
   memberCount?: number;
@@ -319,7 +318,6 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
       return json(route, {
         data: namespaces.map((ns) => ({
           appKey: 'a'.repeat(64),
-          upgradePolicy: 'Automatic',
           createdAt: 0,
           memberCount: 0,
           contextCount: 0,
@@ -362,7 +360,6 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
           groupId: id,
           appKey: 'a'.repeat(64),
           targetApplicationId: APP_WITH_FRONTEND.id,
-          upgradePolicy: 'Automatic',
           memberCount: group.members?.length ?? 0,
           contextCount: group.contexts?.length ?? 0,
           defaultCapabilities: 11,
