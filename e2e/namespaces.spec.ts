@@ -86,7 +86,12 @@ test.describe('Namespaces', () => {
     await expect(card).toContainText('Team workspace');
     await expect(card).toContainText('Mero Blocks');
     await expect(card).toContainText('v0.1.1');
-    await expect(card).toContainText('Automatic');
+    // Asserted ABSENT. Core deleted the upgrade-policy concept in rc.21 and
+    // rc.34 returns no such field, so this badge had been rendering
+    // `undefined` — the fixture was the only thing supplying a value, which is
+    // why the assertion above it passed while the real page showed nothing.
+    await expect(card).not.toContainText('Automatic');
+    await expect(card).not.toContainText('LazyOnAccess');
   });
 
   test('both entry points — Join and Create — are on the list', async ({
