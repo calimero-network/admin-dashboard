@@ -44,7 +44,6 @@ export interface Namespace {
   namespaceId: string;
   appKey: string;
   targetApplicationId: string;
-  upgradePolicy: string;
   createdAt: number;
   name?: string;
   memberCount: number;
@@ -87,7 +86,6 @@ export interface GroupInfo {
   groupId: string;
   appKey: string;
   targetApplicationId: string;
-  upgradePolicy: string;
   memberCount: number;
   contextCount: number;
   defaultCapabilities: number;
@@ -96,9 +94,6 @@ export interface GroupInfo {
   metadata?: MetadataRecord | null;
   groupStateHash?: string;
 }
-
-/** `Coordinated` was removed from core; offering it yields a 400. */
-export type UpgradePolicy = 'Automatic' | 'LazyOnAccess';
 
 /**
  * `ReadOnlyTee` is deliberately absent: core rejects it on both the add-member
@@ -136,10 +131,21 @@ export interface GroupContextEntry {
 
 export type SubgroupVisibility = 'open' | 'restricted';
 
+// Exactly what `CreateNamespaceApiRequest` accepts. That struct carries
+// `deny_unknown_fields`, so an extra key is a 400 for the whole create and not
+// a field the node ignores:
+//   unknown field `upgradePolicy`, expected one of `applicationId`, `name`,
+//   `appKey`, `bytecodeId`
+// Core deleted the upgrade-policy concept in rc.21 — `Automatic` had no
+// receiver-side implementation and permanently gated sync on affected peers,
+// so lazy-on-access is the only behaviour — and rc.34 has no trace of it in
+// any request OR response. It was being sent here on create and read back on
+// the listing, where it had been rendering as undefined.
 export interface CreateNamespaceRequest {
   applicationId: string;
-  upgradePolicy: UpgradePolicy;
   name?: string;
+  /** Hex 32-byte blob id; pins the namespace to a specific installed version. */
+  appKey?: string;
 }
 
 export interface CreateContextRequest {
@@ -424,19 +430,22 @@ export async function leaveGroup(groupId: string): Promise<void> {
  *
  * The namespace-scoped endpoint only creates direct children of the root, so
  * anything deeper goes through `POST /groups` with an explicit
- * `parentGroupId`. `applicationId` + `upgradePolicy` are required there and
- * are inherited from the namespace by the caller.
+ * `parentGroupId`. `applicationId` is required there and is inherited from the
+ * namespace by the caller.
+ *
+ * `CreateGroupApiRequest` is `deny_unknown_fields` and accepts only
+ * `groupId` / `appKey` (alias `bytecodeId`) / `applicationId` / `name` /
+ * `parentGroupId` — `upgradePolicy` used to be sent here too and made every
+ * nested-subgroup create a 400.
  */
 export async function createSubgroup(req: {
   parentGroupId: string;
   applicationId: string;
-  upgradePolicy: string;
   name?: string;
 }): Promise<{ groupId: string }> {
   return apiPost<{ groupId: string }>('/admin-api/groups', {
     parentGroupId: req.parentGroupId,
     applicationId: req.applicationId,
-    upgradePolicy: req.upgradePolicy,
     ...(req.name ? { name: req.name } : {}),
   });
 }

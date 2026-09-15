@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/calimero-network/admin-dashboard/compare/v1.14.0...v1.14.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* drop `upgradePolicy` — the node has no such concept ([#156](https://github.com/calimero-network/admin-dashboard/issues/156)) ([9d18846](https://github.com/calimero-network/admin-dashboard/commit/9d18846bdf3758580e61c12cf43a21bdea21433b))
+
 # [1.14.0](https://github.com/calimero-network/admin-dashboard/compare/v1.13.1...v1.14.0) (2026-09-14)
 
 
