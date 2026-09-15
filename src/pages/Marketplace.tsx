@@ -5,7 +5,7 @@ import React, {
   useRef,
   useCallback,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, RefreshCw, Package, X, ExternalLink } from 'lucide-react';
 import AppCard, { type AppCardApp } from '../components/AppCard';
 import AppIcon from '../components/AppIcon';
@@ -24,6 +24,13 @@ import {
 } from '../utils/installedApps';
 import { parseApiError } from '../utils/appUtils';
 import { openExternal } from '../utils/openApp';
+import {
+  categoryFacets,
+  matchesFacets,
+  tagFacets,
+  toggleTag,
+  TAG_CHIP_LIMIT,
+} from '../utils/appFilters';
 import './Marketplace.css';
 
 interface MarketplaceApp extends AppCardApp {
@@ -42,7 +49,42 @@ export default function Marketplace() {
   const [installedNames, setInstalledNames] = useState<Set<string>>(new Set());
   const [filterInstalled, setFilterInstalled] =
     useState<InstalledFilter>('all');
+  const [showAllTags, setShowAllTags] = useState(false);
   const mounted = useRef(true);
+
+  /**
+   * The facet rows live in the URL, not in component state.
+   *
+   * A filtered view is then linkable, survives a reload, and comes back intact
+   * when you press Back from an application page — which is the one navigation
+   * every user of this page makes, and the one that used to throw the filters
+   * away. app-registry's Explore page keeps its filters the same way; the
+   * desktop app cannot, because its shell has no router.
+   */
+  const [params, setParams] = useSearchParams();
+  const category = params.get('category') ?? '';
+  const selectedTags = useMemo(
+    () => (params.get('tags') ?? '').split(',').filter(Boolean),
+    [params],
+  );
+
+  const writeFacets = useCallback(
+    (next: { category?: string; tags?: string[] }) => {
+      const p = new URLSearchParams(params);
+      if (next.category !== undefined) {
+        if (next.category) p.set('category', next.category);
+        else p.delete('category');
+      }
+      if (next.tags !== undefined) {
+        if (next.tags.length > 0) p.set('tags', next.tags.join(','));
+        else p.delete('tags');
+      }
+      // `replace`, so pressing a chip five times does not bury the page you
+      // arrived from under five history entries.
+      setParams(p, { replace: true });
+    },
+    [params, setParams],
+  );
 
   useEffect(() => {
     mounted.current = true;
@@ -174,10 +216,28 @@ export default function Marketplace() {
     if (filterInstalled === 'installed') out = out.filter((a) => a.installed);
     if (filterInstalled === 'not-installed')
       out = out.filter((a) => !a.installed);
+    out = out.filter((app) =>
+      matchesFacets(app, { category, tags: selectedTags }),
+    );
     return [...out].sort((a, b) =>
       (a.alias ?? a.name).localeCompare(b.alias ?? b.name),
     );
-  }, [apps, filterInstalled, searchQuery]);
+  }, [apps, filterInstalled, searchQuery, category, selectedTags]);
+
+  // ⚠️ THE CHIPS COME FROM THE LISTING, and from the WHOLE listing rather than
+  // from what the other filters have left. Both halves matter: offering all ten
+  // categories would show eight chips that return nothing (only two have apps
+  // today), and recomputing them against the current filters would make chips
+  // vanish from under the cursor as you press them.
+  const categories = useMemo(() => categoryFacets(apps), [apps]);
+  const tags = useMemo(() => tagFacets(apps), [apps]);
+  const visibleTags = showAllTags ? tags : tags.slice(0, TAG_CHIP_LIMIT);
+
+  const hasFacetFilters = category !== '' || selectedTags.length > 0;
+  const clearFacets = useCallback(
+    () => writeFacets({ category: '', tags: [] }),
+    [writeFacets],
+  );
 
   const registryOrigin = useMemo(() => {
     const first = getSettings().registries[0];
@@ -246,20 +306,107 @@ export default function Marketplace() {
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => void handleForceRefresh()}
-              className="refresh-btn"
-              disabled={loading || refreshing}
-              title="Refresh"
-              aria-label="Refresh"
-            >
-              <RefreshCw
-                size={15}
-                className={loading || refreshing ? 'spinning' : ''}
-              />
-            </button>
+            <div className="marketplace-filters-right">
+              {hasFacetFilters && (
+                <button
+                  type="button"
+                  className="facet-clear"
+                  data-testid="clear-facets"
+                  onClick={clearFacets}
+                >
+                  <X size={12} aria-hidden="true" />
+                  Clear filters
+                </button>
+              )}
+              <button
+                onClick={() => void handleForceRefresh()}
+                className="refresh-btn"
+                disabled={loading || refreshing}
+                title="Refresh"
+                aria-label="Refresh"
+              >
+                <RefreshCw
+                  size={15}
+                  className={loading || refreshing ? 'spinning' : ''}
+                />
+              </button>
+            </div>
           </div>
+
+          {/* The category shelves. Single-select: a bundle sits on exactly one,
+              so two chips pressed together could only ever return nothing. */}
+          {categories.length > 0 && (
+            <div
+              className="facet-row"
+              role="group"
+              aria-label="Filter by category"
+            >
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`facet-chip${category === c.id ? ' active' : ''}`}
+                  aria-pressed={category === c.id}
+                  data-testid={`category-${c.id}`}
+                  onClick={() =>
+                    writeFacets({ category: category === c.id ? '' : c.id })
+                  }
+                >
+                  {c.label}
+                  <span className="facet-count">{c.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Keyword tags. Multi-select and ANDed, so every chip you add makes
+              the list shorter — a filter row that can grow the result set is
+              the one people stop trusting. */}
+          {tags.length > 0 && (
+            <div className="facet-row" role="group" aria-label="Filter by tag">
+              {visibleTags.map((t) => {
+                const active = selectedTags.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`facet-chip facet-chip-tag${active ? ' active' : ''}`}
+                    aria-pressed={active}
+                    data-testid={`tag-${t.id}`}
+                    onClick={() =>
+                      writeFacets({ tags: toggleTag(selectedTags, t.id) })
+                    }
+                  >
+                    {t.label}
+                    <span className="facet-count">{t.count}</span>
+                  </button>
+                );
+              })}
+              {tags.length > TAG_CHIP_LIMIT && (
+                <button
+                  type="button"
+                  className="facet-more"
+                  data-testid="toggle-all-tags"
+                  onClick={() => setShowAllTags((v) => !v)}
+                >
+                  {showAllTags
+                    ? 'Show fewer'
+                    : `+${tags.length - TAG_CHIP_LIMIT} more`}
+                </button>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* The count is what tells a filtered listing apart from a broken one:
+            "3 of 21" says the other 18 are behind a chip, not missing. */}
+        {!loading && (
+          <p className="marketplace-count" data-testid="marketplace-count">
+            {filteredApps.length} application
+            {filteredApps.length === 1 ? '' : 's'}
+            {filteredApps.length !== apps.length && ` of ${apps.length}`}
+          </p>
+        )}
 
         {error && <div className="error-message">{error}</div>}
 
@@ -274,7 +421,7 @@ export default function Marketplace() {
             <Package size={48} className="empty-icon" />
             <h3>No applications found</h3>
             <p>
-              {searchQuery
+              {searchQuery || hasFacetFilters
                 ? 'Try adjusting your search query or filters.'
                 : 'No applications match your current filters.'}
             </p>
