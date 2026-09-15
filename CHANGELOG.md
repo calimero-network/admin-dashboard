@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/calimero-network/admin-dashboard/compare/v1.14.2...v1.15.0) (2026-09-15)
+
+
+### Features
+
+* **marketplace:** filter the listing by category and tag ([#158](https://github.com/calimero-network/admin-dashboard/issues/158)) ([3da72c8](https://github.com/calimero-network/admin-dashboard/commit/3da72c8aeb568315d55b06621b6db18179d2bd9d))
+
 ## [1.14.2](https://github.com/calimero-network/admin-dashboard/compare/v1.14.1...v1.14.2) (2026-09-15)
 
 
