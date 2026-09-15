@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/calimero-network/admin-dashboard/compare/v1.14.1...v1.14.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* stop sending `name` alongside `groupName` on subgroup create ([#157](https://github.com/calimero-network/admin-dashboard/issues/157)) ([814748b](https://github.com/calimero-network/admin-dashboard/commit/814748b1cccc6ba317d744fbee1016c800f19a56))
+
 ## [1.14.1](https://github.com/calimero-network/admin-dashboard/compare/v1.14.0...v1.14.1) (2026-09-15)
 
 
