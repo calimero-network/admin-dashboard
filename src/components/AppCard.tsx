@@ -43,6 +43,19 @@ export default function AppCard({
   const when = formatRelativeDate(app.publishedAt);
   const category = formatCategory(app.category);
   const author = app.author ?? shortenKey(app.developer_pubkey);
+  // Which node release this bundle was built against, as the registry serves it
+  // (`min_runtime_version`, in both spellings). `AppSummary` has carried this
+  // for a while with a note that it was worth surfacing rather than storing —
+  // this is that.
+  //
+  // ⚠️ `0.1.0` is the registry's PLACEHOLDER, applied to any bundle published
+  // without one (`bundle-sanitize.js` defaults it), not a runtime anybody ran.
+  // Printing it would put a confident wrong answer on most cards, so it reads
+  // as absent — the same rule `installSize` and `publishedAt` already follow.
+  const runtime =
+    app.minRuntimeVersion && app.minRuntimeVersion !== '0.1.0'
+      ? app.minRuntimeVersion
+      : null;
 
   return (
     <button
@@ -104,6 +117,22 @@ export default function AppCard({
           <Download size={12} aria-hidden="true" />
           {(app.downloads ?? 0).toLocaleString()}
         </span>
+        {runtime && (
+          <>
+            <Dot />
+            <span
+              className="app-card-meta-item"
+              data-testid="app-card-runtime"
+              // Core refuses to install a bundle whose floor is above the node
+              // — "bundle requires runtime version 0.11.0-rc.28 but current
+              // runtime is 0.11.0-rc.23" — and until now the only way to learn
+              // that was to press Install and read the toast.
+              title={`Built against node ${runtime}; a node older than this refuses to install it`}
+            >
+              node {runtime}
+            </span>
+          </>
+        )}
       </div>
 
       {/* ⚠️ THE "INSTALLED" PILL SITS HERE, NOT NEXT TO THE TITLE. In the

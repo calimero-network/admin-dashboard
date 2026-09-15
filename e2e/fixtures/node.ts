@@ -113,6 +113,15 @@ export interface MockNodeOptions {
     downloads?: number;
     installSize?: number | null;
     publishedAt?: string | null;
+    /**
+     * The node release the bundle was built against. BOTH spellings, because
+     * the registry serves both (`bundle-sanitize.js` emits `min_runtime_version`
+     * and `minRuntimeVersion` side by side) and the dashboard reads either — a
+     * fixture that offered only one would let a regression through in the
+     * spelling it did not cover.
+     */
+    min_runtime_version?: string;
+    minRuntimeVersion?: string;
   }[];
   /** `GET /admin-api/blobs` — snake_case, exactly as the node returns it. */
   blobs?: { blob_id: string; size: number }[];
