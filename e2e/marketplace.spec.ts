@@ -24,7 +24,15 @@ test.describe('Marketplace', () => {
           // fallback needs a case in the suite.
           package: 'com.calimero.meroblocks',
           appVersion: '0.1.1',
-          metadata: { name: 'Mero Blocks', description: 'Voxel sandbox.' },
+          metadata: {
+            name: 'Mero Blocks',
+            description: 'Voxel sandbox.',
+            // A SECOND shelf, so the category chips have something to tell
+            // apart — and `voxel` alongside it, a keyword that is not a
+            // category, which is the distinction the two chip rows are built
+            // on.
+            tags: ['games', 'voxel'],
+          },
         },
       ],
     });
@@ -267,6 +275,157 @@ test.describe('Marketplace', () => {
       .getByRole('link', { name: 'Marketplace' })
       .click();
     await expect(page.getByTestId('app-card')).toHaveCount(2);
+  });
+
+  // ── Category and tag filters ───────────────────────────────────────────
+
+  test('offers a chip per category present, with its size', async ({
+    page,
+  }) => {
+    // ⚠️ PRESENT, NOT DECLARED. There are ten categories in the registry's
+    // vocabulary and two in this listing; a row of ten chips where eight
+    // return nothing reads as a broken filter rather than an empty shelf.
+    await expect(page.locator("[data-testid^='category-']")).toHaveCount(2);
+    await expect(page.getByTestId('category-communication')).toContainText(
+      'Communication',
+    );
+    await expect(page.getByTestId('category-games')).toContainText('Games');
+    await expect(page.getByTestId('category-games')).toContainText('1');
+  });
+
+  test('a category chip filters the listing and toggles back off', async ({
+    page,
+  }) => {
+    await page.getByTestId('category-games').click();
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    await expect(page.getByText('Mero Blocks')).toBeVisible();
+    await expect(page.getByTestId('marketplace-count')).toContainText(
+      '1 application of 2',
+    );
+
+    // Pressing the ACTIVE chip clears it — the row has no "All" chip, so the
+    // only way back is the chip itself or Clear filters.
+    await page.getByTestId('category-games').click();
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
+  });
+
+  test('the filters are in the URL, so the view is linkable', async ({
+    page,
+  }) => {
+    // ⚠️ THE POINT OF THE QUERY STRING. Pressing Back from an application page
+    // is the one navigation every user of this listing makes, and component
+    // state loses the filters on exactly that move.
+    await page.getByTestId('category-games').click();
+    await page.getByTestId('tag-voxel').click();
+    await expect(page).toHaveURL(/category=games/);
+    await expect(page).toHaveURL(/tags=voxel/);
+
+    await page
+      .getByTestId('app-card')
+      .filter({ hasText: 'Mero Blocks' })
+      .click();
+    await expect(page.getByTestId('app-detail-page')).toBeVisible();
+    await page.goBack();
+
+    await expect(page.getByTestId('category-games')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+  });
+
+  test('a filtered listing survives a reload', async ({ page }) => {
+    await page.goto('/admin-dashboard/marketplace?category=communication');
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    await expect(page.getByText('Mero Chat')).toBeVisible();
+  });
+
+  test('categories are single-select: the second chip replaces the first', async ({
+    page,
+  }) => {
+    // A bundle sits on exactly one shelf, so two chips held together could
+    // only ever return nothing.
+    await page.getByTestId('category-communication').click();
+    await page.getByTestId('category-games').click();
+
+    await expect(page.getByTestId('category-communication')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    await expect(page.getByText('Mero Blocks')).toBeVisible();
+  });
+
+  test('a category declared as a TAG still gets a chip', async ({ page }) => {
+    // ⚠️ THE WHOLE REASON `resolveCategory` EXISTS. No published bundle carries
+    // a top-level `metadata.category` — publishers put the category in `tags` —
+    // so a filter reading the explicit field alone would offer no chips at all
+    // against the live registry. Both fixtures declare theirs as a tag.
+    await page.getByTestId('category-communication').click();
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+  });
+
+  test('a category slug never appears twice as a keyword chip', async ({
+    page,
+  }) => {
+    // `games` is a shelf, `voxel` is a keyword. Both arrive in the same `tags`
+    // array, and chipping the slug in both rows would give two chips that
+    // filter to the same set.
+    await expect(page.getByTestId('tag-voxel')).toBeVisible();
+    await expect(page.getByTestId('tag-chat')).toBeVisible();
+    await expect(page.getByTestId('tag-games')).toHaveCount(0);
+    await expect(page.getByTestId('tag-communication')).toHaveCount(0);
+  });
+
+  test('tags are multi-select and ANDed — a second chip narrows', async ({
+    page,
+  }) => {
+    await page.getByTestId('tag-chat').click();
+    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    await expect(page.getByText('Mero Chat')).toBeVisible();
+
+    // `voxel` belongs to the OTHER app, so holding both must return nothing
+    // rather than both apps. A filter row that can grow the result set is the
+    // one people stop trusting.
+    await page.getByTestId('tag-voxel').click();
+    await expect(page.getByTestId('tag-chat')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByTestId('app-card')).toHaveCount(0);
+    await expect(page.getByText('No applications found')).toBeVisible();
+  });
+
+  test('Clear filters drops the chips but keeps the search box', async ({
+    page,
+  }) => {
+    // ⚠️ Clear lives with the All/Installed pills, NOT at the end of a chip
+    // row: both rows are conditional, so a button inside either one vanishes
+    // exactly when the other row is holding the selection.
+    await expect(page.getByTestId('clear-facets')).toHaveCount(0);
+
+    await page.getByTestId('marketplace-search').fill('mero');
+    await page.getByTestId('category-games').click();
+    await expect(page.getByTestId('clear-facets')).toBeVisible();
+
+    await page.getByTestId('clear-facets').click();
+    await expect(page).not.toHaveURL(/category=/);
+    await expect(page.getByTestId('marketplace-search')).toHaveValue('mero');
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
+  });
+
+  test('the count says how many of the listing is showing', async ({
+    page,
+  }) => {
+    // An unfiltered listing does not say "2 of 2" — the second half only earns
+    // its place when something is hidden.
+    await expect(page.getByTestId('marketplace-count')).toHaveText(
+      '2 applications',
+    );
+    await page.getByTestId('tag-chat').click();
+    await expect(page.getByTestId('marketplace-count')).toHaveText(
+      '1 application of 2',
+    );
   });
 
   test('empty registry shows the empty state', async ({ page }) => {
