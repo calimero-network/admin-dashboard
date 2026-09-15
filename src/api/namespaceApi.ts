@@ -374,10 +374,20 @@ export async function listNamespaceGroups(
  * governance path.
  *
  * The name key on the wire is `groupName` (core:
- * `CreateGroupInNamespaceBody`). mero-js sends `name` here, which serde
- * silently drops — that is the long-standing "subgroup names don't persist"
- * bug. We send BOTH spellings: unknown fields are ignored by serde, so this
- * is correct against either revision of the node.
+ * `CreateGroupInNamespaceBody`), and that body is `deny_unknown_fields`.
+ *
+ * This used to send BOTH `groupName` and `name`, on the reasoning that
+ * "unknown fields are ignored by serde". They are not: an unknown field is a
+ * 400 that fails the whole call —
+ *
+ *   unknown field `name`, expected `groupName` or `visibility`
+ *
+ * so the extra spelling did not add compatibility, it removed it. The bug was
+ * conditional, which is why it survived: a subgroup created without a name
+ * sent `{}` and worked, and only a NAMED subgroup 400'd.
+ *
+ * (The premise was stale too — mero-js's `CreateGroupInNamespaceRequest` is
+ * `groupName`/`visibility` and has not sent `name` for some time.)
  */
 export async function createGroupInNamespace(
   namespaceId: string,
@@ -386,9 +396,7 @@ export async function createGroupInNamespace(
   return apiPost<{ groupId: string }>(
     `/admin-api/namespaces/${namespaceId}/groups`,
     {
-      ...(req?.groupName
-        ? { groupName: req.groupName, name: req.groupName }
-        : {}),
+      ...(req?.groupName ? { groupName: req.groupName } : {}),
       ...(req?.visibility ? { visibility: req.visibility } : {}),
     },
   );
