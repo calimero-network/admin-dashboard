@@ -362,9 +362,7 @@ test.describe('Marketplace', () => {
     // is the one navigation every user of this listing makes, and component
     // state loses the filters on exactly that move.
     await page.getByTestId('category-games').click();
-    await page.getByTestId('tag-voxel').click();
     await expect(page).toHaveURL(/category=games/);
-    await expect(page).toHaveURL(/tags=voxel/);
 
     await page
       .getByTestId('app-card')
@@ -411,35 +409,26 @@ test.describe('Marketplace', () => {
     await expect(page.getByTestId('app-card')).toHaveCount(1);
   });
 
-  test('a category slug never appears twice as a keyword chip', async ({
+  test('there is no keyword-tag row — categories are the only facet', async ({
     page,
   }) => {
-    // `games` is a shelf, `voxel` is a keyword. Both arrive in the same `tags`
-    // array, and chipping the slug in both rows would give two chips that
-    // filter to the same set.
-    await expect(page.getByTestId('tag-voxel')).toBeVisible();
-    await expect(page.getByTestId('tag-chat')).toBeVisible();
-    await expect(page.getByTestId('tag-games')).toHaveCount(0);
-    await expect(page.getByTestId('tag-communication')).toHaveCount(0);
+    // The tag row was one chip per keyword across 40-odd tags, most of them
+    // matching a single app. It is gone; the shelves are the whole filter.
+    await expect(page.getByTestId('category-games')).toBeVisible();
+    await expect(page.getByTestId('tag-voxel')).toHaveCount(0);
+    await expect(page.getByTestId('tag-chat')).toHaveCount(0);
+    await expect(page.getByTestId('toggle-all-tags')).toHaveCount(0);
   });
 
-  test('tags are multi-select and ANDed — a second chip narrows', async ({
-    page,
-  }) => {
-    await page.getByTestId('tag-chat').click();
-    await expect(page.getByTestId('app-card')).toHaveCount(1);
-    await expect(page.getByText('Mero Chat')).toBeVisible();
+  test('a stale ?tags= link no longer filters anything', async ({ page }) => {
+    // An old bookmark must not hide apps behind a facet the page can neither
+    // show nor clear — that reads as a listing with apps missing. The param is
+    // simply ignored on arrival, and swept out the next time a chip is pressed.
+    await page.goto('/admin-dashboard/marketplace?tags=voxel');
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
 
-    // `voxel` belongs to the OTHER app, so holding both must return nothing
-    // rather than both apps. A filter row that can grow the result set is the
-    // one people stop trusting.
-    await page.getByTestId('tag-voxel').click();
-    await expect(page.getByTestId('tag-chat')).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await expect(page.getByTestId('app-card')).toHaveCount(0);
-    await expect(page.getByText('No applications found')).toBeVisible();
+    await page.getByTestId('category-games').click();
+    await expect(page).not.toHaveURL(/tags=/);
   });
 
   test('Clear filters drops the chips but keeps the search box', async ({
@@ -468,7 +457,7 @@ test.describe('Marketplace', () => {
     await expect(page.getByTestId('marketplace-count')).toHaveText(
       '2 applications',
     );
-    await page.getByTestId('tag-chat').click();
+    await page.getByTestId('category-communication').click();
     await expect(page.getByTestId('marketplace-count')).toHaveText(
       '1 application of 2',
     );

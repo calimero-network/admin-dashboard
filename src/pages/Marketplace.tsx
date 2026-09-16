@@ -24,13 +24,7 @@ import {
 } from '../utils/installedApps';
 import { parseApiError } from '../utils/appUtils';
 import { openExternal } from '../utils/openApp';
-import {
-  categoryFacets,
-  matchesFacets,
-  tagFacets,
-  toggleTag,
-  TAG_CHIP_LIMIT,
-} from '../utils/appFilters';
+import { categoryFacets, matchesFacets } from '../utils/appFilters';
 import './Marketplace.css';
 
 interface MarketplaceApp extends AppCardApp {
@@ -49,7 +43,6 @@ export default function Marketplace() {
   const [installedNames, setInstalledNames] = useState<Set<string>>(new Set());
   const [filterInstalled, setFilterInstalled] =
     useState<InstalledFilter>('all');
-  const [showAllTags, setShowAllTags] = useState(false);
   const mounted = useRef(true);
 
   /**
@@ -63,22 +56,18 @@ export default function Marketplace() {
    */
   const [params, setParams] = useSearchParams();
   const category = params.get('category') ?? '';
-  const selectedTags = useMemo(
-    () => (params.get('tags') ?? '').split(',').filter(Boolean),
-    [params],
-  );
 
   const writeFacets = useCallback(
-    (next: { category?: string; tags?: string[] }) => {
+    (next: { category?: string }) => {
       const p = new URLSearchParams(params);
       if (next.category !== undefined) {
         if (next.category) p.set('category', next.category);
         else p.delete('category');
       }
-      if (next.tags !== undefined) {
-        if (next.tags.length > 0) p.set('tags', next.tags.join(','));
-        else p.delete('tags');
-      }
+      // Sweep out a `tags` param left by an older link. Nothing reads it any
+      // more, so it never filters the listing — this just stops it riding
+      // along in every URL the page writes from here on.
+      p.delete('tags');
       // `replace`, so pressing a chip five times does not bury the page you
       // arrived from under five history entries.
       setParams(p, { replace: true });
@@ -216,13 +205,11 @@ export default function Marketplace() {
     if (filterInstalled === 'installed') out = out.filter((a) => a.installed);
     if (filterInstalled === 'not-installed')
       out = out.filter((a) => !a.installed);
-    out = out.filter((app) =>
-      matchesFacets(app, { category, tags: selectedTags }),
-    );
+    out = out.filter((app) => matchesFacets(app, { category }));
     return [...out].sort((a, b) =>
       (a.alias ?? a.name).localeCompare(b.alias ?? b.name),
     );
-  }, [apps, filterInstalled, searchQuery, category, selectedTags]);
+  }, [apps, filterInstalled, searchQuery, category]);
 
   // ⚠️ THE CHIPS COME FROM THE LISTING, and from the WHOLE listing rather than
   // from what the other filters have left. Both halves matter: offering all ten
@@ -230,12 +217,10 @@ export default function Marketplace() {
   // today), and recomputing them against the current filters would make chips
   // vanish from under the cursor as you press them.
   const categories = useMemo(() => categoryFacets(apps), [apps]);
-  const tags = useMemo(() => tagFacets(apps), [apps]);
-  const visibleTags = showAllTags ? tags : tags.slice(0, TAG_CHIP_LIMIT);
 
-  const hasFacetFilters = category !== '' || selectedTags.length > 0;
+  const hasFacetFilters = category !== '';
   const clearFacets = useCallback(
-    () => writeFacets({ category: '', tags: [] }),
+    () => writeFacets({ category: '' }),
     [writeFacets],
   );
 
@@ -356,44 +341,6 @@ export default function Marketplace() {
                   <span className="facet-count">{c.count}</span>
                 </button>
               ))}
-            </div>
-          )}
-
-          {/* Keyword tags. Multi-select and ANDed, so every chip you add makes
-              the list shorter — a filter row that can grow the result set is
-              the one people stop trusting. */}
-          {tags.length > 0 && (
-            <div className="facet-row" role="group" aria-label="Filter by tag">
-              {visibleTags.map((t) => {
-                const active = selectedTags.includes(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`facet-chip facet-chip-tag${active ? ' active' : ''}`}
-                    aria-pressed={active}
-                    data-testid={`tag-${t.id}`}
-                    onClick={() =>
-                      writeFacets({ tags: toggleTag(selectedTags, t.id) })
-                    }
-                  >
-                    {t.label}
-                    <span className="facet-count">{t.count}</span>
-                  </button>
-                );
-              })}
-              {tags.length > TAG_CHIP_LIMIT && (
-                <button
-                  type="button"
-                  className="facet-more"
-                  data-testid="toggle-all-tags"
-                  onClick={() => setShowAllTags((v) => !v)}
-                >
-                  {showAllTags
-                    ? 'Show fewer'
-                    : `+${tags.length - TAG_CHIP_LIMIT} more`}
-                </button>
-              )}
             </div>
           )}
         </div>
