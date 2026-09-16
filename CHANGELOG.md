@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/calimero-network/admin-dashboard/compare/v1.16.0...v1.16.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **marketplace:** drop the keyword-tag filter row, keep the category shelves ([#161](https://github.com/calimero-network/admin-dashboard/issues/161)) ([c113c0c](https://github.com/calimero-network/admin-dashboard/commit/c113c0c74ff07a733578741ca290b5bec907e5b3))
+
 # [1.16.0](https://github.com/calimero-network/admin-dashboard/compare/v1.15.0...v1.16.0) (2026-09-16)
 
 
