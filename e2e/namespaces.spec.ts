@@ -63,6 +63,18 @@ const FIXTURE = {
   },
 };
 
+/**
+ * The root screen lists APPLICATIONS, not namespaces — a namespace is bound to
+ * one app, so the app is what you pick first. Reaching a namespace therefore
+ * takes one extra hop, stated here once rather than in every test.
+ */
+async function openApp(
+  page: import('@playwright/test').Page,
+  appId: string = APP_WITH_FRONTEND.id,
+) {
+  await page.locator(`.ns-app-card[data-application-id="${appId}"]`).click();
+}
+
 test.describe('Namespaces', () => {
   test('there is no Contexts tab, and its old URL lands on Namespaces', async ({
     page,
@@ -80,12 +92,19 @@ test.describe('Namespaces', () => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
 
+    await openApp(page);
     const card = page.getByTestId('ns-card');
     await expect(card).toHaveCount(1);
     // The name comes from `name` on the wire; reading `alias` rendered nothing.
     await expect(card).toContainText('Team workspace');
-    await expect(card).toContainText('Mero Blocks');
+    // The application is NOT repeated per card — it names the page these cards
+    // are on. Its version still is: `appVersion` is this namespace's pinned
+    // blob and can lag the installed bundle, so it is not the heading's value.
+    await expect(card).not.toContainText('Mero Blocks');
     await expect(card).toContainText('v0.1.1');
+    await expect(
+      page.getByRole('heading', { name: 'Mero Blocks' }),
+    ).toBeVisible();
     // Asserted ABSENT. Core deleted the upgrade-policy concept in rc.21 and
     // rc.34 returns no such field, so this badge had been rendering
     // `undefined` — the fixture was the only thing supplying a value, which is
@@ -94,19 +113,38 @@ test.describe('Namespaces', () => {
     await expect(card).not.toContainText('LazyOnAccess');
   });
 
-  test('both entry points — Join and Create — are on the list', async ({
+  test('the application grid offers joining, never creating', async ({
     page,
   }) => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
 
+    // Creating needs an application, and asking which one is the dropdown this
+    // screen replaced. It is offered on the application's own page instead.
+    await expect(page.getByTestId('ns-app-grid')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /Create Namespace/i }),
+    ).toHaveCount(0);
+
     await page.getByRole('button', { name: /Join Namespace/i }).click();
     await expect(page.getByTestId('ns-join-panel')).toBeVisible();
+  });
+
+  test('creating from an application page binds to it, with no choice offered', async ({
+    page,
+  }) => {
+    await mockNode(page, FIXTURE);
+    await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
 
     await page.getByRole('button', { name: /Create Namespace/i }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Create namespace' }),
-    ).toBeVisible();
+    const panel = page.getByTestId('ns-create-panel');
+    await expect(panel).toBeVisible();
+
+    // The application is stated, not selected: no select, nothing to pick.
+    const locked = panel.getByTestId('ns-app-locked');
+    await expect(locked).toContainText('Mero Blocks');
+    await expect(panel.locator('select')).toHaveCount(0);
   });
 
   test('a namespace shows its members, contexts and subgroups', async ({
@@ -114,6 +152,7 @@ test.describe('Namespaces', () => {
   }) => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     // Counts span the whole tree, not just the root level.
@@ -139,6 +178,7 @@ test.describe('Namespaces', () => {
     // the page must render, just with nobody marked "you" and no error.
     await mockNode(page, { ...FIXTURE, nodeIdentity: null });
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     const members = page.getByTestId('ns-members-section');
@@ -161,6 +201,7 @@ test.describe('Namespaces', () => {
     });
 
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     const panel = page.getByTestId('ns-identity-section');
@@ -175,6 +216,7 @@ test.describe('Namespaces', () => {
   test('members can be promoted and demoted', async ({ page }) => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     const members = page.getByTestId('ns-members-section');
@@ -217,6 +259,7 @@ test.describe('Namespaces', () => {
     // answer with a bare error.
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     const members = page.getByTestId('ns-members-section');
@@ -239,6 +282,7 @@ test.describe('Namespaces', () => {
   }) => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
     await page.getByTestId('ns-tree-subgroup').getByText('engineering').click();
 
@@ -254,6 +298,7 @@ test.describe('Namespaces', () => {
   test('subgroups can be created from a namespace', async ({ page }) => {
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
 
     let body: Record<string, unknown> | null = null;
@@ -291,6 +336,7 @@ test.describe('Namespaces', () => {
       abis: { [APP_WITH_FRONTEND.id]: ABI_WITH_INIT },
     });
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
     await page.getByRole('button', { name: /Create Context/ }).click();
 
@@ -348,6 +394,7 @@ test.describe('Namespaces', () => {
     // nothing to generate from, so it must not pretend otherwise.
     await mockNode(page, FIXTURE);
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
     await page.getByTestId('ns-card').click();
     await page.getByRole('button', { name: /Create Context/ }).click();
 
@@ -372,6 +419,7 @@ test.describe('Namespaces', () => {
       ],
     });
     await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
 
     // A namespace exists to run one application, so its name is a true and
     // useful label — far better than the raw id the title used to show. The id
@@ -381,10 +429,31 @@ test.describe('Namespaces', () => {
     );
   });
 
-  test('empty state explains what a namespace is for', async ({ page }) => {
-    await mockNode(page, { namespaces: [] });
+  test('an application with no namespaces is still listed, and says so', async ({
+    page,
+  }) => {
+    // The grid is seeded from INSTALLED APPS, not from namespaces, so a freshly
+    // installed app is reachable before it has anything in it — which is the
+    // only way to create its first namespace now.
+    await mockNode(page, { ...FIXTURE, namespaces: [] });
     await page.goto('/admin-dashboard/namespaces');
 
-    await expect(page.getByText('No namespaces found')).toBeVisible();
+    await expect(page.getByTestId('ns-app-card')).toHaveCount(2);
+    await openApp(page);
+    await expect(
+      page.getByText('No namespaces for this application yet'),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /Create Namespace/i }),
+    ).toBeEnabled();
+  });
+
+  test('empty state explains what a namespace is for', async ({ page }) => {
+    // No namespaces AND no installed apps: nothing to group by, so the grid is
+    // genuinely empty and the page has to say what to do about it.
+    await mockNode(page, { namespaces: [], apps: [] });
+    await page.goto('/admin-dashboard/namespaces');
+
+    await expect(page.getByText('No applications')).toBeVisible();
   });
 });
