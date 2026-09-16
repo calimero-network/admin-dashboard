@@ -50,6 +50,52 @@ test.describe('Marketplace', () => {
     await page.goto('/admin-dashboard/marketplace');
   });
 
+  // The node release a bundle was built against, which the registry serves as
+  // `min_runtime_version`. Core refuses to install a bundle whose floor is above
+  // the node, and before this the only way to find out was to press Install and
+  // read the toast.
+  test('shows which node release a bundle was built against', async ({
+    page,
+  }) => {
+    await mockNode(page, {
+      bundles: [
+        {
+          package: 'com.calimero.built',
+          appVersion: '1.0.0',
+          metadata: { name: 'Built App' },
+          min_runtime_version: '0.11.0-rc.37',
+        },
+        {
+          // The registry DEFAULTS an absent floor to `0.1.0`
+          // (bundle-sanitize.js), so this is not a runtime anybody ran. A card
+          // that printed it would put a confident wrong answer on most apps.
+          package: 'com.calimero.placeholder',
+          appVersion: '1.0.0',
+          metadata: { name: 'Placeholder App' },
+          min_runtime_version: '0.1.0',
+        },
+        {
+          package: 'com.calimero.nofloor',
+          appVersion: '1.0.0',
+          metadata: { name: 'No Floor App' },
+        },
+      ],
+    });
+    await page.goto('/admin-dashboard/marketplace');
+
+    const built = page.getByTestId('app-card').filter({ hasText: 'Built App' });
+    await expect(built.getByTestId('app-card-runtime')).toHaveText(
+      'node 0.11.0-rc.37',
+    );
+
+    // Asserted ABSENT, both of them — the placeholder and the missing value.
+    for (const name of ['Placeholder App', 'No Floor App']) {
+      const card = page.getByTestId('app-card').filter({ hasText: name });
+      await expect(card).toBeVisible();
+      await expect(card.getByTestId('app-card-runtime')).toHaveCount(0);
+    }
+  });
+
   test('lists bundles from the configured registry', async ({ page }) => {
     await expect(page.getByTestId('app-card')).toHaveCount(2);
     await expect(page.getByText('Mero Chat')).toBeVisible();
