@@ -346,13 +346,6 @@
   font-weight: 600;
 }
 
-/* A keyword is whatever the publisher typed, so it is shown verbatim — in
-   lower case, which is also what tells it apart from a Title Case shelf. */
-.facet-chip-tag {
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
-  font-size: 11.5px;
-}
-
 .facet-count {
   color: var(--text-tertiary);
   font-size: 11px;
@@ -362,21 +355,6 @@
 .facet-chip.active .facet-count {
   color: inherit;
   opacity: 0.7;
-}
-
-.facet-more {
-  height: 26px;
-  padding: 0 8px;
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.facet-more:hover {
-  color: var(--text-primary);
 }
 
 .marketplace-count {

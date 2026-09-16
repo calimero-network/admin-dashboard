@@ -1,31 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import {
-  categoryFacets,
-  keywordTags,
-  matchesFacets,
-  tagFacets,
-  toggleTag,
-} from '../utils/appFilters';
+import { categoryFacets, matchesFacets } from '../utils/appFilters';
 
-const app = (category?: string, tags?: string[]) => ({ category, tags });
-
-describe('keywordTags', () => {
-  it('drops the category slugs, which publishers declare AS tags', () => {
-    // The live bundles carry `tags: ["communication", "chat"]` and no
-    // top-level category, so without this the same word chips both rows.
-    expect(keywordTags(['communication', 'chat'])).toEqual(['chat']);
-  });
-
-  it('normalises case and whitespace and de-duplicates', () => {
-    expect(keywordTags([' CRDT ', 'crdt', 'p2p'])).toEqual(['crdt', 'p2p']);
-  });
-
-  it('survives a missing or malformed tag list', () => {
-    expect(keywordTags(undefined)).toEqual([]);
-    expect(keywordTags(null)).toEqual([]);
-    expect(keywordTags([undefined as unknown as string, ''])).toEqual([]);
-  });
-});
+const app = (category?: string) => ({ category });
 
 describe('categoryFacets', () => {
   it('offers only categories that have apps behind them', () => {
@@ -49,69 +25,25 @@ describe('categoryFacets', () => {
   });
 });
 
-describe('tagFacets', () => {
-  it('ranks by count, then alphabetically', () => {
-    const facets = tagFacets([
-      app('games', ['multiplayer', 'voxel']),
-      app('games', ['multiplayer']),
-      app(undefined, ['crdt']),
-    ]);
-    expect(facets).toEqual([
-      { id: 'multiplayer', label: 'multiplayer', count: 2 },
-      { id: 'crdt', label: 'crdt', count: 1 },
-      { id: 'voxel', label: 'voxel', count: 1 },
-    ]);
-  });
-
-  it('never offers a category slug as a keyword chip', () => {
-    expect(
-      tagFacets([app('games', ['games', 'puzzle'])]).map((f) => f.id),
-    ).toEqual(['puzzle']);
-  });
-});
-
 describe('matchesFacets', () => {
-  const none = { category: '', tags: [] };
+  const none = { category: '' };
 
   it('passes everything when nothing is selected', () => {
-    expect(matchesFacets(app(undefined, undefined), none)).toBe(true);
+    expect(matchesFacets(app(undefined), none)).toBe(true);
   });
 
   it('filters to one shelf', () => {
-    expect(matchesFacets(app('games'), { ...none, category: 'games' })).toBe(
-      true,
-    );
-    expect(matchesFacets(app('social'), { ...none, category: 'games' })).toBe(
-      false,
-    );
-    expect(matchesFacets(app(undefined), { ...none, category: 'games' })).toBe(
-      false,
-    );
+    expect(matchesFacets(app('games'), { category: 'games' })).toBe(true);
+    expect(matchesFacets(app('social'), { category: 'games' })).toBe(false);
+    expect(matchesFacets(app(undefined), { category: 'games' })).toBe(false);
   });
 
-  it('ANDs the tags: a second chip narrows, it never widens', () => {
-    const chat = app('communication', ['chat', 'e2ee']);
-    expect(matchesFacets(chat, { ...none, tags: ['chat'] })).toBe(true);
-    expect(matchesFacets(chat, { ...none, tags: ['chat', 'e2ee'] })).toBe(true);
-    expect(matchesFacets(chat, { ...none, tags: ['chat', 'voxel'] })).toBe(
-      false,
-    );
-  });
-
-  it('combines a shelf with a keyword', () => {
-    const app1 = app('games', ['multiplayer']);
-    expect(
-      matchesFacets(app1, { category: 'games', tags: ['multiplayer'] }),
-    ).toBe(true);
-    expect(
-      matchesFacets(app1, { category: 'social', tags: ['multiplayer'] }),
-    ).toBe(false);
-  });
-});
-
-describe('toggleTag', () => {
-  it('adds, removes and leaves the rest alone', () => {
-    expect(toggleTag(['a'], 'b')).toEqual(['a', 'b']);
-    expect(toggleTag(['a', 'b'], 'a')).toEqual(['b']);
+  it('ignores the tags a bundle carries — they are no longer a facet', () => {
+    // A bundle's tags still exist on the wire and still show on its own page.
+    // They just do not filter the listing any more, so an app is judged on its
+    // category alone.
+    const chat = { category: 'communication', tags: ['chat', 'e2ee'] };
+    expect(matchesFacets(chat, { category: 'communication' })).toBe(true);
+    expect(matchesFacets(chat, { category: 'games' })).toBe(false);
   });
 });
