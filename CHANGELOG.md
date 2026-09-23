@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/calimero-network/admin-dashboard/compare/v1.16.1...v1.17.0) (2026-09-23)
+
+
+### Features
+
+* **namespaces:** group the listing by application, and bind creation to it ([#160](https://github.com/calimero-network/admin-dashboard/issues/160)) ([badf2fa](https://github.com/calimero-network/admin-dashboard/commit/badf2fa0d60c81b045f925f4e4ca35ce08811655))
+
 ## [1.16.1](https://github.com/calimero-network/admin-dashboard/compare/v1.16.0...v1.16.1) (2026-09-16)
 
 
