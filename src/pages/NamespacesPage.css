@@ -771,3 +771,146 @@
   margin-top: 16px;
   line-height: 1.5;
 }
+
+/* ── Application grid (the namespaces entry point) ────────────────────────── */
+/* A namespace is bound to one application, so the application is what you pick
+   first. These cards mirror .ns-card's shape so the two levels read as one
+   hierarchy rather than two unrelated screens. */
+
+.ns-app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.ns-app-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.ns-app-card:hover,
+.ns-app-card:focus-visible {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow);
+  outline: none;
+}
+
+.ns-app-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ns-app-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ns-app-card-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-app-card-package {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-app-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.ns-app-card-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ns-app-card-count svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── One application's heading ────────────────────────────────────────────── */
+
+.ns-app-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ns-app-heading-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ── Locked application (create-namespace panel) ──────────────────────────── */
+/* The application is settled by the page this panel opens from, so this states
+   the binding instead of offering a choice. Deliberately styled as a read-only
+   panel, not a control, so it is never mistaken for one. */
+
+.ns-app-locked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.ns-app-locked-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ns-app-locked-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-app-locked-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  min-width: 0;
+}

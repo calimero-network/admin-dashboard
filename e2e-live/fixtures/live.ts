@@ -131,6 +131,28 @@ export async function openDashboard(
  * is a real bundle the install exercises the metadata path that matters:
  * BundleManifest::to_metadata_json, whose output the dashboard reads back.
  */
+/**
+ * Open one application's namespace list.
+ *
+ * The Namespaces page opens on a grid of APPLICATIONS, not namespaces — a
+ * namespace is app-bound, so its `ns-card` only exists one level in. Going
+ * straight to `/namespaces` and reaching for `ns-card` finds nothing, which is
+ * a timeout rather than a useful failure, so every test that wants a namespace
+ * card comes through here.
+ */
+export async function openNamespacesForApp(
+  page: Page,
+  applicationId: string,
+  opts: OpenOptions = {},
+): Promise<void> {
+  await openDashboard(page, '/admin-dashboard/namespaces', opts);
+  await page
+    .locator(
+      `[data-testid="ns-app-card"][data-application-id="${applicationId}"]`,
+    )
+    .click();
+}
+
 export const REAL_PACKAGE = 'com.calimero.chat';
 export const REAL_APP_NAME = 'Mero Chat';
 

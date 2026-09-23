@@ -17,6 +17,11 @@ import { errorMessage, truncate, type ShowToast } from './shared';
 export interface InstalledApp {
   id: string;
   name: string;
+  /** The bundle's own package id (`com.calimero.blocks`), when it declares one. */
+  package?: string | null;
+  version?: string | null;
+  /** `data:image/png;base64,…` from the signed bundle, as the launcher uses. */
+  icon?: string | null;
 }
 
 /**

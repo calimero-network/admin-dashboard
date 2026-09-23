@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   openDashboard,
+  openNamespacesForApp,
   adminApi,
   installProbeApp,
   uninstallAllApps,
@@ -63,7 +64,19 @@ test.describe.serial('Live: namespaces', () => {
   test('starts with no namespaces', async ({ page }) => {
     await openDashboard(page, '/admin-dashboard/namespaces');
     await expect(page.getByTestId('shell-page-title')).toHaveText('Namespaces');
-    await expect(page.getByText('No namespaces found')).toBeVisible();
+
+    // The page opens on applications, not namespaces, and an installed app
+    // keeps its card whether or not it has any — so "none yet" is a count of
+    // zero on the card, and the empty state is one level in.
+    const appCard = page.locator(
+      `[data-testid="ns-app-card"][data-application-id="${appId}"]`,
+    );
+    await expect(appCard).toContainText('0 namespaces');
+
+    await appCard.click();
+    await expect(
+      page.getByText('No namespaces for this application yet'),
+    ).toBeVisible();
   });
 
   test('there is no separate Contexts page', async ({ page }) => {
@@ -75,16 +88,18 @@ test.describe.serial('Live: namespaces', () => {
   test('creates a namespace, and its name survives the round trip', async ({
     page,
   }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
 
     await page.getByRole('button', { name: /Create Namespace/ }).click();
     await expect(
       page.getByRole('heading', { name: 'Create namespace' }),
     ).toBeVisible();
 
-    // The app select is populated from the node's installed applications, so
-    // choosing by value proves that list loaded.
-    await page.locator('select').first().selectOption(appId);
+    // There is no app picker any more: the panel is only reachable from one
+    // application's page, so the binding is shown locked rather than chosen.
+    // Asserting it proves the namespace is created against THIS app.
+    await expect(page.getByTestId('ns-app-locked')).toBeVisible();
+    await expect(page.locator('select')).toHaveCount(0);
     await page.getByPlaceholder('e.g. Team workspace').fill(nsName);
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
@@ -132,7 +147,7 @@ test.describe.serial('Live: namespaces', () => {
   test('the detail view shows the application, structure and members', async ({
     page,
   }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
 
     await expect(
@@ -191,7 +206,7 @@ test.describe.serial('Live: namespaces', () => {
   });
 
   test('creates a named subgroup, and the name persists', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
 
     await page.getByRole('button', { name: /New Subgroup/ }).click();
@@ -224,7 +239,7 @@ test.describe.serial('Live: namespaces', () => {
   });
 
   test('opens the subgroup and lists its own members', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').filter({ hasText: nsName }).click();
     await page.getByTestId('ns-tree-subgroup').getByText(groupName).click();
 
@@ -249,7 +264,7 @@ test.describe.serial('Live: namespaces', () => {
     const doomedId = created.data?.namespaceId;
     expect(doomedId, 'failed to arrange a namespace to delete').toBeTruthy();
 
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
 
     const card = page.getByTestId('ns-card').filter({ hasText: 'doomed' });
     // Two steps, both inside the card: Delete swaps itself for Confirm/Cancel.
