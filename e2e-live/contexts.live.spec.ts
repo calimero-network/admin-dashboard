@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import {
   adminApi,
   clearNamespaces,
-  openDashboard,
+  openNamespacesForApp,
   uninstallAllApps,
 } from './fixtures/live';
 
@@ -91,7 +91,7 @@ test.describe.serial('Live: create context', () => {
   });
 
   test('the form is generated from the application ABI', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').first().click();
     await page.getByRole('button', { name: /Create Context/ }).click();
 
@@ -118,7 +118,7 @@ test.describe.serial('Live: create context', () => {
   });
 
   test('a context is created with the ABI-derived params', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').first().click();
     await page.getByRole('button', { name: /Create Context/ }).click();
 
@@ -157,7 +157,7 @@ test.describe.serial('Live: create context', () => {
   test('a bad value is reported by the form, not as a 500', async ({
     page,
   }) => {
-    await openDashboard(page, '/admin-dashboard/namespaces');
+    await openNamespacesForApp(page, appId);
     await page.getByTestId('ns-card').first().click();
     await page.getByRole('button', { name: /Create Context/ }).click();
 
