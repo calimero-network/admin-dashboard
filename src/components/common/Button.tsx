@@ -24,8 +24,12 @@ const ButtonStyled = styled.button<StyledButtonProps>`
   border-radius: ${(props) => props.$borderRadius};
   color: ${(props) => props.$textColor};
   font-size: ${(props) => props.$fontSize};
-  font-weight: 500;
+  font-family: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-button);
   line-height: ${(props) => props.$lineHeight};
+  transition: box-shadow var(--duration-color) ease-out;
   text-align: center;
   cursor: pointer;
   outline: none;
@@ -33,6 +37,7 @@ const ButtonStyled = styled.button<StyledButtonProps>`
 
   &:hover {
     background-color: ${(props) => props.$highlightColor};
+    box-shadow: var(--shadow-button);
   }
 `;
 
@@ -59,15 +64,15 @@ export default function Button({
   width,
   isLoading,
   isDisabled = false,
-  color = '#434546',
-  disabledColor = '#4cfafc',
-  highlightColor = '#76f5f9',
-  textColor = '#000000',
+  color = 'var(--border-color)',
+  disabledColor = 'var(--accent-fill)',
+  highlightColor = 'var(--accent-fill)',
+  textColor = 'var(--on-accent)',
   fontSize = '0.875rem',
   lineHeight = '1.25rem',
   height = '2.375rem',
   padding = '0.625rem 0.75rem',
-  borderRadius = '0.5rem',
+  borderRadius = '0',
 }: ButtonProps) {
   return (
     <ButtonStyled

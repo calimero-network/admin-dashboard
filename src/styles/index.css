@@ -1,17 +1,63 @@
 /*
- * Design tokens, ported from Calimero Desktop (tauri-app/apps/desktop/src/index.css)
- * so the two surfaces are visually identical.
+ * Design tokens: the calimero.network design.
  *
- * Fonts: deliberately NO @import of Google Fonts. This bundle is baked into
- * merod and served by the node itself, often on a LAN or an air-gapped host —
- * a runtime request to fonts.googleapis.com would hang or fail and silently
- * degrade typography. We use the desktop's Inter-then-system stack instead.
+ * The values are the landing's (and Calimero Cloud's, and the App Registry's
+ * since app-registry#318): a charcoal ground, two surfaces a step above it,
+ * opaque #282828 hairlines, near-white ink and the brand lime as a FILL with
+ * dark ink on it. Every corner is square, and nothing casts a shadow except a
+ * floating menu.
  *
- * Backwards compatibility: the pre-existing pages use `--radius`,
- * `--bg-secondary-solid` and `--sidebar-width`, and the `.btn*` button classes.
- * Those are kept as aliases of their desktop equivalents so this port does not
- * have to rewrite every call site in one commit.
+ * Fonts are bundled, never fetched from a CDN. This bundle is baked into merod
+ * and served by the node itself, often on a LAN or an air-gapped host, so a
+ * runtime request to fonts.googleapis.com would hang and silently degrade the
+ * type. The woff2 files are imported through relative `url()`s so Vite
+ * rewrites them under the `/admin-dashboard/` base.
+ *
+ * Backwards compatibility: the variable NAMES are unchanged from the desktop
+ * port (`--bg-primary`, `--accent-primary`, `--radius-md`, ...), so every page
+ * stylesheet picks the new look up through them. What changed is the values.
  */
+
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+
+/* Power Grotesk, the landing's five weights: a `font-weight: 500` resolves to
+   400 and a 600 to 700, which is the landing's own two-weight rhythm. */
+@font-face {
+  font-family: 'Power Grotesk';
+  src: url('../assets/fonts/powerGrotesk/PowerGrotesk-Black.woff2')
+    format('woff2');
+  font-weight: 950;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Power Grotesk';
+  src: url('../assets/fonts/powerGrotesk/PowerGrotesk-Bold.woff2')
+    format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Power Grotesk';
+  src: url('../assets/fonts/powerGrotesk/PowerGrotesk-Regular.woff2')
+    format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Power Grotesk';
+  src: url('../assets/fonts/powerGrotesk/PowerGrotesk-Light.woff2')
+    format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Power Grotesk';
+  src: url('../assets/fonts/powerGrotesk/PowerGrotesk-UltraLight.woff2')
+    format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
 
 * {
   margin: 0;
@@ -20,214 +66,205 @@
 }
 
 :root {
+  color-scheme: dark;
+
+  /* Type */
+  --font-sans: 'Power Grotesk', arial, helvetica, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+  /* Letter-spacing for the all-caps roles, from the landing's type scale. */
+  --tracking-eyebrow: 0.28em;
+  --tracking-label: 0.16em;
+  --tracking-button: 0.15em;
+
+  /* Motion: the landing's reveal curve. A long, soft ease-out with no
+     overshoot, so nothing on the page appears to jump. */
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-reveal: 600ms;
+  --duration-color: 0.3s;
+
   /* Surfaces */
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --bg-elevated: #1c2128;
+  --bg-primary: #131215;
+  --bg-secondary: #1a191c;
+  --bg-tertiary: #211f23;
+  --bg-elevated: #1a191c;
 
   /* Text */
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-tertiary: #6e7681;
+  --text-primary: #fcfcfc;
+  --text-secondary: #8e8e8e;
+  --text-tertiary: #707070;
 
-  /* Borders */
-  --border-color: #30363d;
-  --border-hover: rgba(165, 255, 17, 0.18);
+  /* Borders: the landing's border-low-contrast / border-mid-contrast.
+     Opaque, so a line reads the same over the ground and over a card. */
+  --border-color: #282828;
+  --border-strong: #404040;
+  --border-hover: #404040;
 
-  /* Accent */
+  /* Accent.
+     `--accent-primary` is the accent as INK (text, icons, outlines).
+     `--accent-fill` is the raw lime as a FILL, always with `--on-accent` ink
+     on it. In dark mode they are the same colour; on paper they split,
+     because #a5ff11 as text on white is ~1.2:1. */
   --accent-primary: #a5ff11;
-  --accent-hover: #8ed40d;
+  --accent-hover: #b8ff4a;
+  --accent-fill: #a5ff11;
+  --accent-fill-hover: #b8ff4a;
+  --on-accent: #131215;
   --accent-dim: rgba(165, 255, 17, 0.35);
   --accent-light: rgba(165, 255, 17, 0.08);
   --accent-glow: rgba(165, 255, 17, 0.15);
 
   /* Status */
-  --success: #3fb950;
-  --error: #f85149;
-  --warning: #d29922;
-  --info: #3b82f6;
+  --success: #5fd68a;
+  --error: #ff6b6b;
+  --warning: #f5b942;
+  --info: #6ea8ff;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.34);
-  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(165, 255, 17, 0.08);
+  /* Shadows. Cards are flat; only floating panels get depth. */
+  --shadow-sm: none;
+  --shadow-md: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.55);
+  --shadow-glow: none;
+  /* The landing's button hover: a lime bloom, not a lift. */
+  --shadow-button: 0 0 20px 0 rgba(165, 255, 17, 0.45);
 
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #a5ff11 0%, #73b30c 100%);
-  --gradient-secondary: linear-gradient(135deg, #73b30c 0%, #2d380b 100%);
-  --gradient-text: linear-gradient(
-    135deg,
-    #ffffff 30%,
-    rgba(165, 255, 17, 0.85) 100%
-  );
-  --gradient-surface: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.025) 0%,
-    transparent 100%
-  );
+  /* Gradients (kept for call sites; the design is flat, so mostly solid). */
+  --gradient-primary: linear-gradient(135deg, #a5ff11 0%, #a5ff11 100%);
+  --gradient-secondary: linear-gradient(135deg, #211f23 0%, #1a191c 100%);
+  --gradient-text: linear-gradient(135deg, #fcfcfc 30%, #a5ff11 100%);
+  --gradient-surface: none;
 
-  /* Glass surfaces */
-  --surface-glass: rgba(22, 27, 34, 0.55);
-  --surface-glass-soft: rgba(13, 17, 23, 0.5);
-  --surface-glass-strong: rgba(13, 17, 23, 0.72);
-  --header-glass: rgba(13, 17, 23, 0.78);
-  --button-glass: rgba(165, 255, 17, 0.06);
-  --button-glass-hover: rgba(165, 255, 17, 0.1);
+  /* Formerly glass; now plain surfaces. The landing uses no blur. */
+  --surface-glass: #1a191c;
+  --surface-glass-soft: #1a191c;
+  --surface-glass-strong: #131215;
+  --header-glass: #131215;
+  --button-glass: transparent;
+  --button-glass-hover: rgba(252, 252, 252, 0.04);
+  --hover-wash: rgba(252, 252, 252, 0.04);
+  --skeleton-a: rgba(252, 252, 252, 0.04);
+  --skeleton-b: rgba(252, 252, 252, 0.08);
+  --scrollbar: rgba(252, 252, 252, 0.12);
+  --scrollbar-hover: rgba(252, 252, 252, 0.22);
+  --overlay: rgba(10, 10, 12, 0.72);
+
+  /* The white wordmark shows as it is on charcoal. */
+  --logo-filter: none;
 
   /* Layout */
-  --header-height: 56px;
-  --sidebar-width: 240px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --header-height: 64px;
+  --sidebar-width: 248px;
+  /* Square. The landing has no rounded surface anywhere. */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 
-  /* Ambient page background */
-  --desktop-space-background: radial-gradient(
-    circle at 50% -10%,
-    rgba(165, 255, 17, 0.1) 0%,
-    rgba(165, 255, 17, 0.04) 18%,
-    rgba(13, 17, 23, 0) 42%
-  );
-  --desktop-space-size: cover;
+  /* The page's vertical column lines (the landing's grid-line). */
+  --grid-line: rgba(252, 252, 252, 0.035);
+  --desktop-space-background: none;
+  --desktop-space-size: auto;
   --desktop-space-position: top center;
   --desktop-space-repeat: no-repeat;
 
   /* ── Legacy aliases (pre-port pages) ── */
-  --radius: var(--radius-md);
-  --bg-secondary-solid: #161b22;
+  --radius: 0;
+  --bg-secondary-solid: #1a191c;
 }
 
+/*
+ * Light: the landing's charcoal and paper swapped, as Calimero Cloud and the
+ * App Registry do it — an off-white ground, white cards, #dcdcd4 lines and
+ * charcoal ink. The accent INK becomes #487800 (4.5:1+ on the paper); the raw
+ * lime stays for fills, where the ink on it is dark.
+ */
 [data-theme='light'] {
-  --bg-primary: #fafafa;
-  --bg-secondary: #f4f4f5;
-  --bg-tertiary: #e4e4e7;
+  color-scheme: light;
+  --bg-primary: #f5f5f0;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ebebe4;
   --bg-elevated: #ffffff;
-  --text-primary: #09090b;
-  --text-secondary: #52525b;
-  --text-tertiary: #71717a;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(0, 0, 0, 0.15);
-  --accent-primary: #6aab00;
-  --accent-hover: #4d7d00;
-  --accent-dim: rgba(106, 171, 0, 0.35);
-  --accent-light: rgba(106, 171, 0, 0.08);
-  --accent-glow: rgba(106, 171, 0, 0.12);
-  --success: #16a34a;
-  --error: #dc2626;
-  --warning: #d97706;
-  --info: #2563eb;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 20px rgba(106, 171, 0, 0.06);
-  --gradient-primary: linear-gradient(135deg, #6aab00 0%, #4d7d00 100%);
-  --gradient-secondary: linear-gradient(135deg, #4d7d00 0%, #2d4700 100%);
-  --gradient-text: linear-gradient(135deg, #6aab00 0%, #4d7d00 100%);
-  --gradient-surface: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.02) 0%,
-    transparent 100%
-  );
-  --surface-glass: rgba(255, 255, 255, 0.7);
-  --surface-glass-soft: rgba(255, 255, 255, 0.55);
-  --surface-glass-strong: rgba(255, 255, 255, 0.82);
-  --header-glass: rgba(250, 250, 250, 0.82);
-  --button-glass: rgba(106, 171, 0, 0.08);
-  --button-glass-hover: rgba(106, 171, 0, 0.14);
-  --bg-secondary-solid: #f4f4f5;
-  --desktop-space-background: radial-gradient(
-      circle at 16% 10%,
-      rgba(193, 226, 138, 0.3) 0%,
-      transparent 22%
-    ),
-    radial-gradient(
-      circle at 84% 12%,
-      rgba(193, 226, 138, 0.18) 0%,
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 50% 72%,
-      rgba(193, 226, 138, 0.12) 0%,
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at 12% 18%,
-      rgba(16, 24, 40, 0.16) 0 1px,
-      transparent 1.8px
-    ),
-    radial-gradient(
-      circle at 28% 62%,
-      rgba(16, 24, 40, 0.14) 0 1px,
-      transparent 1.8px
-    ),
-    radial-gradient(
-      circle at 44% 22%,
-      rgba(16, 24, 40, 0.16) 0 1px,
-      transparent 1.7px
-    ),
-    radial-gradient(
-      circle at 58% 78%,
-      rgba(16, 24, 40, 0.12) 0 1px,
-      transparent 1.9px
-    ),
-    radial-gradient(
-      circle at 74% 34%,
-      rgba(16, 24, 40, 0.18) 0 1px,
-      transparent 1.8px
-    ),
-    radial-gradient(
-      circle at 88% 16%,
-      rgba(16, 24, 40, 0.14) 0 1px,
-      transparent 1.8px
-    ),
-    radial-gradient(
-      circle at 8% 86%,
-      rgba(16, 24, 40, 0.16) 0 1px,
-      transparent 1.9px
-    ),
-    radial-gradient(
-      circle at 66% 54%,
-      rgba(16, 24, 40, 0.1) 0 1px,
-      transparent 1.8px
-    ),
-    radial-gradient(
-      circle at 92% 72%,
-      rgba(16, 24, 40, 0.18) 0 1px,
-      transparent 1.8px
-    ),
-    linear-gradient(180deg, #fbfcff 0%, #f4f8f3 45%, #edf3ec 100%);
+  --text-primary: #131215;
+  --text-secondary: #5e5e5e;
+  --text-tertiary: #6b6b70;
+  --border-color: #dcdcd4;
+  --border-strong: #b9b9b0;
+  --border-hover: #b9b9b0;
+  --accent-primary: #487800;
+  --accent-hover: #385e00;
+  --accent-fill: #a5ff11;
+  --accent-fill-hover: #b8ff4a;
+  --on-accent: #131215;
+  --accent-dim: rgba(72, 120, 0, 0.4);
+  --accent-light: rgba(72, 120, 0, 0.08);
+  --accent-glow: rgba(72, 120, 0, 0.14);
+  --success: #1b7a3a;
+  --error: #c62828;
+  --warning: #8a5a00;
+  --info: #1f5fbf;
+  --shadow-sm: none;
+  --shadow-md: 0 16px 40px rgba(19, 18, 21, 0.12),
+    0 2px 6px rgba(19, 18, 21, 0.06);
+  --shadow-lg: 0 16px 40px rgba(19, 18, 21, 0.12),
+    0 2px 6px rgba(19, 18, 21, 0.06);
+  --shadow-xl: 0 16px 40px rgba(19, 18, 21, 0.14),
+    0 2px 6px rgba(19, 18, 21, 0.06);
+  --shadow-glow: none;
+  /* A lime bloom on white reads as a smudge; a hard ink offset reads as the
+     landing's line-art instead. */
+  --shadow-button: 3px 3px 0 0 #131215;
+  --gradient-primary: linear-gradient(135deg, #a5ff11 0%, #a5ff11 100%);
+  --gradient-secondary: linear-gradient(135deg, #ebebe4 0%, #ffffff 100%);
+  --gradient-text: linear-gradient(135deg, #131215 30%, #487800 100%);
+  --gradient-surface: none;
+  --surface-glass: #ffffff;
+  --surface-glass-soft: #ffffff;
+  --surface-glass-strong: #f5f5f0;
+  --header-glass: #f5f5f0;
+  --button-glass: transparent;
+  --button-glass-hover: rgba(19, 18, 21, 0.04);
+  --hover-wash: rgba(19, 18, 21, 0.04);
+  --skeleton-a: rgba(19, 18, 21, 0.04);
+  --skeleton-b: rgba(19, 18, 21, 0.08);
+  --scrollbar: rgba(19, 18, 21, 0.14);
+  --scrollbar-hover: rgba(19, 18, 21, 0.24);
+  --overlay: rgba(19, 18, 21, 0.45);
+  /* The white wordmark flattened to near-black ink. */
+  --logo-filter: brightness(0) invert(0.08);
+  --grid-line: rgba(19, 18, 21, 0.05);
+  --bg-secondary-solid: #ffffff;
 }
-
 body {
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Open Sans',
-    'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-primary);
-  background-image: var(--desktop-space-background);
-  background-size: var(--desktop-space-size);
-  background-position: var(--desktop-space-position);
-  background-repeat: var(--desktop-space-repeat);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.55;
+  /* The landing sets copy with a hair of positive tracking; an admin UI is
+     denser, so half of it. */
+  letter-spacing: 0.015em;
   transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+    background-color var(--duration-color) ease-out,
+    color var(--duration-color) ease-out;
+}
+
+code,
+pre,
+kbd,
+samp,
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  letter-spacing: inherit;
 }
 
 #root {
@@ -237,46 +274,53 @@ body {
   position: relative;
 }
 
-* {
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
 a {
   color: inherit;
   text-decoration: none;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: var(--scrollbar);
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-}
-[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--scrollbar-hover);
 }
 
 ::selection {
-  background-color: var(--accent-glow);
-  color: var(--text-primary);
+  background-color: var(--accent-fill);
+  color: var(--on-accent);
 }
 
-/* ── Animations ── */
+/* ── Animations ──
+ *
+ * The landing's motion: things arrive with a short fade and a small rise on a
+ * long, soft ease-out (no overshoot), and hover states only ever change colour.
+ * Entrances are CSS animations, so they run once when an element MOUNTS and
+ * never again on a re-render — a poll or a refetch that keeps the element in
+ * the tree does not replay them.
+ *
+ * `backwards` fill-mode means the base style is the final, visible one: the
+ * from-state only applies while the animation runs, so killing animations
+ * (reduced motion, below) leaves the page fully drawn rather than stuck at
+ * opacity 0. It also leaves NO transform behind once the entrance ends — a
+ * retained `transform: translateY(0)` would make the page a containing block
+ * and pin every `position: fixed` modal inside it to the page instead of the
+ * viewport.
+ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -288,7 +332,7 @@ a {
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -308,11 +352,11 @@ a {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 @keyframes spin {
@@ -331,22 +375,23 @@ a {
     background-position: -200% 0;
   }
 }
+/* A calm breathing dot, used by the connected indicator. Opacity only. */
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 var(--accent-glow);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 20px 4px var(--accent-glow);
+    opacity: 0.45;
   }
 }
 @keyframes glowPulse {
   0%,
   100% {
-    box-shadow: 0 0 15px rgba(165, 255, 17, 0.05);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 25px rgba(165, 255, 17, 0.12);
+    opacity: 0.7;
   }
 }
 
@@ -355,10 +400,49 @@ a {
   animation: spin 0.8s linear infinite;
 }
 
+/* Reveal utilities. `.reveal` on a block; `.reveal-stagger` on a grid or list
+   staggers its first dozen children by 50ms each, capped so a long list does
+   not keep arriving for seconds. */
+.reveal {
+  animation: fadeUp var(--duration-reveal) var(--ease-reveal) backwards;
+}
+.reveal-stagger > * {
+  animation: fadeUp var(--duration-reveal) var(--ease-reveal) backwards;
+}
+.reveal-stagger > :nth-child(2) {
+  animation-delay: 50ms;
+}
+.reveal-stagger > :nth-child(3) {
+  animation-delay: 100ms;
+}
+.reveal-stagger > :nth-child(4) {
+  animation-delay: 150ms;
+}
+.reveal-stagger > :nth-child(5) {
+  animation-delay: 200ms;
+}
+.reveal-stagger > :nth-child(6) {
+  animation-delay: 250ms;
+}
+.reveal-stagger > :nth-child(n + 7) {
+  animation-delay: 300ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── Utilities ── */
 .gradient-text {
   background: var(--gradient-text);
-  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -366,14 +450,29 @@ a {
 
 .card-glow {
   border-color: var(--accent-dim) !important;
-  box-shadow: var(--shadow-glow) !important;
 }
 .card-glow:hover {
-  box-shadow: 0 0 30px var(--accent-glow) !important;
+  border-color: var(--accent-primary) !important;
 }
 
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+/* The landing's eyebrow: small caps, widely tracked, in the accent. */
+.eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--accent-primary);
+  margin-bottom: 10px;
+}
+
+/* A section label: the landing's label-s. */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
 }
 
 /* ── Page scaffolding ── */
@@ -398,58 +497,67 @@ a {
 }
 
 .page-header {
-  margin-bottom: 28px;
-  padding-bottom: 20px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
 }
-.page-header-left h1 {
-  font-size: 22px;
-  font-weight: 600;
+/* Page titles: the landing's h1 — uppercase, weight 950, tight. */
+.page-header-left h1,
+.page-title {
+  font-size: clamp(26px, 1.2rem + 1.2vw, 38px);
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
+  margin: 0 0 10px 0;
+  overflow-wrap: anywhere;
 }
 .page-header-left p {
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0;
+  max-width: 72ch;
 }
 
-/* ── Buttons (desktop `.button*` system) ── */
+/* ── Buttons: square, all caps, tracked; lime with dark ink ── */
 .button,
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 700;
   font-family: inherit;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background: var(--bg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-button);
+  line-height: 1.2;
+  border-radius: 0;
+  border: 1px solid var(--border-strong);
+  background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color var(--duration-color) ease-out,
+    border-color var(--duration-color) ease-out,
+    color var(--duration-color) ease-out,
+    box-shadow var(--duration-color) ease-out;
   white-space: nowrap;
 }
 .button:hover:not(:disabled),
 .btn:hover:not(:disabled) {
-  border-color: var(--border-hover);
-  background: var(--button-glass-hover);
-}
-.button:active:not(:disabled),
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
+  border-color: var(--text-secondary);
+  background: var(--hover-wash);
 }
 .button:disabled,
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .button:focus-visible,
@@ -460,30 +568,38 @@ a {
 
 .button-primary,
 .btn-primary {
-  background: var(--accent-primary);
-  color: #0a0a0a;
-  border-color: var(--accent-primary);
-  font-weight: 600;
-  box-shadow: 0 0 20px var(--accent-glow);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  border-color: var(--accent-fill);
 }
 .button-primary:hover:not(:disabled),
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  box-shadow: 0 0 30px var(--accent-glow);
-  transform: translateY(-1px);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
 }
 
+/* Secondary: the landing's outline button, which fills with lime on hover. */
 .button-secondary,
 .btn-secondary {
-  background: var(--button-glass);
-  color: var(--text-primary);
-  border-color: var(--border-color);
+  background: transparent;
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 .button-secondary:hover:not(:disabled),
 .btn-secondary:hover:not(:disabled) {
-  background: var(--button-glass-hover);
-  border-color: var(--border-hover);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button-primary:hover:not(:disabled),
+  .btn-primary:hover:not(:disabled),
+  .button-secondary:hover:not(:disabled),
+  .btn-secondary:hover:not(:disabled) {
+    box-shadow: var(--shadow-button);
+  }
 }
 
 .button-danger,
@@ -495,6 +611,7 @@ a {
 .button-danger:hover:not(:disabled),
 .btn-danger:hover:not(:disabled) {
   background: color-mix(in srgb, var(--error) 12%, transparent);
+  border-color: var(--error);
 }
 
 .button-success {
@@ -506,25 +623,24 @@ a {
 
 .button-small,
 .btn-sm {
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 7px 12px;
+  font-size: 11px;
 }
 .btn-icon {
-  padding: 6px;
+  padding: 7px;
 }
 
-/* ── Cards ── */
+/* ── Cards: a surface a step above the ground, one hairline, square ── */
 .card {
-  background: var(--surface-glass);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0;
+  transition:
+    border-color var(--duration-color) ease-out,
+    background-color var(--duration-color) ease-out;
 }
 .card:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-glow);
+  border-color: var(--border-strong);
 }
 
 /* ── Empty state ── */
@@ -544,8 +660,10 @@ a {
   color: var(--text-tertiary);
 }
 .empty-state h3 {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   margin-bottom: 8px;
   color: var(--text-primary);
 }
@@ -556,24 +674,23 @@ a {
 /* ── Alerts (legacy; new code should use toasts) ── */
 .alert {
   padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 14px;
   margin-bottom: 16px;
-  backdrop-filter: blur(8px);
 }
 .alert-error,
 .error-message {
-  background: color-mix(in srgb, var(--error) 10%, transparent);
-  border: 1px solid var(--error);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 50%, transparent);
   color: var(--error);
   padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 14px;
   margin-bottom: 16px;
 }
 .alert-success {
-  background: color-mix(in srgb, var(--success) 10%, transparent);
-  border: 1px solid var(--success);
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent);
   color: var(--success);
 }
 
@@ -582,24 +699,29 @@ input[type='text'],
 input[type='password'],
 input[type='number'],
 input[type='url'],
+input[type='search'],
 select,
 textarea {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 13px;
-  padding: 8px 12px;
-  transition: border-color 0.2s ease;
+  font-size: 14px;
+  padding: 9px 12px;
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
 }
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary);
 }
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--text-tertiary);
 }
 
@@ -616,25 +738,16 @@ input::placeholder {
 /* ── Legacy skeleton lines (pre-port pages) ── */
 .skel-line {
   height: 14px;
-  border-radius: 4px;
+  border-radius: 0;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 100%
+    var(--skeleton-a) 0%,
+    var(--skeleton-b) 50%,
+    var(--skeleton-a) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   width: 100%;
-}
-[data-theme='light'] .skel-line {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.04) 0%,
-    rgba(0, 0, 0, 0.08) 50%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
-  background-size: 200% 100%;
 }
 .skel-title {
   height: 18px;
@@ -642,4 +755,11 @@ input::placeholder {
 }
 .skel-short {
   width: 35%;
+}
+
+@media (max-width: 720px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

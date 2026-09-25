@@ -17,6 +17,9 @@ importers:
       '@floating-ui/react-native':
         specifier: ^0.10.4
         version: 0.10.7(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)
+      '@fontsource/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@heroicons/react':
         specifier: ^2.1.3
         version: 2.2.0(react@18.3.1)
@@ -1616,6 +1619,9 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@fontsource/jetbrains-mono@5.3.0':
+    resolution: {integrity: sha512-fqDfB5I9f1p1TV486aUgB9t8zP84P0O1FtQR5Ol9vjwPy+S+EIGlVYm1cvj2W5shcZMTg2nZFdVMoH5wFu8a1A==}
 
   '@headlessui/react@1.7.19':
     resolution: {integrity: sha512-Ll+8q3OlMJfJbAKM/+/Y2q6PPYbryqNTXDbryx7SXLIDamkF6iQFbriYHga0dY44PvDhvvBWCx1Xj4U5+G4hOw==}
@@ -6384,8 +6390,8 @@ packages:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
     engines: {node: '>= 0.4'}
 
-  ox@0.14.33:
-    resolution: {integrity: sha512-rooA/4o7bBof4Ge2VH/eovfNPb/AEEYyrNj03wggc55g5HZD8Pjs/OeWhttgjic3dDcqn0r29bDuvQEdTiUemQ==}
+  ox@0.14.45:
+    resolution: {integrity: sha512-jpsQ+p0JZh9mKCxxzxz0d5qFHZZg2/O9xW18IpEC/dNXXPVqmDJ0c//9RMz0CILkbSGPA42+cbU0fC/ghwJ03w==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -8060,8 +8066,8 @@ packages:
       typescript:
         optional: true
 
-  viem@2.55.13:
-    resolution: {integrity: sha512-Rt1NAsdtTdvJgqaCxsv2TuO55xv2d2dKEuRuzrg34xMGxvTSFOX0iIFvEfymPvh+fwN2tbgEU2JwN0YHOVM+Bg==}
+  viem@2.56.9:
+    resolution: {integrity: sha512-UC1G0Qz+RbPKqwl6yRrp3dH6ltrOmUcFJMTcOyE1Mg0nO5lxrEBTONh/8OFWPnALGuN/O7LkNcz/IsSj83Svqw==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
@@ -10341,6 +10347,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@fontsource/jetbrains-mono@5.3.0': {}
+
   '@headlessui/react@1.7.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/react-virtual': 3.13.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -10609,8 +10617,8 @@ snapshots:
       react-copy-to-clipboard: 5.1.0(react@18.3.1)
       react-dom: 18.3.1(react@18.3.1)
       react-jazzicon: 1.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      viem: 2.55.13(bufferutil@4.0.9)(typescript@5.8.3)
-      wagmi: 1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3))
+      viem: 2.56.9(bufferutil@4.0.9)(typescript@5.8.3)
+      wagmi: 1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3))
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -11689,7 +11697,7 @@ snapshots:
   '@safe-global/safe-apps-sdk@9.1.0(bufferutil@4.0.9)(typescript@5.8.3)':
     dependencies:
       '@safe-global/safe-gateway-typescript-sdk': 3.23.1
-      viem: 2.55.13(bufferutil@4.0.9)(typescript@5.8.3)
+      viem: 2.56.9(bufferutil@4.0.9)(typescript@5.8.3)
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -12439,7 +12447,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 2.0.0
 
-  '@wagmi/connectors@3.1.10(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3))':
+  '@wagmi/connectors@3.1.10(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3))':
     dependencies:
       '@coinbase/wallet-sdk': 3.9.3
       '@safe-global/safe-apps-provider': 0.18.6(bufferutil@4.0.9)(typescript@5.8.3)
@@ -12450,7 +12458,7 @@ snapshots:
       '@walletconnect/utils': 2.10.2
       abitype: 0.8.7(typescript@5.8.3)
       eventemitter3: 4.0.7
-      viem: 2.55.13(bufferutil@4.0.9)(typescript@5.8.3)
+      viem: 2.56.9(bufferutil@4.0.9)(typescript@5.8.3)
     optionalDependencies:
       typescript: 5.8.3
     transitivePeerDependencies:
@@ -12480,12 +12488,12 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@wagmi/core@1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3))':
+  '@wagmi/core@1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3))':
     dependencies:
-      '@wagmi/connectors': 3.1.10(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3))
+      '@wagmi/connectors': 3.1.10(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3))
       abitype: 0.8.7(typescript@5.8.3)
       eventemitter3: 4.0.7
-      viem: 2.55.13(bufferutil@4.0.9)(typescript@5.8.3)
+      viem: 2.56.9(bufferutil@4.0.9)(typescript@5.8.3)
       zustand: 4.5.7(@types/react@18.3.23)(react@18.3.1)
     optionalDependencies:
       typescript: 5.8.3
@@ -16959,7 +16967,7 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  ox@0.14.33(typescript@5.8.3):
+  ox@0.14.45(typescript@5.8.3):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -18692,7 +18700,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3):
+  viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
@@ -18700,7 +18708,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.8.3)
       isows: 1.0.7(ws@8.21.0(bufferutil@4.0.9))
-      ox: 0.14.33(typescript@5.8.3)
+      ox: 0.14.45(typescript@5.8.3)
       ws: 8.21.0(bufferutil@4.0.9)
     optionalDependencies:
       typescript: 5.8.3
@@ -18807,16 +18815,16 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  wagmi@1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3)):
+  wagmi@1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3)):
     dependencies:
       '@tanstack/query-sync-storage-persister': 4.40.0
       '@tanstack/react-query': 4.40.1(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query-persist-client': 4.40.1(@tanstack/react-query@4.40.1(react-dom@18.3.1(react@18.3.1))(react-native@0.80.1(@babel/core@7.28.0)(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1))
-      '@wagmi/core': 1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.55.13(bufferutil@4.0.9)(typescript@5.8.3))
+      '@wagmi/core': 1.4.12(@types/react@18.3.23)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(viem@2.56.9(bufferutil@4.0.9)(typescript@5.8.3))
       abitype: 0.8.7(typescript@5.8.3)
       react: 18.3.1
       use-sync-external-store: 1.5.0(react@18.3.1)
-      viem: 2.55.13(bufferutil@4.0.9)(typescript@5.8.3)
+      viem: 2.56.9(bufferutil@4.0.9)(typescript@5.8.3)
     optionalDependencies:
       typescript: 5.8.3
     transitivePeerDependencies:

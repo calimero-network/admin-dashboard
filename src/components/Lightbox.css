@@ -15,7 +15,6 @@
      out of the way, and a translucent scrim over a light page leaves the
      screenshot competing with the UI behind it. */
   background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(4px);
   animation: lightbox-in 0.12s ease-out;
 }
 
@@ -39,7 +38,7 @@
      screenshot cannot push the caption off-screen. */
   max-height: calc(100vh - 128px);
   object-fit: contain;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
@@ -48,11 +47,11 @@
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
+  border-radius: 0;
   /* Fixed light-on-dark, NOT theme tokens: this sits on a near-black scrim in
      both themes, so a token that inverts would make the controls vanish on a
      light theme — the same trap the icon fallback's letter falls into. */
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-wash);
   color: #fff;
   cursor: pointer;
   transition:
@@ -115,7 +114,7 @@
 }
 
 .lightbox-count {
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   color: rgba(255, 255, 255, 0.55);
 }
 

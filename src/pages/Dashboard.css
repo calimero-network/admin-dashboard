@@ -3,13 +3,11 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
-  backdrop-filter: blur(12px);
   margin-bottom: 24px;
   font-size: 14px;
-  animation: slideUp 0.3s ease;
 }
 
 .dash-status-dot {
@@ -21,22 +19,19 @@
 
 .dash-status-dot.online {
   background: var(--success);
-  box-shadow: 0 0 8px var(--success);
 }
 .dash-status-dot.offline {
   background: var(--error);
-  box-shadow: 0 0 8px rgba(248, 81, 73, 0.4);
 }
 .dash-status-dot.checking {
   background: var(--warning);
-  box-shadow: 0 0 8px rgba(210, 153, 34, 0.4);
 }
 
 .dash-status-banner.online {
-  border-color: rgba(63, 185, 80, 0.2);
+  border-color: color-mix(in srgb, var(--success) 20%, transparent);
 }
 .dash-status-banner.offline {
-  border-color: rgba(248, 81, 73, 0.2);
+  border-color: color-mix(in srgb, var(--error) 20%, transparent);
 }
 
 .dash-status-label {
@@ -47,7 +42,7 @@
 .dash-status-url {
   color: var(--text-tertiary);
   font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   margin-left: auto;
 }
 
@@ -61,56 +56,56 @@
 .dash-stat-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 20px;
+  border-radius: 0;
+  padding: 22px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(12px);
-  animation: slideUp 0.3s ease backwards;
+  color: var(--text-primary);
+  transition: border-color var(--duration-color) ease-out;
+  animation: fadeUp var(--duration-reveal) var(--ease-reveal) backwards;
 }
 
 .dash-stat-card:nth-child(1) {
-  animation-delay: 0.05s;
+  animation-delay: 60ms;
 }
 .dash-stat-card:nth-child(2) {
-  animation-delay: 0.1s;
+  animation-delay: 110ms;
 }
 .dash-stat-card:nth-child(3) {
-  animation-delay: 0.15s;
+  animation-delay: 160ms;
 }
 .dash-stat-card:nth-child(4) {
-  animation-delay: 0.2s;
+  animation-delay: 210ms;
 }
 
 .dash-stat-card:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-2px);
+  border-color: var(--accent-primary);
 }
 
 .dash-stat-value {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 40px;
+  font-weight: 950;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   line-height: 1;
-  letter-spacing: -0.02em;
 }
 
 .dash-stat-value.accent {
   color: var(--accent-primary);
-  text-shadow: 0 0 20px rgba(165, 255, 17, 0.3);
 }
 
 .dash-stat-label {
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .dash-stat-hint {
   font-size: 12px;
   color: var(--text-tertiary);
+  transition: color var(--duration-color) ease-out;
 }
 
 .dash-section + .dash-section {
@@ -118,11 +113,14 @@
 }
 
 .dash-section-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--text-primary);
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .dash-actions-grid {
@@ -135,32 +133,29 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  padding: 20px;
+  gap: 6px;
+  padding: 22px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
+  border-radius: 0;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-primary);
+  transition: border-color var(--duration-color) ease-out;
   text-align: left;
   font-family: inherit;
-  backdrop-filter: blur(12px);
 }
 
 .dash-action-card:hover {
-  border-color: rgba(165, 255, 17, 0.25);
-  background: var(--accent-light);
-  box-shadow: 0 0 20px rgba(165, 255, 17, 0.06);
-  transform: translateY(-2px);
+  border-color: var(--accent-primary);
 }
 
 .dash-action-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: var(--text-secondary);
-  transition: color 0.2s;
+  transition: color var(--duration-color) ease-out;
 }
 
 .dash-action-card:hover .dash-action-icon {
@@ -168,14 +163,17 @@
 }
 
 .dash-action-label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--text-primary);
 }
 
 .dash-action-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 /* ── Web additions ──
@@ -196,10 +194,6 @@
   cursor: pointer;
 }
 
-.dashboard-page {
-  animation: fadeUp 0.3s ease;
-}
-
 /* Node URL under the status badge — the desktop shows the node in its header
    dropdown instead, which this dashboard has no use for. */
 .status-node-url {
@@ -208,5 +202,9 @@
   color: var(--text-tertiary);
 }
 .status-node-url code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
+}
+
+.dash-stat-card:hover .dash-stat-hint {
+  color: var(--accent-primary);
 }

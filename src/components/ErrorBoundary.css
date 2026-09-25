@@ -4,8 +4,8 @@
   justify-content: center;
   min-height: 300px;
   padding: 40px 20px;
-  background: var(--bg-secondary, #1a1a1a);
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border-radius: 0;
   margin: 20px;
 }
 
@@ -21,38 +21,38 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 24px;
-  background: rgba(239, 68, 68, 0.1);
+  background: color-mix(in srgb, var(--error) 10%, transparent);
   border-radius: 50%;
-  color: var(--color-danger, #ef4444);
+  color: var(--error);
 }
 
 .error-boundary-title {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
   margin: 0 0 12px;
 }
 
 .error-boundary-message {
   font-size: 16px;
-  color: var(--text-secondary, #a3a3a3);
+  color: var(--text-secondary);
   margin: 0 0 16px;
   line-height: 1.5;
 }
 
 .error-boundary-details {
-  background: var(--bg-tertiary, #262626);
-  border: 1px solid var(--border-color, #404040);
-  border-radius: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
   padding: 12px 16px;
   margin-bottom: 24px;
   overflow-x: auto;
 }
 
 .error-boundary-details code {
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--color-danger, #ef4444);
+  color: var(--error);
   word-break: break-word;
 }
 
@@ -64,42 +64,9 @@
   margin-bottom: 24px;
 }
 
-.error-boundary-actions .button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.error-boundary-actions .button-primary {
-  background: var(--color-primary, #3b82f6);
-  color: #ffffff;
-}
-
-.error-boundary-actions .button-primary:hover {
-  background: var(--color-primary-hover, #2563eb);
-}
-
-.error-boundary-actions .button-secondary {
-  background: var(--bg-tertiary, #262626);
-  color: var(--text-primary, #ffffff);
-  border: 1px solid var(--border-color, #404040);
-}
-
-.error-boundary-actions .button-secondary:hover {
-  background: var(--bg-hover, #333333);
-  border-color: var(--border-color-hover, #525252);
-}
-
 .error-boundary-hint {
   font-size: 13px;
-  color: var(--text-tertiary, #737373);
+  color: var(--text-tertiary);
   margin: 0;
   line-height: 1.5;
 }
@@ -109,15 +76,15 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 6px;
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 20%, transparent);
+  border-radius: 0;
+  color: var(--error);
   font-size: 13px;
 }
 
 .error-boundary-minimal span {
-  color: var(--text-secondary, #a3a3a3);
+  color: var(--text-secondary);
 }
 
 .error-boundary-retry-small {
@@ -128,16 +95,16 @@
   height: 24px;
   padding: 0;
   background: transparent;
-  border: 1px solid var(--border-color, #404040);
-  border-radius: 4px;
-  color: var(--text-secondary, #a3a3a3);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .error-boundary-retry-small:hover {
-  background: var(--bg-hover, #333333);
-  color: var(--text-primary, #ffffff);
+  background: var(--hover-wash);
+  color: var(--text-primary);
 }
 
 @keyframes error-shake {
@@ -160,20 +127,11 @@
   }
 }
 
-.error-boundary-icon svg {
-  animation: error-shake 0.5s ease-in-out;
-}
-
 [data-theme='light'] .error-boundary-full {
-  background: var(--bg-secondary, #f5f5f5);
+  background: var(--bg-secondary);
 }
 
 [data-theme='light'] .error-boundary-details {
-  background: var(--bg-tertiary, #ffffff);
-  border-color: var(--border-color, #e5e5e5);
-}
-
-[data-theme='light'] .error-boundary-actions .button-secondary {
-  background: var(--bg-tertiary, #ffffff);
-  border-color: var(--border-color, #e5e5e5);
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
 }

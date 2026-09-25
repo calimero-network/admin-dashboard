@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const FlexWrapper = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #111111;
+  background-color: var(--bg-primary);
 `;
 
 interface FlexLayoutProps {

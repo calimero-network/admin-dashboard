@@ -1,8 +1,7 @@
 .installed-apps-page {
-  padding: 24px;
+  padding: 0;
   max-width: 1400px;
   margin: 0 auto;
-  animation: fadeUp 0.4s ease-out;
 }
 
 .installed-apps-header {
@@ -14,10 +13,12 @@
 
 .installed-apps-header h1 {
   margin: 0 0 4px 0;
-  font-size: 24px;
-  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.4px;
+  font-size: clamp(26px, 1.2rem + 1.2vw, 38px);
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
 }
 
 .installed-apps-header p {
@@ -34,7 +35,7 @@
   justify-content: center;
   background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s;
@@ -56,19 +57,18 @@
 }
 
 .error-message {
-  background: rgba(239, 68, 68, 0.08);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
   color: var(--error);
   padding: 12px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   margin-bottom: 16px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  border: 1px solid color-mix(in srgb, var(--error) 20%, transparent);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: var(--text-secondary);
-  animation: fadeUp 0.5s ease-out;
 }
 
 .empty-state p {
@@ -100,7 +100,7 @@
 .table-cell-secondary {
   font-size: 12px;
   color: var(--text-secondary);
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
 }
 
 .table-cell-description {
@@ -124,22 +124,28 @@
 /* ── Open button ── */
 
 .btn-open {
-  padding: 5px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
   background: transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-button);
   cursor: pointer;
-  transition: all 0.15s;
+  transition:
+    color var(--duration-color) ease-out,
+    border-color var(--duration-color) ease-out,
+    background-color var(--duration-color) ease-out;
   white-space: nowrap;
 }
 
 .btn-open:hover {
-  border-color: var(--accent-dim);
-  color: var(--accent-primary);
-  background: var(--accent-light);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+  background: var(--accent-fill);
 }
 
 /* ── Three-dot more menu ── */
@@ -156,7 +162,7 @@
   justify-content: center;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all 0.15s;
@@ -165,14 +171,14 @@
 
 .btn-more:hover {
   border-color: var(--border-color);
-  color: var(--text-secondary);
-  background: var(--surface-glass-soft);
+  color: var(--text-primary);
+  background: var(--hover-wash);
 }
 
 .app-actions-dropdown {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   box-shadow: var(--shadow-lg);
   z-index: 9999;
   min-width: 160px;
@@ -187,7 +193,7 @@
   gap: 7px;
   padding: 7px 10px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: transparent;
   font-size: 13px;
   font-weight: 500;
@@ -207,7 +213,7 @@
 }
 
 .dropdown-item-danger:hover {
-  background: rgba(239, 68, 68, 0.08);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
   color: var(--error);
 }
 
@@ -240,7 +246,7 @@
   background: var(--bg-tertiary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   padding: 6px 9px;
   font-family: inherit;
   font-size: 12.5px;

@@ -1,7 +1,7 @@
 .data-table-container {
   width: 100%;
   overflow-x: auto;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   border: 1px solid var(--border-color);
   background: var(--surface-glass-soft);
 }

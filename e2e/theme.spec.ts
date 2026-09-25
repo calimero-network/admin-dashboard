@@ -37,8 +37,8 @@ test.describe('Theme', () => {
 
     const lightAfter = await readBgToken();
     expect(lightAfter).not.toBe(darkBefore);
-    expect(darkBefore).toBe('#0d1117');
-    expect(lightAfter).toBe('#fafafa');
+    expect(darkBefore).toBe('#131215');
+    expect(lightAfter).toBe('#f5f5f0');
 
     // Survives a reload — the setting is persisted, not just component state.
     await page.reload();
@@ -53,7 +53,7 @@ test.describe('Theme', () => {
 
     const logo = page.getByAltText('Calimero');
     await expect(logo).toBeVisible();
-    await expect(logo).toHaveCSS('filter', /brightness\(0\)$/);
+    await expect(logo).toHaveCSS('filter', /^brightness\(0\)/);
   });
 
   test('light mode is applied across routes', async ({ page }) => {

@@ -27,14 +27,14 @@ const Tab = styled.button<{ $isActive: boolean }>`
     props.$isActive ? 'var(--accent-light)' : 'transparent'};
   border: 1px solid
     ${(props) =>
-      props.$isActive ? 'rgba(165, 255, 17, 0.35)' : 'var(--border-color)'};
+      props.$isActive ? 'var(--accent-dim)' : 'var(--border-color)'};
   color: ${(props) =>
     props.$isActive ? 'var(--accent-primary)' : 'var(--text-secondary)'};
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   padding: 0.55rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 0;
   transition: all 0.15s ease;
 
   &:hover {
@@ -65,7 +65,7 @@ const RowItem = styled.div`
   transition: background-color 0.15s ease;
 
   &:hover {
-    background: rgba(165, 255, 17, 0.05);
+    background: var(--accent-light);
   }
 
   .type {
@@ -83,8 +83,7 @@ const RowItem = styled.div`
   .key {
     min-width: 0;
     color: var(--text-secondary);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      'Liberation Mono', 'Courier New', monospace;
+    font-family: var(--font-mono);
     word-break: break-all;
   }
 
