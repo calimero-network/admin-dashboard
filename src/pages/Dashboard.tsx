@@ -160,6 +160,7 @@ export default function Dashboard() {
   return (
     <div className="page-content dashboard-page">
       <div className="welcome-section">
+        <span className="eyebrow">Calimero node</span>
         <h2>Welcome to Admin Dashboard</h2>
         <p className="welcome-description">
           Your gateway to decentralized applications. Get started by installing

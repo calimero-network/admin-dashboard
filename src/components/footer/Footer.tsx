@@ -18,7 +18,7 @@ const FooterWrapper = styled.div`
     line-height: 21px;
     letter-spacing: 0px;
     text-transform: none;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
     text-decoration: none;
   }
 `;

@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Footer } from '../footer/Footer';
-import CalimeroLogo from '../../assets/calimero-logo.svg';
+import CalimeroLogo from '../../assets/calimero-wordmark.svg';
 
 const Wrapper = styled.div`
-  background-color: #111111;
+  background-color: var(--bg-primary);
   height: 100vh;
   width: 100%;
 
@@ -26,8 +26,9 @@ const Wrapper = styled.div`
   }
 
   .calimero-logo {
-    width: 160px;
-    height: 43.3px;
+    height: 28px;
+    width: auto;
+    filter: var(--logo-filter);
   }
 
   .dashboard-text {
@@ -36,7 +37,7 @@ const Wrapper = styled.div`
     top: 2rem;
     width: max-content;
     font-size: 12px;
-    color: #fff;
+    color: var(--text-primary);
   }
 
   .content-card {
@@ -44,7 +45,7 @@ const Wrapper = styled.div`
     justify-content: center;
     height: calc(100vh - 75.3px);
     align-items: center;
-    color: #fff;
+    color: var(--text-primary);
   }
 
   .content-wrapper {

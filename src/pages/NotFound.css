@@ -6,50 +6,44 @@
   min-height: 60vh;
   padding: 40px 20px;
   text-align: center;
-  animation: fadeIn 0.4s ease;
 }
 
-.not-found-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 24px;
-  background: var(--accent-light);
-  border: 1px solid rgba(165, 255, 17, 0.15);
-  border-radius: var(--radius-lg);
-  animation: glowPulse 3s ease-in-out infinite;
+/* The landing's 404 drawing: lime line-art, its white fills following the
+   ink so it reads on paper too. */
+.not-found-art {
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 40px;
+}
+.not-found-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.not-found-art [fill='#A5FF11'] {
+  fill: var(--accent-primary);
+}
+.not-found-art [stroke='#A5FF11'] {
+  stroke: var(--accent-primary);
+}
+.not-found-art [fill='#FCFCFC'] {
+  fill: var(--text-primary);
 }
 
-.not-found-icon {
-  width: 40px;
-  height: 40px;
-  color: var(--accent-primary);
+.not-found-eyebrow {
+  margin-bottom: 12px;
 }
 
-.not-found-title {
-  font-size: 48px;
-  font-weight: 700;
+.main h1.not-found-title {
+  font-size: clamp(24px, 1rem + 1vw, 32px);
+  margin: 0 0 14px;
   color: var(--text-primary);
-  margin: 0 0 12px 0;
-  letter-spacing: -0.03em;
 }
 
 .not-found-message {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-secondary);
-  margin: 0 0 28px 0;
-  max-width: 360px;
-}
-
-.not-found-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.not-found-btn-icon {
-  width: 18px;
-  height: 18px;
+  margin: 0 0 28px;
+  max-width: 44ch;
+  line-height: 1.6;
 }

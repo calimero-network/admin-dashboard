@@ -74,7 +74,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
   //   }
   //   &::-webkit-scrollbar-thumb {
   //     background-color: rgba(155, 155, 155, 0.5);
-  //     border-radius: 20px;
+  //     border-radius: 0;
   //     border: transparent;
   //   }
   // }
@@ -113,7 +113,7 @@ const ListWrapper = styled.div<ListWrapperProps>`
 
     &::-webkit-scrollbar-thumb {
       background-color: var(--bg-tertiary);
-      border-radius: 20px;
+      border-radius: 0;
       border: transparent;
     }
 

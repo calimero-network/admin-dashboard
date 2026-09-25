@@ -20,12 +20,12 @@ const Wrapper = styled.div`
 `;
 
 const ErrorMessage = styled.div`
-  color: #dc2626;
+  color: var(--error);
   font-size: 1.1rem;
 `;
 
 const SuccessMessage = styled.div`
-  color: #16a34a;
+  color: var(--success);
   font-size: 1.1rem;
 `;
 

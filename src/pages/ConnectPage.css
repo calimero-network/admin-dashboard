@@ -1,7 +1,15 @@
 .connect-page {
   width: 100vw;
   height: 100vh;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  /* The landing's faint column lines behind the panel. */
+  background-image: linear-gradient(
+    to right,
+    var(--grid-line) 1px,
+    transparent 1px
+  );
+  background-size: 25% 100%;
+  background-position: 12.5% 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,31 +18,28 @@
 
 .connect-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(16px);
-  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeUp var(--duration-reveal) var(--ease-reveal) backwards;
 }
 
 .connect-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 24px;
+  gap: 12px;
+  padding: 18px 28px;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(13, 17, 23, 0.6);
+  background: transparent;
 }
 
 .connect-logo-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(165, 255, 17, 0.5);
+  background: var(--accent-fill);
 }
 
 .connect-logo-name {
@@ -45,27 +50,29 @@
 }
 
 .connect-logo-badge {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--accent-primary);
-  background: var(--accent-light);
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.06em;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  border: 1px solid rgba(165, 255, 17, 0.2);
+  border: none;
 }
 
 .connect-body {
-  padding: 32px 24px;
+  padding: 36px 28px 32px;
 }
 
 .connect-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 950;
+  text-transform: uppercase;
+  line-height: 1.05;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.01em;
 }
 
 .connect-subtitle {
@@ -88,29 +95,31 @@
 }
 
 .connect-label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
   color: var(--text-secondary);
 }
 
 .connect-input {
   padding: 10px 14px;
   font-size: 14px;
-  background: rgba(13, 17, 23, 0.8);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
   color: var(--text-primary);
   outline: none;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-mono);
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
   width: 100%;
 }
 
 .connect-input:focus {
   border-color: var(--accent-primary);
-  box-shadow:
-    0 0 0 3px var(--accent-light),
-    0 0 15px rgba(165, 255, 17, 0.1);
+  box-shadow: 0 0 0 1px var(--accent-primary);
 }
 
 .connect-input-error {
@@ -119,7 +128,7 @@
 
 .connect-input::placeholder {
   color: var(--text-tertiary);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .connect-error-text {
@@ -132,24 +141,22 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  background: var(--accent-primary);
-  color: #0a0a0a;
-  border: none;
-  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-button);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  border: 1px solid var(--accent-fill);
+  border-radius: 0;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow var(--duration-color) ease-out;
   font-family: inherit;
-  letter-spacing: -0.01em;
-  box-shadow: 0 0 20px rgba(165, 255, 17, 0.15);
 }
 
 .connect-btn:hover:not(:disabled) {
-  background: var(--accent-hover);
-  box-shadow: 0 0 30px rgba(165, 255, 17, 0.25);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-button);
 }
 
 .connect-btn:disabled {
@@ -161,8 +168,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid rgba(9, 9, 11, 0.3);
-  border-top-color: #09090b;
+  border: 2px solid color-mix(in srgb, var(--on-accent) 30%, transparent);
+  border-top-color: var(--on-accent);
   animation: spin 0.7s linear infinite;
   display: inline-block;
 }
@@ -175,18 +182,15 @@
 }
 
 .connect-hint code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   color: var(--text-secondary);
 }
 
 /* ── Web additions (login screen) ── */
 .connect-logo-img {
-  height: 28px;
+  height: 26px;
   width: auto;
-  filter: brightness(0) invert(1);
-}
-[data-theme='light'] .connect-logo-img {
-  filter: brightness(0);
+  filter: var(--logo-filter);
 }
 
 .connect-actions {
@@ -216,9 +220,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 3px solid var(--border-color);
+  border: 2px solid var(--border-color);
   border-top-color: var(--accent-primary);
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.9s linear infinite;
 }
 
 /* Bootstrap screen copy, mirroring the desktop's loading screen. */
@@ -229,7 +233,9 @@
 .auth-loading h2 {
   margin-top: 20px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--text-primary);
 }
 .auth-loading p {

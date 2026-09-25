@@ -15,7 +15,7 @@
 }
 
 .installed-app-version {
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   color: var(--accent-primary);
 }
 
@@ -59,7 +59,7 @@
   padding: 4px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   box-shadow: var(--shadow-lg);
 }
 
@@ -70,7 +70,7 @@
   width: 100%;
   padding: 7px 10px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: none;
   color: var(--text-primary);
   font-family: inherit;

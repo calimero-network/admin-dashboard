@@ -21,7 +21,7 @@
   border: none;
   cursor: pointer;
   padding: 6px 10px 6px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -63,7 +63,7 @@
 }
 
 .app-detail-mono {
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
 
@@ -83,7 +83,7 @@
   color: var(--success);
   border: 1px solid var(--border-color);
   background: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   padding: 5px 10px;
 }
 
@@ -95,7 +95,7 @@
   margin-top: 24px;
   padding: 16px;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--gradient-surface), var(--surface-glass);
 }
 
@@ -115,7 +115,7 @@
   background: var(--bg-tertiary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   padding: 7px 10px;
   font-size: 13px;
   font-family: inherit;
@@ -142,7 +142,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-primary);
 }
@@ -150,7 +150,7 @@
 .app-detail-meta {
   margin-top: 24px;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -191,7 +191,7 @@
 
 .app-detail-tag {
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   padding: 3px 8px;
@@ -271,7 +271,7 @@
   width: 260px;
   height: 160px;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
   background: var(--bg-tertiary);
   transition:
@@ -281,7 +281,6 @@
 
 .app-detail-shot:hover {
   border-color: var(--accent-dim);
-  transform: translateY(-2px);
 }
 
 .app-detail-shot img {
@@ -297,7 +296,7 @@
   gap: 10px;
   padding: 18px;
   border: 1px dashed var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--bg-tertiary);
   color: var(--text-tertiary);
   font-size: 12.5px;
@@ -315,7 +314,7 @@
   gap: 8px;
   padding: 10px 14px;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--gradient-surface), var(--surface-glass);
   color: var(--text-primary);
   font-family: inherit;

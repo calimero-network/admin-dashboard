@@ -1,6 +1,6 @@
 import React from 'react';
 import { LogIn } from 'lucide-react';
-import calimeroLogo from '../assets/calimero-logo.svg';
+import calimeroLogo from '../assets/calimero-wordmark.svg';
 import './ConnectPage.css';
 
 interface LoginPageProps {
@@ -33,6 +33,7 @@ export default function LoginPage({
         </div>
 
         <div className="connect-body">
+          <span className="eyebrow">Node administration</span>
           <h1 className="connect-title">Admin Login</h1>
           <p className="connect-subtitle">Sign in to administer this node.</p>
 

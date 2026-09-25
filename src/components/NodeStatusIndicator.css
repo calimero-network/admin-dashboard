@@ -7,25 +7,28 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  border-radius: 0;
   border: 1px solid var(--border-color);
-  background: var(--surface-glass-soft);
+  background: transparent;
   color: var(--text-secondary);
   cursor: default;
-  transition: all 0.15s;
+  transition:
+    color var(--duration-color) ease-out,
+    border-color var(--duration-color) ease-out;
 }
 
 .node-status-indicator.connected {
-  border-color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
   color: var(--success);
 }
 
 .node-status-indicator.connected .node-status-dot {
   background: var(--success);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 30%, transparent);
 }
 
 .node-status-indicator.disconnected .node-status-dot {
@@ -33,7 +36,7 @@
 }
 
 .node-status-indicator[data-state='offline'] {
-  border-color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 45%, transparent);
   color: var(--error);
 }
 

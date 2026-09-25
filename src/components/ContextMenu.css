@@ -4,10 +4,8 @@
   min-width: 160px;
   padding: 4px 0;
   background: var(--surface-glass-strong);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   animation: context-menu-in 0.15s ease-out;
 }
@@ -45,5 +43,5 @@
 }
 
 .context-menu-item-danger:hover {
-  background: rgba(248, 113, 113, 0.15);
+  background: color-mix(in srgb, var(--error) 15%, transparent);
 }

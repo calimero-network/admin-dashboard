@@ -36,7 +36,7 @@ const Container = styled.div<{ $isOverflow: boolean }>`
     flex: 1;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
+    border-radius: 0;
     min-height: 0;
     overflow: hidden;
   }

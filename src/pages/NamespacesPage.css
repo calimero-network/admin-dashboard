@@ -23,7 +23,7 @@
 }
 
 .mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .ns-header-actions {
@@ -49,7 +49,7 @@
   padding: 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
+  border-radius: 0;
   cursor: pointer;
   transition:
     border-color 0.2s,
@@ -145,7 +145,7 @@
 .ns-badge {
   font-size: 11px;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
 }
@@ -165,7 +165,7 @@
   padding: 14px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
+  border-radius: 0;
   text-align: center;
 }
 
@@ -216,7 +216,7 @@
 .ns-section {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
+  border-radius: 0;
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -300,12 +300,12 @@
 .ns-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 20px 24px 24px;
   margin-bottom: 20px;
   max-width: 640px;
   box-shadow: var(--shadow-md);
-  animation: slideUp 0.25s ease;
+  animation: slideUp 0.4s var(--ease-reveal);
 }
 
 .ns-panel-header {
@@ -363,7 +363,7 @@
   font-size: 13px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--text-primary);
   font-family: inherit;
   outline: none;
@@ -389,7 +389,7 @@
   padding: 12px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   margin-bottom: 12px;
 }
 
@@ -397,7 +397,7 @@
 
 .ns-tree {
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -490,7 +490,7 @@
 }
 
 .ns-tree-id {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   flex-shrink: 0;
@@ -500,7 +500,7 @@
   font-size: 11px;
   color: var(--text-secondary);
   background: var(--bg-tertiary);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 1px 8px;
   flex-shrink: 0;
 }
@@ -542,7 +542,7 @@
   padding: 10px 12px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--text-primary);
   font-size: 13px;
   text-align: left;
@@ -601,7 +601,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 1px 6px;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--accent-primary);
   border: 1px solid var(--accent-dim);
 }
@@ -610,7 +610,7 @@
   padding: 4px 8px;
   font-size: 12px;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: inherit;
@@ -638,7 +638,7 @@
   color: var(--text-secondary);
   background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   flex-shrink: 0;
   transition:
@@ -680,7 +680,7 @@
   font-family: inherit;
   background: var(--bg-primary);
   border: 1px solid var(--accent-dim);
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--text-primary);
   outline: none;
   min-width: 160px;
@@ -690,7 +690,7 @@
 
 .ns-invitation-box {
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -715,7 +715,7 @@
   background: var(--bg-secondary);
   border: none;
   color: var(--text-secondary);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
   word-break: break-all;
@@ -731,7 +731,7 @@
   padding: 14px 16px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .ns-init-header {
@@ -756,14 +756,14 @@
 }
 
 .ns-field-name {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   color: var(--text-secondary);
 }
 
 .ns-field-type {
   font-weight: 400;
   color: var(--text-tertiary);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
 }
 
@@ -790,7 +790,7 @@
   padding: 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
+  border-radius: 0;
   cursor: pointer;
   transition:
     border-color 0.2s,
@@ -886,7 +886,7 @@
   padding: 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   box-sizing: border-box;
 }
 

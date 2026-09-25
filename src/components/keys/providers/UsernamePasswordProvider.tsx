@@ -23,37 +23,37 @@ const Form = styled.form`
 
 const Input = styled.input`
   padding: 0.75rem;
-  border: 1px solid #3f3f46;
-  border-radius: 0.375rem;
-  background-color: #27272a;
-  color: white;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-size: 1rem;
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 1px var(--accent-primary);
   }
 
   &::placeholder {
-    color: #71717a;
+    color: var(--text-tertiary);
   }
 `;
 
 const ErrorMessage = styled.div`
-  color: #dc2626;
+  color: var(--error);
   font-size: 1rem;
   text-align: center;
 `;
 
 const SuccessMessage = styled.div`
-  color: #16a34a;
+  color: var(--success);
   font-size: 1rem;
   text-align: center;
 `;
 
 const Title = styled.h2`
-  color: white;
+  color: var(--text-primary);
   margin: 0;
   text-align: center;
 `;

@@ -11,20 +11,21 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #1c1c1c;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   gap: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   width: fit-content;
   padding: 2rem;
 `;
 
 const ErrorWrapper = styled(Wrapper)`
-  color: #dc2626;
+  color: var(--error);
   font-size: 1.1rem;
 `;
 
 const LoadingWrapper = styled(Wrapper)`
-  color: white;
+  color: var(--text-primary);
   font-size: 1.1rem;
 `;
 

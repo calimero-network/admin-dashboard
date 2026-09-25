@@ -19,7 +19,7 @@ import {
   clearExecutorPublicKey,
 } from '@calimero-network/calimero-client';
 import { getSettings } from '../utils/settings';
-import calimeroLogo from '../assets/calimero-logo.svg';
+import calimeroLogo from '../assets/calimero-wordmark.svg';
 import './Sidebar.css';
 
 interface NavItem {

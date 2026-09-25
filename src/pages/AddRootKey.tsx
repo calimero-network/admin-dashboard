@@ -11,9 +11,10 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #1c1c1c;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   gap: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   width: fit-content;
 
   .container {
@@ -28,7 +29,7 @@ const Wrapper = styled.div`
   .center-container {
     width: 100%;
     text-align: center;
-    color: white;
+    color: var(--text-primary);
     margin-top: 0.375rem;
     margin-bottom: 0.375rem;
     font-size: 1.5rem;
@@ -56,16 +57,16 @@ const Wrapper = styled.div`
     line-height: 1.5rem;
     font-weight: 500;
     line-height: 1.25rem;
-    border-radius: 0.375rem;
-    color: white;
+    border-radius: 0;
+    color: var(--text-primary);
     border: none;
     outline: none;
-    background-color: #2d2d2d;
+    background-color: var(--bg-tertiary);
     transition: background-color 0.2s;
     margin-bottom: 1rem;
 
     &:hover {
-      background-color: #3d3d3d;
+      background-color: var(--border-color);
     }
 
     &.metamask-btn {
@@ -83,14 +84,14 @@ const Wrapper = styled.div`
 
 const LoadingWrapper = styled(Wrapper)`
   .container {
-    color: white;
+    color: var(--text-primary);
     font-size: 1.1rem;
   }
 `;
 
 const ErrorWrapper = styled(Wrapper)`
   .container {
-    color: #dc2626;
+    color: var(--error);
     font-size: 1.1rem;
   }
 `;

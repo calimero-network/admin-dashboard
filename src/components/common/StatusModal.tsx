@@ -13,9 +13,10 @@ const ModalWrapper = styled.div`
   flex-direction: column;
   justify-content: center;
   padding: 1rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
   items-align: center;
-  background-color: #17191b;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   text-align: center;
 
   .error-icon,
@@ -25,18 +26,18 @@ const ModalWrapper = styled.div`
   }
 
   .error-icon {
-    color: #da493f;
+    color: var(--error);
   }
 
   .success-icon {
-    color: #3dd28b;
+    color: var(--success);
   }
 
   .modal-title {
     font-size: 1rem;
     font-weight: 500;
     line-height: 1.25rem;
-    color: #fff;
+    color: var(--text-primary);
   }
 
   .container {
@@ -47,7 +48,7 @@ const ModalWrapper = styled.div`
       font-size: 0.875rem;
       font-weight: 500;
       line-height: 1.25rem;
-      color: #6b7280;
+      color: var(--text-secondary);
     }
 
     .button-wrapper {
