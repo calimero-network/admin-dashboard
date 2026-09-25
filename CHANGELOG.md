@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/calimero-network/admin-dashboard/compare/v1.17.0...v1.18.0) (2026-09-25)
+
+
+### Features
+
+* **ui:** every page in the calimero.network design (dark + light) ([#162](https://github.com/calimero-network/admin-dashboard/issues/162)) ([8e48fe3](https://github.com/calimero-network/admin-dashboard/commit/8e48fe358a5bb65d98e8cbb5ae758830b68dde57))
+
 # [1.17.0](https://github.com/calimero-network/admin-dashboard/compare/v1.16.1...v1.17.0) (2026-09-23)
 
 
