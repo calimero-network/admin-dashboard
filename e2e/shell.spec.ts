@@ -153,6 +153,41 @@ test.describe('App shell', () => {
 });
 
 test.describe('Auth', () => {
+  // A link carrying tokens in its hash must not log anyone in (or swap the
+  // session): only a hand-back answering a login this tab started is adopted.
+  const craftedHash = () => {
+    const b64 = (obj: unknown) => btoa(JSON.stringify(obj));
+    const jwt = [
+      b64({ alg: 'none', typ: 'JWT' }),
+      b64({ sub: 'attacker', exp: 4102444800, permissions: ['admin'] }),
+      'sig',
+    ].join('.');
+    return `#access_token=${jwt}&refresh_token=attacker-refresh`;
+  };
+
+  test('a crafted token link does not log in', async ({ page }) => {
+    await page.goto(`/admin-dashboard/dashboard${craftedHash()}`);
+    await expect(page.getByTestId('login-screen')).toBeVisible();
+    expect(page.url()).not.toContain('access_token');
+    const stored = await page.evaluate(() =>
+      localStorage.getItem('refresh-token'),
+    );
+    expect(stored).toBeNull();
+  });
+
+  test('a crafted token link does not replace an existing session', async ({
+    page,
+  }) => {
+    await mockNode(page);
+    await page.goto(`/admin-dashboard/dashboard${craftedHash()}`);
+    await expect(page.getByTestId('shell-page-title')).toHaveText('Home');
+    expect(page.url()).not.toContain('access_token');
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('refresh-token') ?? 'null'),
+    );
+    expect(stored).toBe('refresh-e2e');
+  });
+
   test('shows the login screen without a session', async ({ page }) => {
     // mockNode without seedSession: no tokens in storage.
     await page.route('**/admin-api/health', (route) =>

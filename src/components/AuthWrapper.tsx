@@ -15,6 +15,11 @@ import {
 } from '@calimero-network/calimero-client';
 import LoginPage from '../pages/LoginPage';
 import { clearNodeUrlOverride, getNodeUrl } from '../utils/nodeUrl';
+import {
+  beginLogin,
+  consumeLoginState,
+  stripLoginState,
+} from '../utils/loginState';
 
 /**
  * `no-url` is gone compared with the pre-port flow: there is no ConnectPage and
@@ -50,7 +55,28 @@ export default function AuthWrapper({
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
-    if (encodedAccessToken && encodedRefreshToken) {
+    // Only a hand-back from a login THIS tab started (see utils/loginState).
+    // Anything else — a crafted link carrying someone's tokens — is dropped
+    // from the address bar and the existing session, if any, is kept.
+    const hasHashTokens = Boolean(encodedAccessToken && encodedRefreshToken);
+    const stateMatches = hasHashTokens && consumeLoginState();
+    if (hasHashTokens && !stateMatches) {
+      console.warn(
+        'Ignoring tokens in the URL: they do not answer a login started here.',
+      );
+      fragmentParams.delete('access_token');
+      fragmentParams.delete('refresh_token');
+      const rest = fragmentParams.toString();
+      window.history.replaceState(
+        {},
+        '',
+        window.location.pathname +
+          stripLoginState(window.location.search) +
+          (rest ? `#${rest}` : ''),
+      );
+    }
+
+    if (stateMatches && encodedAccessToken && encodedRefreshToken) {
       // A malformed hash (bad percent-encoding, an unparseable JWT) throws
       // synchronously here. `checkAuth` is invoked as `void checkAuth()`, so the
       // rejection is swallowed, `setState` is never reached and the app sits on
@@ -69,7 +95,7 @@ export default function AuthWrapper({
           {},
           '',
           window.location.pathname +
-            window.location.search +
+            stripLoginState(window.location.search) +
             (newFragment ? `#${newFragment}` : ''),
         );
         setState('authenticated');
@@ -78,7 +104,7 @@ export default function AuthWrapper({
         window.history.replaceState(
           {},
           '',
-          window.location.pathname + window.location.search,
+          window.location.pathname + stripLoginState(window.location.search),
         );
         setState('needs-login');
       }
@@ -125,7 +151,7 @@ export default function AuthWrapper({
     try {
       apiClient.auth().login({
         url: new URL(url).origin,
-        callbackUrl: window.location.href,
+        callbackUrl: beginLogin(),
         permissions: ['admin'],
         applicationId: '',
         applicationPath: '',
