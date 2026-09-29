@@ -1,0 +1,133 @@
+/* The version picker. See VersionSelect.tsx for why this is not a <select>.
+   Ported from the desktop so both surfaces render a version the same way. */
+
+.version-select {
+  position: relative;
+  display: inline-flex;
+}
+
+.version-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 170px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.version-select-trigger:hover:not(:disabled),
+.version-select-trigger.is-open {
+  border-color: var(--accent-dim);
+}
+
+.version-select-trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.version-select-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.version-select-value {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.version-select-chevron {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform 0.15s ease;
+}
+
+.version-select-trigger.is-open .version-select-chevron {
+  transform: rotate(180deg);
+}
+
+/* "latest" is a fact about the row, not a second value — it reads as a quiet
+   tag rather than competing with the semver next to it. */
+.version-select-latest {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  font-family: var(--font-sans, inherit);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+/* Portalled to <body> and `fixed`, positioned from the trigger's measured
+   rect: an ancestor with a backdrop-filter would otherwise contain AND clip it. */
+.version-select-menu {
+  position: fixed;
+  z-index: 70;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  box-shadow: var(--shadow-lg);
+}
+
+.version-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Hover and keyboard focus are the SAME state on purpose: with two highlights
+   the list shows two "current" rows at once and neither means anything. */
+.version-select-option.is-active {
+  background: var(--bg-tertiary);
+}
+
+.version-select-check {
+  display: inline-flex;
+  justify-content: center;
+  width: 14px;
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.version-select-semver {
+  flex: 1;
+}
+
+.version-select-node {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .version-select-chevron {
+    transition: none;
+  }
+}

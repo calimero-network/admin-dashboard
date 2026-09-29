@@ -8,7 +8,9 @@ import React, {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  ArrowRight,
   BookOpen,
+  Building2,
   CheckCircle2,
   Download,
   ExternalLink,
@@ -21,6 +23,7 @@ import {
 import AppIcon from '../components/AppIcon';
 import { VerifiedMark } from '../components/AppCard';
 import { Lightbox } from '../components/Lightbox';
+import VersionSelect from '../components/VersionSelect';
 import Skeleton from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
 import { getSettings } from '../utils/settings';
@@ -28,8 +31,10 @@ import {
   fetchAppsFromAllRegistries,
   fetchAppVersions,
   fetchPackageAssets,
+  fetchPackageOrg,
   type AppSummary,
   type PackageAsset,
+  type RegistryOrg,
   type VersionInfo,
 } from '../utils/registry';
 import { getMarketplaceCache } from '../utils/marketplaceCache';
@@ -37,7 +42,11 @@ import {
   fetchInstalledApplications,
   installedKeySet,
 } from '../utils/installedApps';
-import { installApplication, registryAppUrl } from '../utils/installApp';
+import {
+  installApplication,
+  registryAppUrl,
+  registryOrgUrl,
+} from '../utils/installApp';
 import {
   formatBytes,
   formatCategory,
@@ -198,6 +207,23 @@ export default function AppDetail() {
     };
   }, [app]);
 
+  // Which organization published this. ⚠️ Null for a package owned by an
+  // individual — a normal answer, so the section is hidden, not emptied. A
+  // registry that cannot be reached answers null too: this is decoration, not
+  // something worth a toast.
+  const [org, setOrg] = useState<RegistryOrg | null>(null);
+  useEffect(() => {
+    if (!app) return;
+    let cancelled = false;
+    setOrg(null);
+    void fetchPackageOrg(app.registry, app.id).then((o) => {
+      if (!cancelled && mounted.current) setOrg(o);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [app]);
+
   const handleInstall = async () => {
     if (!app) return;
     setInstalling(true);
@@ -326,20 +352,13 @@ export default function AppDetail() {
               <RefreshCw size={12} className="spinning" /> Loading…
             </span>
           ) : versions.length > 0 ? (
-            <select
+            <VersionSelect
               id="app-version"
-              className="app-detail-version-select"
-              data-testid="version-picker"
+              versions={versions}
               value={selectedVersion}
-              onChange={(e) => setSelectedVersion(e.target.value)}
+              onChange={setSelectedVersion}
               disabled={installing}
-            >
-              {versions.map((v, i) => (
-                <option key={v.semver} value={v.semver}>
-                  {i === 0 ? `${v.semver} (latest)` : v.semver}
-                </option>
-              ))}
-            </select>
+            />
           ) : (
             <span className="app-detail-version-static">
               {selectedVersion || app.latest_version}
@@ -419,6 +438,37 @@ export default function AppDetail() {
           </div>
         )}
       </section>
+
+      {/* ⚠️ GATED ON `name`, NOT ON THE OBJECT. The lookup can answer with a
+          body carrying only an id, which would render as a heading over an
+          empty row. */}
+      {org?.name && (
+        <section className="app-detail-section" aria-label="Organization">
+          <p className="app-detail-section-heading">Organization</p>
+          <button
+            type="button"
+            className="app-detail-org"
+            data-testid="app-detail-org"
+            title={`Open ${org.name} on the registry`}
+            onClick={() => openExternal(registryOrgUrl(app.registry, org.id))}
+          >
+            <span className="app-detail-org-avatar">
+              <Building2 size={15} aria-hidden="true" />
+            </span>
+            <span className="app-detail-org-names">
+              <span className="app-detail-org-name">{org.name}</span>
+              {org.slug && (
+                <span className="app-detail-org-slug">{org.slug}</span>
+              )}
+            </span>
+            <ArrowRight
+              size={15}
+              className="app-detail-org-go"
+              aria-hidden="true"
+            />
+          </button>
+        </section>
+      )}
 
       {(safeLinks.github || safeLinks.docs || safeLinks.frontend) && (
         <section className="app-detail-section" aria-label="Links">
