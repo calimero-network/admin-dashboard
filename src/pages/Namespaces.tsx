@@ -14,6 +14,7 @@ import {
   TrashIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
+import { HardDrive } from 'lucide-react';
 import {
   createGroupInNamespace,
   createGroupInvitation,
@@ -49,6 +50,7 @@ import {
 import { InvitePanel, JoinPanel } from '../components/namespaces/InvitePanel';
 import { MembersSection } from '../components/namespaces/MembersSection';
 import { useNodeIdentity } from '../components/namespaces/useNodeIdentity';
+import { useDiskUsage } from '../components/namespaces/useDiskUsage';
 import { StructureTree } from '../components/namespaces/StructureTree';
 import {
   ConfirmButton,
@@ -65,6 +67,13 @@ import {
 } from '../components/namespaces/useNamespaceTree';
 import AppIcon from '../components/AppIcon';
 import { decodeMetadata, truncateId } from '../utils/appUtils';
+import {
+  describeBytes,
+  formatBytes,
+  sumUsage,
+  usageFor,
+  type NamespaceBytes,
+} from '../utils/diskUsage';
 import './NamespacesPage.css';
 
 /**
@@ -307,12 +316,15 @@ function useNamespaceList(showToast: ShowToast) {
 function NamespaceCards({
   namespaces,
   installedApps,
+  usage,
   deleting,
   onOpen,
   onRemove,
 }: {
   namespaces: Namespace[];
   installedApps: InstalledApp[];
+  /** Per-namespace disk bytes; `null` hides every size. */
+  usage: Map<string, NamespaceBytes> | null;
   deleting: string | null;
   onOpen: (ns: Namespace) => void;
   onRemove: (ns: Namespace) => void;
@@ -361,6 +373,14 @@ function NamespaceCards({
             <span title="Contexts — running app instances directly under the namespace">
               <CubeIcon /> {ns.contextCount}
             </span>
+            {(() => {
+              const b = usageFor(usage, ns.namespaceId);
+              return b ? (
+                <span title={describeBytes(b)} data-testid="ns-card-disk">
+                  <HardDrive size={14} /> {formatBytes(b.total)}
+                </span>
+              ) : null;
+            })()}
           </div>
           <div className="ns-card-footer" onClick={(e) => e.stopPropagation()}>
             <ConfirmButton
@@ -397,8 +417,13 @@ function NamespaceList({
 }) {
   const { namespaces, loading, error, load } = useNamespaceList(showToast);
   const [showJoin, setShowJoin] = useState(false);
+  const usage = useDiskUsage();
 
   const groups = groupByApplication(namespaces, installedApps);
+  const nodeBytes = sumUsage(
+    usage,
+    namespaces.map((n) => n.namespaceId),
+  );
 
   return (
     <>
@@ -410,6 +435,17 @@ function NamespaceList({
             app instances) and subgroups (nested groups with their own
             contexts). Pick an application to see its namespaces.
           </p>
+          {nodeBytes !== null && (
+            <p
+              className="ns-page-subtitle"
+              data-testid="ns-disk-total"
+              title="Estimated from this node's store: state, history and governance per namespace. Shared blobs and app code are not included."
+            >
+              <HardDrive size={13} style={{ verticalAlign: '-2px' }} />{' '}
+              {formatBytes(nodeBytes)} on disk across {namespaces.length}{' '}
+              {namespaces.length === 1 ? 'namespace' : 'namespaces'}
+            </p>
+          )}
         </div>
         <div className="ns-header-actions">
           <button className="btn" onClick={load} disabled={loading}>
@@ -467,47 +503,69 @@ function NamespaceList({
         </div>
       ) : (
         <div className="ns-app-grid" data-testid="ns-app-grid">
-          {groups.map((g) => (
-            <div
-              key={g.applicationId}
-              className="ns-app-card"
-              role="button"
-              tabIndex={0}
-              data-testid="ns-app-card"
-              data-application-id={g.applicationId}
-              onClick={() => onOpenApp(g.applicationId)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ')
-                  onOpenApp(g.applicationId);
-              }}
-            >
-              <div className="ns-app-card-top">
-                <AppIcon
-                  icon={g.app?.icon ?? undefined}
-                  name={g.app?.name}
-                  seed={g.app?.package ?? g.applicationId}
-                  size={40}
-                />
-                <div className="ns-app-card-title">
-                  <h3>{g.app?.name ?? 'Unknown application'}</h3>
-                  <span className="ns-app-card-package mono">
-                    {g.app?.package ?? truncateId(g.applicationId)}
-                  </span>
+          {groups.map((g) => {
+            const appBytes = sumUsage(
+              usage,
+              g.namespaces.map((n) => n.namespaceId),
+            );
+            return (
+              <div
+                key={g.applicationId}
+                className="ns-app-card"
+                role="button"
+                tabIndex={0}
+                data-testid="ns-app-card"
+                data-application-id={g.applicationId}
+                onClick={() => onOpenApp(g.applicationId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ')
+                    onOpenApp(g.applicationId);
+                }}
+              >
+                <div className="ns-app-card-top">
+                  <AppIcon
+                    icon={g.app?.icon ?? undefined}
+                    name={g.app?.name}
+                    seed={g.app?.package ?? g.applicationId}
+                    size={40}
+                  />
+                  <div className="ns-app-card-title">
+                    <h3>{g.app?.name ?? 'Unknown application'}</h3>
+                    <span className="ns-app-card-package mono">
+                      {g.app?.package ?? truncateId(g.applicationId)}
+                    </span>
+                  </div>
+                  <ChevronRightIcon className="ns-card-chevron" />
                 </div>
-                <ChevronRightIcon className="ns-card-chevron" />
+                <div className="ns-app-card-meta">
+                  {g.app?.version && (
+                    <span className="ns-card-version mono">
+                      v{g.app.version}
+                    </span>
+                  )}
+                  <span className="ns-app-card-count">
+                    <FolderIcon />
+                    {g.namespaces.length}{' '}
+                    {g.namespaces.length === 1 ? 'namespace' : 'namespaces'}
+                  </span>
+                  {appBytes !== null && (
+                    <>
+                      <span aria-hidden="true" className="ns-app-card-dot">
+                        ·
+                      </span>
+                      <span
+                        className="ns-app-card-count"
+                        data-testid="ns-app-card-disk"
+                        title="Disk used on this node by this app's namespaces (estimate; shared blobs and app code not included)"
+                      >
+                        <HardDrive size={13} /> {formatBytes(appBytes)}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="ns-app-card-meta">
-                {g.app?.version && (
-                  <span className="ns-card-version mono">v{g.app.version}</span>
-                )}
-                <span className="ns-app-card-count">
-                  <FolderIcon />
-                  {g.namespaces.length}{' '}
-                  {g.namespaces.length === 1 ? 'namespace' : 'namespaces'}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </>
@@ -536,6 +594,7 @@ function AppNamespaces({
 }) {
   const { namespaces, loading, error, deleting, load, remove } =
     useNamespaceList(showToast);
+  const usage = useDiskUsage();
   const [showJoin, setShowJoin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
@@ -724,6 +783,7 @@ function AppNamespaces({
         <NamespaceCards
           namespaces={appNamespaces}
           installedApps={installedApps}
+          usage={usage}
           deleting={deleting}
           onOpen={onOpen}
           onRemove={remove}
@@ -843,6 +903,8 @@ function NamespaceDetail({
   // whichever one you passed, because every namespace on a node resolves to the
   // same account. `GET /admin-api/identity` says that plainly.
   const identity = useNodeIdentity();
+  const usage = useDiskUsage();
+  const diskBytes = usageFor(usage, ns.namespaceId);
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
   const [treeVersion, setTreeVersion] = useState(0);
@@ -1088,6 +1150,16 @@ function NamespaceDetail({
           </div>
           <div className="ns-stat-label">Version pin</div>
         </div>
+        {diskBytes && (
+          <div
+            className="ns-stat-card"
+            title={describeBytes(diskBytes)}
+            data-testid="ns-detail-disk"
+          >
+            <div className="ns-stat-value">{formatBytes(diskBytes.total)}</div>
+            <div className="ns-stat-label">Disk</div>
+          </div>
+        )}
       </div>
 
       <div className="ns-section">

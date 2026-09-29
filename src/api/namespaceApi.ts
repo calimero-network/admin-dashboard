@@ -598,3 +598,49 @@ export async function deleteContext(
 export async function leaveContext(contextId: string): Promise<void> {
   await apiPost<void>(`/admin-api/contexts/${contextId}/leave`);
 }
+
+// ---- Usage ----
+
+/** `calimero_server_primitives::admin::NamespaceUsageBytes`. `total` is the
+ *  sum of the four columns, computed by the node. */
+export interface NamespaceUsageBytes {
+  state: number;
+  privateState: number;
+  delta: number;
+  governance: number;
+  total: number;
+}
+
+/** `calimero_server_primitives::admin::NamespaceUsage` — one namespace this
+ *  node participates in. There is no name on this row. */
+export interface NamespaceUsage {
+  /** 64 hex characters. */
+  namespaceId: string;
+  contextCount: number;
+  memberCount: number;
+  subgroupCount: number;
+  bytes: NamespaceUsageBytes;
+}
+
+/** `calimero_server_primitives::admin::UsageResponse`. */
+export interface UsageResponse {
+  namespaces: NamespaceUsage[];
+}
+
+/**
+ * `GET /admin-api/usage` — per-namespace counts and approximate on-disk bytes
+ * on THIS node.
+ *
+ * Core answers this route BARE (`{ namespaces }`, no `data` envelope — see
+ * `crates/server/src/admin/handlers/usage.rs` and `ApiResponse::into_response`
+ * in `service.rs`). `readBody`'s `json?.data ?? json` unwrap accepts either, so
+ * a future envelope does not blank the figures. A missing `namespaces` is
+ * normalised to an empty list.
+ */
+export async function getUsage(): Promise<UsageResponse> {
+  const body = await apiGet<Partial<UsageResponse> | undefined>(
+    '/admin-api/usage',
+  );
+  const namespaces = body?.namespaces;
+  return { namespaces: Array.isArray(namespaces) ? namespaces : [] };
+}
