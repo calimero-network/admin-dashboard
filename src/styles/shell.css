@@ -4,6 +4,12 @@
   flex-direction: column;
   height: 100vh;
   background-color: var(--bg-primary);
+  /* The landing's four faint column lines, drawn across the whole window as
+     the desktop app draws them; the sidebar and header cover their share. */
+  background-image: var(--desktop-space-background);
+  background-size: var(--desktop-space-size);
+  background-position: var(--desktop-space-position);
+  background-repeat: var(--desktop-space-repeat);
   color: var(--text-primary);
   overflow: hidden;
   position: relative;
@@ -67,13 +73,10 @@
   min-height: 100vh;
   background-color: var(--bg-primary);
   /* The landing's faint column lines behind the page. */
-  background-image: linear-gradient(
-    to right,
-    var(--grid-line) 1px,
-    transparent 1px
-  );
-  background-size: 25% 100%;
-  background-position: 12.5% 0;
+  background-image: var(--desktop-space-background);
+  background-size: var(--desktop-space-size);
+  background-position: var(--desktop-space-position);
+  background-repeat: var(--desktop-space-repeat);
   color: var(--text-primary);
   position: relative;
   overflow: hidden;
@@ -952,23 +955,8 @@
   z-index: 1;
 }
 
-/* ── The landing's column lines ──
- * Four faint vertical hairlines behind the content, fixed to the content
- * column rather than the scroll, as calimero.network draws them. */
-.app-content::before {
-  content: '';
-  position: absolute;
-  inset: var(--header-height) 0 0 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image: linear-gradient(
-    to right,
-    var(--grid-line) 1px,
-    transparent 1px
-  );
-  background-size: 25% 100%;
-  background-position: 12.5% 0;
-}
+/* The landing's column lines are drawn by `.app` itself, from the
+ * --desktop-space-* tokens, as the desktop app does. */
 
 /* ── Page titles ──
  * Every page's own h1 is the landing's headline — uppercase, weight 950,

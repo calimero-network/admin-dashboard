@@ -40,6 +40,10 @@
   cursor: pointer;
   transition: all 0.15s;
   flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-button);
 }
 
 .installed-refresh-btn:hover:not(:disabled) {
@@ -171,8 +175,8 @@
 
 .btn-more:hover {
   border-color: var(--border-color);
-  color: var(--text-primary);
-  background: var(--hover-wash);
+  color: var(--text-secondary);
+  background: var(--surface-glass-soft);
 }
 
 .app-actions-dropdown {
@@ -213,7 +217,7 @@
 }
 
 .dropdown-item-danger:hover {
-  background: color-mix(in srgb, var(--error) 8%, transparent);
+  background: rgb(var(--error-rgb) / 0.08);
   color: var(--error);
 }
 

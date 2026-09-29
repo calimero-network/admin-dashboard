@@ -25,10 +25,10 @@
   padding: 14px 16px;
   border-radius: 0;
   box-shadow: var(--shadow-lg);
-  background: var(--surface-glass-strong);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   pointer-events: auto;
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInRight 0.5s var(--ease-out);
   min-width: 300px;
   max-width: 100%;
 }
@@ -36,7 +36,7 @@
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;

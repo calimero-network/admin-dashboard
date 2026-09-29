@@ -10,8 +10,9 @@
    promise an interaction that does not exist. */
 .installed-app-card:hover {
   transform: none;
-  border-color: var(--border-hover);
+  border-color: var(--border-strong);
   box-shadow: none;
+  background: var(--surface-glass);
 }
 
 .installed-app-version {
@@ -24,6 +25,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
   margin-top: auto;
   padding-top: 10px;
   border-top: 1px solid var(--border-color);
@@ -47,6 +49,19 @@
 
 .installed-app-more-btn {
   padding: 6px 8px;
+}
+
+/* The desktop's More is a `.button-secondary` (grey outline, no bloom); here
+   it is a plain `.button`, so the desktop's secondary ink is set directly. */
+.installed-app-more-btn.button {
+  color: var(--text-secondary);
+}
+
+.installed-app-more-btn.button:hover:not(:disabled) {
+  background: rgb(var(--ink-rgb) / 0.04);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  box-shadow: none;
 }
 
 /* The card sets `overflow: hidden` so the icon corners stay rounded, which
