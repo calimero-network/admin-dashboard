@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { apiClient } from '@calimero-network/calimero-client';
 import ContentWrapper from '../layout/ContentWrapper';
 import { styled } from 'styled-components';
-import { NearWalletProvider } from './providers/NearWalletProvider';
 import { UsernamePasswordProvider } from './providers/UsernamePasswordProvider';
 
 const Wrapper = styled.div`
@@ -108,8 +107,6 @@ export default function RootKeyProvidersWrapper() {
 
   const renderProvider = () => {
     switch (provider.name.toLowerCase()) {
-      case 'near_wallet':
-        return <NearWalletProvider provider={provider} />;
       case 'user_password':
         return <UsernamePasswordProvider provider={provider} />;
       default:
@@ -119,7 +116,7 @@ export default function RootKeyProvidersWrapper() {
             dashboard.
             <br />
             <br />
-            Supported providers: near_wallet, username_password
+            Supported providers: user_password
           </div>
         );
     }
