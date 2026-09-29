@@ -93,11 +93,14 @@ jobs:
 
       # This zip is what core/crates/server/build.rs downloads and bakes into
       # merod, so a PR that breaks its shape breaks the node build. Assert the
-      # entrypoint and the SPA fallback are both present.
+      # entrypoint is present. (merod's SPA fallback is index.html itself; the
+      # old 404.html only served the GitHub Pages redirect trick.)
       - name: Verify release bundle shape
         run: |
           test -f build/index.html || { echo "::error::build/index.html missing"; exit 1; }
-          test -f build/public/404.html || { echo "::error::build/public/404.html missing"; exit 1; }
+          if grep -q '<script>\|<script type="text/javascript">' build/index.html; then
+            echo "::error::build/index.html has an inline script — it would block a script-src CSP"; exit 1
+          fi
           grep -q '/admin-dashboard/assets/' build/index.html \
             || { echo "::error::index.html does not reference /admin-dashboard/assets/ — check vite base"; exit 1; }
 
