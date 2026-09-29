@@ -126,16 +126,14 @@ export default function ApplicationsPage() {
    * Tauri window is not subject to popup blocking.)
    */
   const handleOpen = (frontendUrl: string, app: InstalledApplication) => {
-    try {
-      openAppInNewTab(frontendUrl, {
-        applicationId: app.id,
-        devMode: getSettings().developerMode,
-      });
-    } catch (e) {
+    openAppInNewTab(frontendUrl, {
+      applicationId: app.id,
+      devMode: getSettings().developerMode,
+    }).catch((e: unknown) => {
       toast.error(
         e instanceof Error ? e.message : 'Failed to open application',
       );
-    }
+    });
   };
 
   const requestUninstall = (appId: string, appName: string) =>

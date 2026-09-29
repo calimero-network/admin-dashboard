@@ -236,13 +236,21 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       .not.toBe('about:blank');
 
     const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
-    // A real node-minted JWT, forwarded to the app.
+    // A real JWT the node minted for THIS app — not the dashboard's own.
     expect(hash.get('access_token')?.split('.')).toHaveLength(3);
+    const ownAccess = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('access-token') ?? 'null'),
+    );
+    expect(hash.get('access_token')).not.toBe(ownAccess);
     // The node the dashboard is actually pointed at, so the app talks to the
     // same one rather than to whatever origin served the dashboard.
     expect(hash.get('node_url')).toBe(NODE_URL);
-    // The assertion this feature lives or dies on (core#3083).
-    expect(hash.has('refresh_token')).toBe(false);
+    // Its own refresh token, so rotating it cannot revoke ours (core#3083).
+    expect(hash.get('refresh_token')).toBeTruthy();
+    const ownRefresh = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('refresh-token') ?? 'null'),
+    );
+    expect(hash.get('refresh_token')).not.toBe(ownRefresh);
 
     await popup.close();
   });

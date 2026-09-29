@@ -145,16 +145,14 @@ export default function Dashboard() {
       navigate('/applications');
       return;
     }
-    try {
-      openAppInNewTab(app.frontendUrl, {
-        applicationId: app.id,
-        devMode: getSettings().developerMode,
-      });
-    } catch (e) {
+    openAppInNewTab(app.frontendUrl, {
+      applicationId: app.id,
+      devMode: getSettings().developerMode,
+    }).catch((e: unknown) => {
       toast.error(
         e instanceof Error ? e.message : 'Failed to open application',
       );
-    }
+    });
   };
 
   return (
