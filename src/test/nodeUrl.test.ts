@@ -95,8 +95,8 @@ describe('getNodeUrl (production build)', () => {
 
   // A production bundle is only ever served by a real node, so a `?nodeUrl=`
   // here arrived in a link someone clicked. Honouring it would aim the admin API
-  // — and the access token in the SSO hash handed to opened apps — at whatever
-  // origin the link named.
+  // — and the node_url handed to opened apps — at whatever origin the link
+  // named.
   it('refuses a ?nodeUrl= pointing off-box', () => {
     setLocation(
       'https://real-node.example/admin-dashboard/?nodeUrl=https://evil.example',

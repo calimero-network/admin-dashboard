@@ -192,7 +192,7 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     await expect(row.locator('img.app-icon-img')).toBeVisible();
   });
 
-  test('Open hands the app an access token and no refresh token', async ({
+  test('Open hands the app the node but no dashboard token', async ({
     page,
     context,
   }) => {
@@ -236,8 +236,8 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       .not.toBe('about:blank');
 
     const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
-    // A real node-minted JWT, forwarded to the app.
-    expect(hash.get('access_token')?.split('.')).toHaveLength(3);
+    // The app signs in on its own; the dashboard session never leaves the node.
+    expect(hash.has('access_token')).toBe(false);
     // The node the dashboard is actually pointed at, so the app talks to the
     // same one rather than to whatever origin served the dashboard.
     expect(hash.get('node_url')).toBe(NODE_URL);

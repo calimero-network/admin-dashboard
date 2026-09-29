@@ -1,14 +1,13 @@
 /**
- * Open an installed application's frontend in a new browser tab, handing it an
- * SSO bundle in the URL hash.
+ * Open an installed application's frontend in a new browser tab, telling it
+ * which node and application to use in the URL hash.
  *
  * This is the web counterpart of the desktop's `openAppFrontend`
  * (tauri-app/apps/desktop/src/utils/appUtils.ts). The desktop opens a Tauri
- * window (or a native per-app launcher); we can only open a tab. The auth
- * hand-off is the same URL-hash contract, with one deliberate difference
- * documented under "Why no refresh_token" below.
+ * window (or a native per-app launcher); we can only open a tab, on an origin
+ * the app's own metadata chose, so no credential is handed over (see
+ * `buildSsoHash`).
  */
-import { getAccessToken } from '@calimero-network/calimero-client';
 import { httpUrl } from './appUtils';
 import { getNodeUrl, isMixedContent } from './nodeUrl';
 
@@ -48,23 +47,8 @@ export class UnsupportedUrlError extends Error {
 }
 
 /**
- * Build the SSO hash fragment handed to an app frontend.
- *
- * Why no `refresh_token`
- * ---------------------
- * Refresh tokens are single-use since core 0.11.0 (calimero-network/core#3083):
- * each POST /auth/refresh consumes the presented token, and re-presenting a
- * consumed one is treated as theft — the node revokes the whole token family and
- * every holder is logged out. The desktop works around this with a token broker:
- * it keeps the only real refresh token and serves app windows' refreshes over
- * Tauri IPC, handing them a sentinel value instead.
- *
- * A browser tab on a different origin cannot be brokered — we cannot intercept
- * its fetch. So we hand over the ACCESS token only. mero-react is built for
- * exactly this: `resolveTokenAdoption` merges rather than replaces precisely
- * because "hosts are dropping refresh_token from the SSO hash"
- * (mero-react/src/auth/token-adoption.ts). The app tab runs on the access token
- * until it expires and then falls back to its own login against the node.
+ * Build the hash fragment handed to an app frontend: node and ids, never a
+ * token. The app signs in through the node's auth flow for its own scoped key.
  *
  * Both `application_id` and `app-id` are sent: mero-js >= 7 reads
  * `application_id` (mero-js/src/auth/index.ts), while calimero-client and
@@ -73,10 +57,6 @@ export class UnsupportedUrlError extends Error {
 export function buildSsoHash(opts: OpenAppOptions = {}): string {
   const params = new URLSearchParams();
   params.set('node_url', getNodeUrl());
-
-  const accessToken = getAccessToken();
-  if (accessToken) params.set('access_token', accessToken);
-
   if (opts.applicationId) {
     params.set('application_id', opts.applicationId);
     params.set('app-id', opts.applicationId);
@@ -111,7 +91,7 @@ export function buildAppUrl(
   // inside the app's route string — the receiving parser looks for
   // `key=value&…` and finds none, so the hand-off silently fails. Losing the
   // deep link is the lesser cost: the app strips this fragment once it has
-  // adopted the tokens anyway.
+  // read it anyway.
   u.hash = '';
   return `${u.toString()}#${buildSsoHash(opts)}`;
 }

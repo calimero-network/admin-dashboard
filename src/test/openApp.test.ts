@@ -42,10 +42,12 @@ describe('buildSsoHash', () => {
     sessionStorage.clear();
   });
 
-  it('carries node_url and the access token', () => {
-    const params = new URLSearchParams(buildSsoHash());
+  it('carries node_url but never the dashboard access token', () => {
+    const hash = buildSsoHash({ applicationId: 'app-1' });
+    const params = new URLSearchParams(hash);
     expect(params.get('node_url')).toBe('http://localhost:2528');
-    expect(params.get('access_token')).toBe(ACCESS_TOKEN);
+    expect(params.has('access_token')).toBe(false);
+    expect(hash).not.toContain(ACCESS_TOKEN);
   });
 
   /**
@@ -112,8 +114,8 @@ describe('buildAppUrl', () => {
     expect(url.searchParams.get('_cb')).toBe('1234');
     // The SSO bundle must be in the fragment: a query string would be sent to
     // the app's server and land in its access logs.
-    expect(url.hash).toContain('access_token=');
-    expect(url.search).not.toContain('access_token');
+    expect(url.hash).toContain('node_url=');
+    expect(url.search).not.toContain('node_url');
   });
 
   it('preserves query params already on the frontend URL', () => {
@@ -129,7 +131,7 @@ describe('buildAppUrl', () => {
     const out = buildAppUrl('https://app.example/#/dashboard', {}, 1);
     expect(out.split('#').length).toBe(2);
     expect(out).not.toContain('#/dashboard');
-    expect(new URL(out).hash).toContain('access_token=');
+    expect(new URL(out).hash).toContain('node_url=');
   });
 });
 

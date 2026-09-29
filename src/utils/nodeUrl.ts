@@ -59,10 +59,10 @@ function isLoopback(url: string): boolean {
  * that loop. In a production build there is — a production bundle is only ever
  * served by a real node, so an override there can only have arrived in a link
  * someone clicked. Since `getNodeUrl()` decides where the admin API lives AND
- * what `node_url`/`access_token` go into the SSO hash handed to opened apps
- * (openApp.ts), an unrestricted override turns one crafted link into token
- * exfiltration: `https://real-node/admin-dashboard/?nodeUrl=https://evil.example`
- * would aim every authenticated call at evil.example for the rest of the session.
+ * which `node_url` opened apps are told to sign in to (openApp.ts), an
+ * unrestricted override turns one crafted link into token exfiltration:
+ * `https://real-node/admin-dashboard/?nodeUrl=https://evil.example` would aim
+ * every authenticated call at evil.example for the rest of the session.
  *
  * Loopback is the line that keeps the escape hatch useful and the attack inert.
  * It still covers every legitimate use — `pnpm dev` on :5173 against merod on

@@ -75,7 +75,7 @@ test.describe('Applications', () => {
     );
   });
 
-  test('Open launches the app frontend in a new tab with an SSO hash', async ({
+  test('Open launches the app frontend with node and ids, no token', async ({
     page,
     context,
   }) => {
@@ -90,7 +90,8 @@ test.describe('Applications', () => {
     expect(url).toContain('https://app.invalid/blocks/');
 
     const hash = new URLSearchParams(url.split('#')[1] ?? '');
-    expect(hash.get('access_token')).toBeTruthy();
+    // The app origin comes from app metadata, so the dashboard session stays here.
+    expect(hash.has('access_token')).toBe(false);
     expect(hash.get('node_url')).toBe(new URL(page.url()).origin);
     // Both id contract keys, for mero-js >= 7 and for calimero-client.
     expect(hash.get('application_id')).toBe(APP_WITH_FRONTEND.id);
