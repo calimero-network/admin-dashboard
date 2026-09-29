@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/calimero-network/admin-dashboard/compare/v1.18.7...v1.19.0) (2026-09-29)
+
+
+### Features
+
+* **namespaces:** show disk used per namespace, per app and on the node ([#176](https://github.com/calimero-network/admin-dashboard/issues/176)) ([52e55ae](https://github.com/calimero-network/admin-dashboard/commit/52e55aeb68166bce4a4acf579ae1fc6a2c0ac459))
+
 ## [1.18.7](https://github.com/calimero-network/admin-dashboard/compare/v1.18.6...v1.18.7) (2026-09-29)
 
 ## [1.18.6](https://github.com/calimero-network/admin-dashboard/compare/v1.18.5...v1.18.6) (2026-09-29)
