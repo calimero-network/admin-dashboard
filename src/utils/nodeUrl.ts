@@ -138,8 +138,8 @@ export function clearNodeUrlOverride(): void {
 /**
  * `VITE_NODE_URL`, honoured only in a dev build. In production the serving
  * origin is authoritative and this is ignored entirely, so a stale `.env` can
- * never redirect a deployed dashboard's admin-API calls or the SSO hash it hands
- * to applications.
+ * never redirect a deployed dashboard's admin-API calls or the launch hash it
+ * hands to applications.
  */
 function readEnvFallback(): string | null {
   if (isNodeServed()) return null;

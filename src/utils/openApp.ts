@@ -6,13 +6,13 @@
  * (tauri-app/apps/desktop/src/utils/appUtils.ts). The desktop opens a Tauri
  * window (or a native per-app launcher); we can only open a tab, on an origin
  * the app's own metadata chose, so no credential is handed over (see
- * `buildSsoHash`).
+ * `buildLaunchHash`).
  */
 import { httpUrl } from './appUtils';
 import { getNodeUrl, isMixedContent } from './nodeUrl';
 
 export interface OpenAppOptions {
-  /** Node-assigned application id. Used for the tab name and the SSO hash. */
+  /** Node-assigned application id, for the tab name and the launch hash. */
   applicationId?: string;
   contextId?: string;
   executorPublicKey?: string;
@@ -54,7 +54,7 @@ export class UnsupportedUrlError extends Error {
  * `application_id` (mero-js/src/auth/index.ts), while calimero-client and
  * mero-js 2.x read `app-id`. An app that only knows one key ignores the other.
  */
-export function buildSsoHash(opts: OpenAppOptions = {}): string {
+export function buildLaunchHash(opts: OpenAppOptions = {}): string {
   const params = new URLSearchParams();
   params.set('node_url', getNodeUrl());
   if (opts.applicationId) {
@@ -72,11 +72,11 @@ export function buildSsoHash(opts: OpenAppOptions = {}): string {
 
 /**
  * Compose the full URL an app tab should navigate to: cache-busted document URL
- * plus the SSO hash.
+ * plus the launch hash.
  *
  * The `_cb` query param mirrors the desktop: without it a webview/tab can serve
  * a stale cached index.html pointing at an old bundle. It goes in the query, not
- * the hash, so it never disturbs the SSO fragment.
+ * the hash, so it never disturbs the launch fragment.
  */
 export function buildAppUrl(
   frontendUrl: string,
@@ -85,15 +85,10 @@ export function buildAppUrl(
 ): string {
   const u = new URL(frontendUrl);
   u.searchParams.set('_cb', String(now));
-  // Drop any fragment the frontend URL carried. A hash-routed app
-  // (`https://app.example/#/dashboard`) would otherwise yield two `#`, and
-  // since only the first delimits the fragment the SSO params would land
-  // inside the app's route string — the receiving parser looks for
-  // `key=value&…` and finds none, so the hand-off silently fails. Losing the
-  // deep link is the lesser cost: the app strips this fragment once it has
-  // read it anyway.
+  // A hash-routed frontend's own fragment would swallow the launch params into
+  // its route string, where the app cannot parse them, so the deep link goes.
   u.hash = '';
-  return `${u.toString()}#${buildSsoHash(opts)}`;
+  return `${u.toString()}#${buildLaunchHash(opts)}`;
 }
 
 /**

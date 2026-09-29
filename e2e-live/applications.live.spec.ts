@@ -208,11 +208,8 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     expect(frontend, 'the bundle declared no links.frontend').toBeTruthy();
     const frontendOrigin = new URL(frontend as string).origin;
 
-    // Stub the app's site. Not for speed — for correctness: the real frontend
-    // runs mero-react, which strips the SSO params out of the address bar on
-    // boot (window.history.replaceState in MeroProvider). Reading popup.url()
-    // after that returns a hash-less URL and the assertions below see nothing.
-    // Routed on the CONTEXT because a popup is a separate Page.
+    // Stub the app's site so the test reads the launch URL, not whatever the
+    // real frontend does with it. On the context: a popup is its own Page.
     await context.route(`${frontendOrigin}/**`, (route) =>
       route.fulfill({
         status: 200,

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import {
-  buildSsoHash,
+  buildLaunchHash,
   buildAppUrl,
   appTabName,
   openAppInNewTab,
@@ -36,14 +36,14 @@ function setLocation(href: string) {
   });
 }
 
-describe('buildSsoHash', () => {
+describe('buildLaunchHash', () => {
   beforeEach(() => {
     setLocation('http://localhost:2528/admin-dashboard/applications');
     sessionStorage.clear();
   });
 
   it('carries node_url but never the dashboard access token', () => {
-    const hash = buildSsoHash({ applicationId: 'app-1' });
+    const hash = buildLaunchHash({ applicationId: 'app-1' });
     const params = new URLSearchParams(hash);
     expect(params.get('node_url')).toBe('http://localhost:2528');
     expect(params.has('access_token')).toBe(false);
@@ -60,17 +60,17 @@ describe('buildSsoHash', () => {
    */
   it('NEVER sends a refresh_token', () => {
     const params = new URLSearchParams(
-      buildSsoHash({ applicationId: 'app-1' }),
+      buildLaunchHash({ applicationId: 'app-1' }),
     );
     expect(params.has('refresh_token')).toBe(false);
-    expect(buildSsoHash()).not.toContain('refresh_token');
+    expect(buildLaunchHash()).not.toContain('refresh_token');
   });
 
   it('sends the application id under both contract keys', () => {
     // mero-js >= 7 reads `application_id`; calimero-client and mero-js 2.x read
     // `app-id`. Sending both keeps every app generation working.
     const params = new URLSearchParams(
-      buildSsoHash({ applicationId: 'app-42' }),
+      buildLaunchHash({ applicationId: 'app-42' }),
     );
     expect(params.get('application_id')).toBe('app-42');
     expect(params.get('app-id')).toBe('app-42');
@@ -78,16 +78,18 @@ describe('buildSsoHash', () => {
 
   it('includes context and executor when provided', () => {
     const params = new URLSearchParams(
-      buildSsoHash({ contextId: 'ctx-1', executorPublicKey: 'exec-1' }),
+      buildLaunchHash({ contextId: 'ctx-1', executorPublicKey: 'exec-1' }),
     );
     expect(params.get('context_id')).toBe('ctx-1');
     expect(params.get('executor_public_key')).toBe('exec-1');
   });
 
   it('only sets dev_mode when developer mode is on', () => {
-    expect(new URLSearchParams(buildSsoHash({})).has('dev_mode')).toBe(false);
+    expect(new URLSearchParams(buildLaunchHash({})).has('dev_mode')).toBe(
+      false,
+    );
     expect(
-      new URLSearchParams(buildSsoHash({ devMode: true })).get('dev_mode'),
+      new URLSearchParams(buildLaunchHash({ devMode: true })).get('dev_mode'),
     ).toBe('1');
   });
 
@@ -97,7 +99,7 @@ describe('buildSsoHash', () => {
     // stub it — see src/test/nodeUrl.test.ts for why mode, not path, decides.
     vi.stubEnv('DEV', false);
     setLocation('https://host.example/node-a/admin-dashboard/dashboard');
-    expect(new URLSearchParams(buildSsoHash()).get('node_url')).toBe(
+    expect(new URLSearchParams(buildLaunchHash()).get('node_url')).toBe(
       'https://host.example/node-a',
     );
     vi.unstubAllEnvs();
@@ -112,8 +114,8 @@ describe('buildAppUrl', () => {
   it('cache-busts in the query and keeps auth in the hash', () => {
     const url = new URL(buildAppUrl('https://app.example/', {}, 1234));
     expect(url.searchParams.get('_cb')).toBe('1234');
-    // The SSO bundle must be in the fragment: a query string would be sent to
-    // the app's server and land in its access logs.
+    // The launch params must be in the fragment: a query string would be sent
+    // to the app's server and land in its access logs.
     expect(url.hash).toContain('node_url=');
     expect(url.search).not.toContain('node_url');
   });
@@ -125,8 +127,8 @@ describe('buildAppUrl', () => {
   });
 
   // A hash-routed frontend would otherwise produce two `#`. Only the first
-  // delimits the fragment, so the SSO params would end up inside the app's route
-  // string and its parser — which expects `key=value&…` — would find nothing.
+  // delimits the fragment, so the launch params would end up inside the app's
+  // route string, where its `key=value&…` parser would find nothing.
   it('drops a fragment the frontend URL already carried', () => {
     const out = buildAppUrl('https://app.example/#/dashboard', {}, 1);
     expect(out.split('#').length).toBe(2);

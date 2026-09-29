@@ -46,7 +46,7 @@ afterEach(() => {
  * Production: the serving origin is authoritative, because core bakes this
  * bundle into merod and serves it at `{NODE_PATH_PREFIX}/admin-dashboard/`.
  * `VITE_NODE_URL` is ignored entirely here, so a stale `.env` can never
- * redirect a deployed dashboard's API calls or the SSO hash it hands to apps.
+ * redirect a deployed dashboard's API calls or the launch hash for apps.
  */
 describe('getNodeUrl (production build)', () => {
   beforeEach(() => {
