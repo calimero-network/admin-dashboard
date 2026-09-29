@@ -1,3 +1,10 @@
+## [1.18.5](https://github.com/calimero-network/admin-dashboard/compare/v1.18.4...v1.18.5) (2026-09-29)
+
+
+### Bug Fixes
+
+* **apps:** only open absolute http(s) app links ([#163](https://github.com/calimero-network/admin-dashboard/issues/163)) ([c56297d](https://github.com/calimero-network/admin-dashboard/commit/c56297d53816a1d1c9e9f4d54ab7e4f17b8ae370))
+
 ## [1.18.4](https://github.com/calimero-network/admin-dashboard/compare/v1.18.3...v1.18.4) (2026-09-29)
 
 
