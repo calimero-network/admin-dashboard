@@ -5,8 +5,8 @@
  * This is the web counterpart of the desktop's `openAppFrontend`
  * (tauri-app/apps/desktop/src/utils/appUtils.ts). The desktop opens a Tauri
  * window (or a native per-app launcher); we can only open a tab. The auth
- * hand-off is the same URL-hash contract, with one deliberate difference
- * documented under "Why no refresh_token" below.
+ * hand-off is the same URL-hash contract, carrying a token pair minted for the
+ * app (see `mintAppTokens`) rather than the dashboard's own.
  */
 import { getAccessToken } from '@calimero-network/calimero-client';
 import { getNodeUrl, isMixedContent } from './nodeUrl';
@@ -91,34 +91,118 @@ export class MixedContentError extends Error {
 }
 
 /**
+ * What an app tab's token may do: the MultiContext set from mero-react's
+ * `getPermissionsForMode` — everything an app needs, and nothing that manages
+ * the node itself (root keys, installs, other apps' keys).
+ */
+export const APP_TOKEN_PERMISSIONS: readonly string[] = [
+  'context:create',
+  'context:list',
+  'context:execute',
+  'context:subscribe',
+  'application:list',
+  'namespace',
+  'group',
+  'blob',
+  'context:alias',
+];
+
+/**
+ * How long a minted app key lives. A tab open longer than this falls back to
+ * its own login, which is where it used to land once the forwarded access
+ * token expired.
+ */
+export const APP_TOKEN_TTL_SECS = 24 * 60 * 60;
+
+export interface AppTokens {
+  access_token: string;
+  refresh_token: string;
+}
+
+export class AppTokenError extends Error {
+  constructor(detail: string) {
+    super(`Could not create a session for this app: ${detail}`);
+    this.name = 'AppTokenError';
+  }
+}
+
+/**
+ * Mint a token pair for one app tab: a client key under our root key, scoped
+ * to {@link APP_TOKEN_PERMISSIONS} (plus the context, when opening one).
+ *
+ * The dashboard's own token carries `admin` and must never leave this origin:
+ * the app frontend URL is chosen by the bundle's publisher, and an admin token
+ * there is a root-key-add away from permanent control of the node.
+ */
+export async function mintAppTokens(
+  opts: OpenAppOptions = {},
+  fetchImpl: typeof fetch = fetch,
+): Promise<AppTokens> {
+  const adminToken = getAccessToken();
+  if (!adminToken) throw new AppTokenError('not logged in');
+
+  const body: Record<string, unknown> = {
+    permissions: [...APP_TOKEN_PERMISSIONS],
+    ttl_secs: APP_TOKEN_TTL_SECS,
+  };
+  if (opts.contextId && opts.executorPublicKey) {
+    body.context_id = opts.contextId;
+    body.context_identity = opts.executorPublicKey;
+  }
+
+  let res: Response;
+  try {
+    res = await fetchImpl(`${getNodeUrl()}/admin/client-key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    throw new AppTokenError(e instanceof Error ? e.message : 'network error');
+  }
+
+  const json = (await res.json().catch(() => null)) as {
+    data?: Partial<AppTokens> | null;
+    error?: string | { message?: string } | null;
+  } | null;
+  const tokens = json?.data;
+  if (!res.ok || !tokens?.access_token || !tokens.refresh_token) {
+    const err = json?.error;
+    const detail =
+      (typeof err === 'string' ? err : err?.message) || `HTTP ${res.status}`;
+    throw new AppTokenError(detail);
+  }
+  return {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+  };
+}
+
+/**
  * Build the SSO hash fragment handed to an app frontend.
  *
- * Why no `refresh_token`
- * ---------------------
- * Refresh tokens are single-use since core 0.11.0 (calimero-network/core#3083):
- * each POST /auth/refresh consumes the presented token, and re-presenting a
- * consumed one is treated as theft — the node revokes the whole token family and
- * every holder is logged out. The desktop works around this with a token broker:
- * it keeps the only real refresh token and serves app windows' refreshes over
- * Tauri IPC, handing them a sentinel value instead.
- *
- * A browser tab on a different origin cannot be brokered — we cannot intercept
- * its fetch. So we hand over the ACCESS token only. mero-react is built for
- * exactly this: `resolveTokenAdoption` merges rather than replaces precisely
- * because "hosts are dropping refresh_token from the SSO hash"
- * (mero-react/src/auth/token-adoption.ts). The app tab runs on the access token
- * until it expires and then falls back to its own login against the node.
+ * The tokens are the app's OWN pair from {@link mintAppTokens}, never the
+ * dashboard's. That is also why the refresh token can travel now: refresh
+ * tokens are single-use (calimero-network/core#3083) and re-presenting one
+ * revokes its whole family, so handing an app tab OUR refresh token would have
+ * let it log the dashboard out. A freshly minted family has one holder — the
+ * tab — so it rotates without touching anyone else.
  *
  * Both `application_id` and `app-id` are sent: mero-js >= 7 reads
  * `application_id` (mero-js/src/auth/index.ts), while calimero-client and
  * mero-js 2.x read `app-id`. An app that only knows one key ignores the other.
  */
-export function buildSsoHash(opts: OpenAppOptions = {}): string {
+export function buildSsoHash(
+  tokens: AppTokens,
+  opts: OpenAppOptions = {},
+): string {
   const params = new URLSearchParams();
   params.set('node_url', getNodeUrl());
-
-  const accessToken = getAccessToken();
-  if (accessToken) params.set('access_token', accessToken);
+  params.set('access_token', tokens.access_token);
+  params.set('refresh_token', tokens.refresh_token);
 
   if (opts.applicationId) {
     params.set('application_id', opts.applicationId);
@@ -143,10 +227,11 @@ export function buildSsoHash(opts: OpenAppOptions = {}): string {
  */
 export function buildAppUrl(
   frontendUrl: string,
+  tokens: AppTokens,
   opts: OpenAppOptions = {},
   now: number = Date.now(),
 ): string {
-  const hash = buildSsoHash(opts);
+  const hash = buildSsoHash(tokens, opts);
   try {
     const u = new URL(frontendUrl);
     u.searchParams.set('_cb', String(now));
@@ -186,13 +271,21 @@ export function appTabName(applicationId?: string): string {
  * doing that here would break every "Open" button, so instead we open
  * `about:blank` immediately and only then navigate it.
  *
+ * It is `async` only for the token mint, which runs AFTER `window.open`: an
+ * async function body runs synchronously up to its first `await`, so the tab
+ * is still opened inside the click's user-activation.
+ *
+ * @throws {UnsafeUrlError} not https, or http off loopback
  * @throws {MixedContentError} https dashboard -> http app frontend
  * @throws {PopupBlockedError} the browser refused the tab
+ * @throws {AppTokenError} the node refused to mint the app's token (the blank
+ *   tab is closed)
  */
-export function openAppInNewTab(
+export async function openAppInNewTab(
   frontendUrl: string,
   opts: OpenAppOptions = {},
-): Window {
+  fetchImpl: typeof fetch = fetch,
+): Promise<Window> {
   if (!isAllowedAppFrontendUrl(frontendUrl)) {
     throw new UnsafeUrlError(frontendUrl);
   }
@@ -220,8 +313,16 @@ export function openAppInNewTab(
     // usual cross-origin rules, so continue rather than refusing to open.
   }
 
+  let tokens: AppTokens;
+  try {
+    tokens = await mintAppTokens(opts, fetchImpl);
+  } catch (e) {
+    tab.close();
+    throw e;
+  }
+
   // `replace` so the app is not reachable by pressing Back to about:blank.
-  tab.location.replace(buildAppUrl(frontendUrl, opts));
+  tab.location.replace(buildAppUrl(frontendUrl, tokens, opts));
   return tab;
 }
 

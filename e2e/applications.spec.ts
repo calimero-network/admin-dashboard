@@ -3,6 +3,7 @@ import {
   mockNode,
   APP_WITH_FRONTEND,
   APP_WITHOUT_FRONTEND,
+  MINTED_APP_TOKENS,
 } from './fixtures/node';
 
 /** One installed-app card, picked by the name it renders. */
@@ -67,9 +68,18 @@ test.describe('Applications', () => {
     page,
     context,
   }) => {
+    const mintRequest = page.waitForRequest('**/admin/client-key');
     const popupPromise = context.waitForEvent('page');
     await page.getByTestId('open-app').click();
     const popup = await popupPromise;
+
+    // The pair is minted for this tab, scoped below admin.
+    const minted = (await mintRequest).postDataJSON() as {
+      permissions: string[];
+    };
+    expect(minted.permissions).not.toContain('admin');
+    expect(minted.permissions).toContain('context:execute');
+
     // The tab opens at about:blank and is navigated a tick later (see
     // utils/openApp.ts), so wait for the real URL before reading it.
     await popup.waitForURL(/app\.invalid/);
@@ -78,16 +88,21 @@ test.describe('Applications', () => {
     expect(url).toContain('https://app.invalid/blocks/');
 
     const hash = new URLSearchParams(url.split('#')[1] ?? '');
-    expect(hash.get('access_token')).toBeTruthy();
+    expect(hash.get('access_token')).toBe(MINTED_APP_TOKENS.access_token);
     expect(hash.get('node_url')).toBe(new URL(page.url()).origin);
     // Both id contract keys, for mero-js >= 7 and for calimero-client.
     expect(hash.get('application_id')).toBe(APP_WITH_FRONTEND.id);
     expect(hash.get('app-id')).toBe(APP_WITH_FRONTEND.id);
 
-    // The single most important assertion in the suite: a leaked refresh token
-    // would let the app tab rotate ours, and core would then revoke the whole
-    // token family as reuse (core#3083).
-    expect(hash.has('refresh_token')).toBe(false);
+    // The single most important assertion in the suite: the dashboard's own
+    // tokens carry `admin` and never leave this origin — the app gets its own
+    // family, so rotating it cannot revoke ours (core#3083).
+    const ownAccess = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('access-token') ?? 'null'),
+    );
+    expect(hash.get('access_token')).not.toBe(ownAccess);
+    expect(hash.get('refresh_token')).toBe(MINTED_APP_TOKENS.refresh_token);
+    expect(url).not.toContain('refresh-e2e');
 
     // Cache-buster belongs in the query, never the fragment.
     expect(new URL(url).searchParams.get('_cb')).toBeTruthy();

@@ -9,12 +9,30 @@ import {
   openExternal,
   isSafeWebUrl,
   isAllowedAppFrontendUrl,
+  mintAppTokens,
+  APP_TOKEN_PERMISSIONS,
+  AppTokenError,
   PopupBlockedError,
   MixedContentError,
   UnsafeUrlError,
 } from '../utils/openApp';
 
+/** The dashboard's own (admin) token. It must never reach an app tab. */
 const ACCESS_TOKEN = 'header.payload.signature';
+/** A pair minted for one app tab. */
+const TOKENS = { access_token: 'app.access', refresh_token: 'app.refresh' };
+
+/** A fetch that answers the client-key mint the way core does. */
+function mintFetch(
+  status = 200,
+  body: unknown = { data: TOKENS, error: null },
+) {
+  return vi.fn().mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  } as unknown as Response);
+}
 
 // vitest hoists vi.mock above the imports, so declaring it after them is safe
 // and keeps eslint's import/first rule satisfied.
@@ -44,33 +62,28 @@ describe('buildSsoHash', () => {
     sessionStorage.clear();
   });
 
-  it('carries node_url and the access token', () => {
-    const params = new URLSearchParams(buildSsoHash());
+  it('carries node_url and the app token pair', () => {
+    const params = new URLSearchParams(buildSsoHash(TOKENS));
     expect(params.get('node_url')).toBe('http://localhost:2528');
-    expect(params.get('access_token')).toBe(ACCESS_TOKEN);
+    expect(params.get('access_token')).toBe(TOKENS.access_token);
+    expect(params.get('refresh_token')).toBe(TOKENS.refresh_token);
   });
 
   /**
-   * The load-bearing assertion of this whole feature. Refresh tokens are
-   * single-use (core#3083): if an app tab rotated ours, the node would read our
-   * next refresh as token_reuse and revoke the entire family, logging the user
-   * out of the dashboard AND every other app. The desktop avoids this with an
-   * IPC broker; a cross-origin browser tab cannot be brokered, so the refresh
-   * token must never leave this origin.
+   * The load-bearing assertion of this whole feature. The app frontend URL is
+   * chosen by the bundle's publisher; the dashboard's token carries `admin`.
    */
-  it('NEVER sends a refresh_token', () => {
-    const params = new URLSearchParams(
-      buildSsoHash({ applicationId: 'app-1' }),
+  it("NEVER carries the dashboard's own token", () => {
+    expect(buildSsoHash(TOKENS, { applicationId: 'app-1' })).not.toContain(
+      ACCESS_TOKEN,
     );
-    expect(params.has('refresh_token')).toBe(false);
-    expect(buildSsoHash()).not.toContain('refresh_token');
   });
 
   it('sends the application id under both contract keys', () => {
     // mero-js >= 7 reads `application_id`; calimero-client and mero-js 2.x read
     // `app-id`. Sending both keeps every app generation working.
     const params = new URLSearchParams(
-      buildSsoHash({ applicationId: 'app-42' }),
+      buildSsoHash(TOKENS, { applicationId: 'app-42' }),
     );
     expect(params.get('application_id')).toBe('app-42');
     expect(params.get('app-id')).toBe('app-42');
@@ -78,16 +91,20 @@ describe('buildSsoHash', () => {
 
   it('includes context and executor when provided', () => {
     const params = new URLSearchParams(
-      buildSsoHash({ contextId: 'ctx-1', executorPublicKey: 'exec-1' }),
+      buildSsoHash(TOKENS, { contextId: 'ctx-1', executorPublicKey: 'exec-1' }),
     );
     expect(params.get('context_id')).toBe('ctx-1');
     expect(params.get('executor_public_key')).toBe('exec-1');
   });
 
   it('only sets dev_mode when developer mode is on', () => {
-    expect(new URLSearchParams(buildSsoHash({})).has('dev_mode')).toBe(false);
+    expect(new URLSearchParams(buildSsoHash(TOKENS, {})).has('dev_mode')).toBe(
+      false,
+    );
     expect(
-      new URLSearchParams(buildSsoHash({ devMode: true })).get('dev_mode'),
+      new URLSearchParams(buildSsoHash(TOKENS, { devMode: true })).get(
+        'dev_mode',
+      ),
     ).toBe('1');
   });
 
@@ -97,7 +114,7 @@ describe('buildSsoHash', () => {
     // stub it — see src/test/nodeUrl.test.ts for why mode, not path, decides.
     vi.stubEnv('DEV', false);
     setLocation('https://host.example/node-a/admin-dashboard/dashboard');
-    expect(new URLSearchParams(buildSsoHash()).get('node_url')).toBe(
+    expect(new URLSearchParams(buildSsoHash(TOKENS)).get('node_url')).toBe(
       'https://host.example/node-a',
     );
     vi.unstubAllEnvs();
@@ -110,7 +127,7 @@ describe('buildAppUrl', () => {
   });
 
   it('cache-busts in the query and keeps auth in the hash', () => {
-    const url = new URL(buildAppUrl('https://app.example/', {}, 1234));
+    const url = new URL(buildAppUrl('https://app.example/', TOKENS, {}, 1234));
     expect(url.searchParams.get('_cb')).toBe('1234');
     // The SSO bundle must be in the fragment: a query string would be sent to
     // the app's server and land in its access logs.
@@ -119,7 +136,9 @@ describe('buildAppUrl', () => {
   });
 
   it('preserves query params already on the frontend URL', () => {
-    const url = new URL(buildAppUrl('https://app.example/?theme=dark', {}, 1));
+    const url = new URL(
+      buildAppUrl('https://app.example/?theme=dark', TOKENS, {}, 1),
+    );
     expect(url.searchParams.get('theme')).toBe('dark');
     expect(url.searchParams.get('_cb')).toBe('1');
   });
@@ -128,14 +147,14 @@ describe('buildAppUrl', () => {
   // delimits the fragment, so the SSO params would end up inside the app's route
   // string and its parser — which expects `key=value&…` — would find nothing.
   it('drops a fragment the frontend URL already carried', () => {
-    const out = buildAppUrl('https://app.example/#/dashboard', {}, 1);
+    const out = buildAppUrl('https://app.example/#/dashboard', TOKENS, {}, 1);
     expect(out.split('#').length).toBe(2);
     expect(out).not.toContain('#/dashboard');
     expect(new URL(out).hash).toContain('access_token=');
   });
 
   it('still attaches the hash when the URL is unparseable', () => {
-    const out = buildAppUrl('not a url', { applicationId: 'a' }, 1);
+    const out = buildAppUrl('not a url', TOKENS, { applicationId: 'a' }, 1);
     expect(out).toContain('#');
     expect(out).toContain('application_id=a');
   });
@@ -156,6 +175,64 @@ describe('appTabName', () => {
   });
 });
 
+describe('mintAppTokens', () => {
+  beforeEach(() => {
+    setLocation('http://localhost:2528/admin-dashboard/applications');
+  });
+
+  it('asks the node for a scoped client key, authorised by our token', async () => {
+    const fetchImpl = mintFetch();
+    await expect(mintAppTokens({}, fetchImpl)).resolves.toEqual(TOKENS);
+
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('http://localhost:2528/admin/client-key');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      `Bearer ${ACCESS_TOKEN}`,
+    );
+    const body = JSON.parse(init.body as string);
+    expect(body.permissions).toEqual([...APP_TOKEN_PERMISSIONS]);
+    expect(body.ttl_secs).toBeGreaterThan(0);
+    expect(body).not.toHaveProperty('context_id');
+  });
+
+  it('never asks for admin', () => {
+    expect(APP_TOKEN_PERMISSIONS).not.toContain('admin');
+    expect(APP_TOKEN_PERMISSIONS.some((p) => p.startsWith('admin'))).toBe(
+      false,
+    );
+  });
+
+  it('scopes to the context when opening one', async () => {
+    const fetchImpl = mintFetch();
+    await mintAppTokens(
+      { contextId: 'ctx-1', executorPublicKey: 'exec-1' },
+      fetchImpl,
+    );
+    const body = JSON.parse(
+      (fetchImpl.mock.calls[0] as [string, RequestInit])[1].body as string,
+    );
+    expect(body.context_id).toBe('ctx-1');
+    expect(body.context_identity).toBe('exec-1');
+  });
+
+  it('surfaces the node refusal', async () => {
+    const fetchImpl = mintFetch(403, {
+      data: null,
+      error: 'Token does not have admin permissions',
+    });
+    await expect(mintAppTokens({}, fetchImpl)).rejects.toThrow(
+      /Token does not have admin permissions/,
+    );
+  });
+
+  it('refuses a 200 without a token pair', async () => {
+    await expect(
+      mintAppTokens({}, mintFetch(200, { data: null, error: null })),
+    ).rejects.toBeInstanceOf(AppTokenError);
+  });
+});
+
 describe('openAppInNewTab', () => {
   const originalOpen = window.open;
 
@@ -167,77 +244,98 @@ describe('openAppInNewTab', () => {
     window.open = originalOpen;
   });
 
-  it('opens about:blank first, then navigates', () => {
-    // Opening about:blank synchronously is what preserves the user-activation;
-    // navigating afterwards is what avoids a popup block.
-    const replace = vi.fn();
-    const fakeTab = { location: { replace }, opener: {} } as unknown as Window;
-    const open = vi.fn().mockReturnValue(fakeTab);
+  function fakeTab() {
+    return {
+      location: { replace: vi.fn() },
+      opener: {} as unknown,
+      close: vi.fn(),
+    };
+  }
+
+  it('opens about:blank synchronously, then navigates with the minted pair', async () => {
+    // Opening about:blank before any await is what preserves the
+    // user-activation; navigating afterwards is what avoids a popup block.
+    const tab = fakeTab();
+    const open = vi.fn().mockReturnValue(tab);
     window.open = open;
 
-    openAppInNewTab('https://app.example/', { applicationId: 'app-9' });
-
+    const pending = openAppInNewTab(
+      'https://app.example/',
+      { applicationId: 'app-9' },
+      mintFetch(),
+    );
     expect(open).toHaveBeenCalledWith('about:blank', 'app-app-9');
-    expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace.mock.calls[0]?.[0]).toContain('https://app.example/');
+    expect(tab.location.replace).not.toHaveBeenCalled();
+
+    await pending;
+    expect(tab.location.replace).toHaveBeenCalledTimes(1);
+    const url = tab.location.replace.mock.calls[0]?.[0] as string;
+    expect(url).toContain('https://app.example/');
+    expect(url).toContain(`access_token=${TOKENS.access_token}`);
+    expect(url).not.toContain(ACCESS_TOKEN);
   });
 
-  it('never passes noopener to window.open', () => {
+  it('never passes noopener to window.open', async () => {
     // Regression guard. Per the HTML spec `noopener` in the feature string makes
     // window.open() return null, so we could never navigate the tab: the user
     // got a bogus "popup blocked" error next to an empty tab.
-    const replace = vi.fn();
-    window.open = vi.fn().mockReturnValue({
-      location: { replace },
-      opener: {},
-    } as unknown as Window);
+    window.open = vi.fn().mockReturnValue(fakeTab());
 
-    openAppInNewTab('https://app.example/');
+    await openAppInNewTab('https://app.example/', {}, mintFetch());
 
     const features = (window.open as unknown as ReturnType<typeof vi.fn>).mock
       .calls[0]?.[2];
     expect(features).toBeUndefined();
   });
 
-  it('severs window.opener before navigating', () => {
+  it('severs window.opener before navigating', async () => {
     // Must happen while the tab is still on about:blank — after a cross-origin
     // navigation the property is unreachable from here.
-    const tab = { location: { replace: vi.fn() }, opener: {} } as unknown as {
-      opener: unknown;
-    };
-    window.open = vi.fn().mockReturnValue(tab as unknown as Window);
+    const tab = fakeTab();
+    window.open = vi.fn().mockReturnValue(tab);
 
-    openAppInNewTab('https://app.example/');
+    await openAppInNewTab('https://app.example/', {}, mintFetch());
 
     expect(tab.opener).toBeNull();
   });
 
-  it('throws PopupBlockedError when the browser refuses', () => {
-    window.open = vi.fn().mockReturnValue(null);
-    expect(() => openAppInNewTab('https://app.example/')).toThrow(
-      PopupBlockedError,
-    );
+  it('closes the blank tab when the mint fails', async () => {
+    const tab = fakeTab();
+    window.open = vi.fn().mockReturnValue(tab);
+
+    await expect(
+      openAppInNewTab('https://app.example/', {}, mintFetch(500, null)),
+    ).rejects.toBeInstanceOf(AppTokenError);
+    expect(tab.close).toHaveBeenCalled();
+    expect(tab.location.replace).not.toHaveBeenCalled();
   });
 
-  it('refuses an http app frontend from an https dashboard', () => {
+  it('throws PopupBlockedError when the browser refuses', async () => {
+    window.open = vi.fn().mockReturnValue(null);
+    const fetchImpl = mintFetch();
+    await expect(
+      openAppInNewTab('https://app.example/', {}, fetchImpl),
+    ).rejects.toBeInstanceOf(PopupBlockedError);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('refuses an http app frontend from an https dashboard', async () => {
     setLocation('https://node.example/admin-dashboard/applications');
     const open = vi.fn();
     window.open = open;
-    expect(() => openAppInNewTab('http://localhost:5173/')).toThrow(
-      MixedContentError,
-    );
+    await expect(
+      openAppInNewTab('http://localhost:5173/', {}, mintFetch()),
+    ).rejects.toBeInstanceOf(MixedContentError);
     // No blank tab should be left behind.
     expect(open).not.toHaveBeenCalled();
   });
 
-  it('allows an https app frontend from an https dashboard', () => {
+  it('allows an https app frontend from an https dashboard', async () => {
     setLocation('https://node.example/admin-dashboard/applications');
-    const replace = vi.fn();
-    window.open = vi
-      .fn()
-      .mockReturnValue({ location: { replace } } as unknown as Window);
-    expect(() => openAppInNewTab('https://app.example/')).not.toThrow();
-    expect(replace).toHaveBeenCalled();
+    const tab = fakeTab();
+    window.open = vi.fn().mockReturnValue(tab);
+    await openAppInNewTab('https://app.example/', {}, mintFetch());
+    expect(tab.location.replace).toHaveBeenCalled();
   });
 
   /**
@@ -254,11 +352,16 @@ describe('openAppInNewTab', () => {
     '/relative/path',
     'not a url',
     '',
-  ])('refuses a non-http(s) frontend %j without opening a tab', (url) => {
+  ])('refuses a non-http(s) frontend %j without opening a tab', async (url) => {
     const open = vi.fn();
     window.open = open;
-    expect(() => openAppInNewTab(url)).toThrow(UnsafeUrlError);
+    const fetchImpl = mintFetch();
+    await expect(openAppInNewTab(url, {}, fetchImpl)).rejects.toBeInstanceOf(
+      UnsafeUrlError,
+    );
     expect(open).not.toHaveBeenCalled();
+    // Refused before anything is minted for it.
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
 
@@ -289,12 +392,12 @@ describe('isAllowedAppFrontendUrl', () => {
     expect(isAllowedAppFrontendUrl('javascript:alert(1)')).toBe(false);
   });
 
-  it('refuses a remote http frontend without opening a tab', () => {
+  it('refuses a remote http frontend without opening a tab', async () => {
     const open = vi.fn();
     window.open = open;
-    expect(() => openAppInNewTab('http://app.example/')).toThrow(
-      UnsafeUrlError,
-    );
+    await expect(
+      openAppInNewTab('http://app.example/', {}, mintFetch()),
+    ).rejects.toBeInstanceOf(UnsafeUrlError);
     expect(open).not.toHaveBeenCalled();
   });
 });

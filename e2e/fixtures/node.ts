@@ -186,6 +186,12 @@ export interface MockGroup {
   subgroups?: { groupId: string; name?: string }[];
 }
 
+/** What the mocked `POST /admin/client-key` answers with. */
+export const MINTED_APP_TOKENS = {
+  access_token: 'app.minted.access',
+  refresh_token: 'app-minted-refresh',
+};
+
 /** A node identity whose ids are shaped the way the real ones are. */
 export const NODE_IDENTITY: MockNodeIdentity = {
   accountId: 'ac'.repeat(32),
@@ -274,6 +280,11 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
   );
   await page.route('**/admin/keys/clients', (route) =>
     json(route, { data: opts.clientKeys ?? [] }),
+  );
+
+  // The per-app token pair "Open" mints (utils/openApp.ts mintAppTokens).
+  await page.route('**/admin/client-key', (route) =>
+    json(route, { data: MINTED_APP_TOKENS, error: null }),
   );
 
   await page.route('**/admin-api/network/status', (route) =>
