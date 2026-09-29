@@ -423,7 +423,10 @@ test.describe('Marketplace', () => {
 
     await expect(page.getByText(/Mero Chat installed/)).toBeVisible();
     expect(posted).toHaveLength(1);
-    expect(posted[0]).toContain('com.calimero.merochat-1.1.0.mpk');
+    expect(JSON.parse(posted[0] ?? '{}')).toEqual({
+      package: 'com.calimero.merochat',
+      version: '1.1.0',
+    });
   });
 
   test('names the publishing organization and links to it', async ({
