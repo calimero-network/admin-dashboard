@@ -122,7 +122,20 @@ export interface MockNodeOptions {
      */
     min_runtime_version?: string;
     minRuntimeVersion?: string;
+    /**
+     * Build provenance `cargo mero bundle` stamps into the manifest — the
+     * version picker's per-version "node X" label. Absent on every bundle
+     * published before cargo-mero began stamping it.
+     */
+    buildInfo?: { sdkSource?: string; sdkVersion?: string; sdkRev?: string };
+    yanked?: boolean;
   }[];
+  /**
+   * `GET /api/v2/orgs?package=` — the publishing organization, keyed by
+   * package. A package with no entry answers a literal `null`, which is what
+   * the real registry serves for one published by an individual.
+   */
+  orgs?: Record<string, { id: string; name?: string; slug?: string } | null>;
   /** `GET /admin-api/blobs` — snake_case, exactly as the node returns it. */
   blobs?: { blob_id: string; size: number }[];
   /** `GET .../admin/keys` and `.../admin/keys/clients` (SDK adminApi). */
@@ -508,10 +521,39 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
   await page.route('**/api/v2/bundles**', (route) => {
     // Honour ?package= the way the real registry does, so the version picker
     // gets this app's versions and not every app's.
-    const pkg = new URL(route.request().url()).searchParams.get('package');
-    const list = pkg ? bundles.filter((b) => b.package === pkg) : bundles;
+    const params = new URL(route.request().url()).searchParams;
+    const pkg = params.get('package');
+    let list = pkg ? bundles.filter((b) => b.package === pkg) : bundles;
+    // Without `all_versions` the real registry answers ONE bundle per package
+    // (its newest), so a fixture carrying several versions of an app must not
+    // turn into several cards in the listing. List the newest first.
+    if (params.get('all_versions') !== 'true') {
+      const seen = new Set<string>();
+      list = list.filter((b) => {
+        if (seen.has(b.package)) return false;
+        seen.add(b.package);
+        return true;
+      });
+    }
     return json(route, list);
   });
+
+  // GET /api/v2/orgs?package=<pkg> — the org that published it, or `null`.
+  const orgs = opts.orgs ?? {};
+  await page.route('**/api/v2/orgs**', (route) => {
+    const pkg = new URL(route.request().url()).searchParams.get('package');
+    return json(route, (pkg && orgs[pkg]) ?? null);
+  });
+
+  // The registry's own org pages, opened in a new tab from the app page's
+  // Organization row. On the context, for the same reason as app.invalid below.
+  await page.context().route('https://apps.calimero.network/orgs/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>Mock Org</title><body>mock org</body>',
+    }),
+  );
 
   // ⚠️ REGISTERED AFTER THE LISTING, AND IT HAS TO BE. Playwright resolves
   // routes in REVERSE registration order, so the last match wins — and

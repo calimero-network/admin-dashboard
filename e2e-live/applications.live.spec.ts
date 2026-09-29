@@ -42,9 +42,18 @@ test.describe('Live: Marketplace reads a registry', () => {
     await expect(detail.getByTestId('detail-install')).toBeVisible();
 
     // The stub publishes 1.4.2 and 1.0.0; the newest non-yanked must be default.
+    // The picker is a listbox, not a native <select>: the trigger shows the
+    // chosen version and the options exist only once it is opened.
     const picker = detail.getByTestId('version-picker');
-    await expect(picker.locator('option')).toHaveCount(2);
-    await expect(picker).toHaveValue(PROBE_VERSION);
+    await expect(picker).toContainText(PROBE_VERSION);
+    await picker.click();
+    const options = page
+      .getByRole('listbox', { name: 'Version' })
+      .getByRole('option');
+    await expect(options).toHaveCount(2);
+    await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true');
+    await expect(options.nth(0)).toContainText(PROBE_VERSION);
+    await page.keyboard.press('Escape');
   });
 
   test('search and filter pills work against live data', async ({ page }) => {

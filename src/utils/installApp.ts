@@ -86,3 +86,19 @@ export function registryAppUrl(registry: string, packageId: string): string {
   })();
   return `${base}/apps/${encodeURIComponent(packageId)}`;
 }
+
+/**
+ * An organization's page on the registry's own site, for the app page's
+ * Organization row. Same origin rule as `registryAppUrl`: a registry configured
+ * with a path would otherwise produce `<path>/orgs/<id>`, which is not served.
+ */
+export function registryOrgUrl(registry: string, orgId: string): string {
+  const base = (() => {
+    try {
+      return new URL(registry).origin;
+    } catch {
+      return registry.replace(/\/+$/, '');
+    }
+  })();
+  return `${base}/orgs/${encodeURIComponent(orgId)}`;
+}

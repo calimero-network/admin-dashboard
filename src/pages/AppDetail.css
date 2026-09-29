@@ -122,32 +122,6 @@
   letter-spacing: var(--tracking-label);
 }
 
-.app-detail-version-select {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 0;
-  padding: 7px 10px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  min-width: 160px;
-}
-
-.app-detail-version-select:hover:not(:disabled) {
-  border-color: var(--accent-dim);
-}
-
-.app-detail-version-select:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 1px;
-}
-
-.app-detail-version-select:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .app-detail-version-static,
 .app-detail-versions-loading {
   display: inline-flex;
@@ -358,4 +332,81 @@
 .app-detail-signer .app-detail-mono {
   color: var(--text-primary);
   word-break: break-all;
+}
+
+/* ── Organization ───────────────────────────────────────────────────────── */
+
+.app-detail-org {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  background: var(--gradient-surface), var(--surface-glass);
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.app-detail-org:hover {
+  border-color: var(--accent-dim);
+}
+
+.app-detail-org:hover .app-detail-org-go {
+  transform: translateX(2px);
+  color: var(--accent-primary);
+}
+
+.app-detail-org-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.app-detail-org-names {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-detail-org-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.app-detail-org-slug {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-detail-org-go {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-detail-org-go {
+    transition: none;
+  }
 }

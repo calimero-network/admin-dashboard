@@ -18,6 +18,18 @@ test.describe('Marketplace', () => {
           verified: true,
           publisherVerified: true,
           downloads: 42,
+          // A release build: the picker labels it `node 0.11.0-rc.54`.
+          buildInfo: { sdkVersion: '0.11.0-rc.54' },
+        },
+        {
+          // An OLDER release of the same app, so the picker has a second row.
+          // Built from a branch, so it names a commit rather than a release.
+          // The listing still shows ONE Mero Chat card: without all_versions
+          // the registry (and the fixture) answer one bundle per package.
+          package: 'com.calimero.merochat',
+          appVersion: '1.1.0',
+          metadata: { name: 'Mero Chat', description: 'Chat over Calimero.' },
+          buildInfo: { sdkRev: '90ea153deadbeefcafe' },
         },
         {
           // Deliberately icon-less: 3 of the 21 published bundles are, so the
@@ -35,6 +47,15 @@ test.describe('Marketplace', () => {
           },
         },
       ],
+      // Mero Chat is published by an org; Mero Blocks by an individual, which
+      // the registry answers with a literal `null`.
+      orgs: {
+        'com.calimero.merochat': {
+          id: 'calimero-network',
+          name: 'Calimero Network',
+          slug: 'calimero-network',
+        },
+      },
     });
     // The cache is keyed on the registry list and served stale-while-revalidate,
     // so a leftover entry from another test would mask the fetch under test.
@@ -283,7 +304,72 @@ test.describe('Marketplace', () => {
     const picker = page.getByTestId('version-picker');
     await expect(picker).toBeVisible();
     await expect(picker).toContainText('1.2.0');
-    await expect(picker).not.toContainText('0.1.1');
+    await expect(picker).toContainText('latest');
+
+    // Not a native <select> any more: the options only exist once opened.
+    await picker.click();
+    const options = page
+      .getByRole('listbox', { name: 'Version' })
+      .getByRole('option');
+    await expect(options).toHaveCount(2);
+    await expect(options.nth(0)).toContainText('1.2.0');
+    await expect(options.nth(1)).toContainText('1.1.0');
+    await expect(page.getByRole('listbox')).not.toContainText('0.1.1');
+  });
+
+  test('each version names the node build it was compiled against', async ({
+    page,
+  }) => {
+    // ⚠️ `buildInfo`, NOT `minRuntimeVersion`: the second is a hand-declared
+    // floor the registry defaults to a 0.1.0 placeholder.
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const picker = page.getByTestId('version-picker');
+    const build = picker.getByTestId('version-node-build');
+    await expect(build).toHaveText('node 0.11.0-rc.54');
+    await expect(build).toHaveAttribute(
+      'title',
+      'Built with Calimero node 0.11.0-rc.54',
+    );
+    await expect(picker).toHaveAttribute(
+      'aria-label',
+      'Version, 1.2.0 selected, built with node 0.11.0-rc.54',
+    );
+
+    await picker.click();
+    // A branch build names its commit, shortened to seven characters.
+    await expect(page.getByRole('option', { name: /^1\.1\.0/ })).toContainText(
+      'node 90ea153',
+    );
+  });
+
+  test('a bundle with no build info shows no node build', async ({ page }) => {
+    await page.goto('/admin-dashboard/marketplace/com.calimero.meroblocks');
+    const picker = page.getByTestId('version-picker');
+    await expect(picker).toContainText('0.1.1');
+    await expect(picker.getByTestId('version-node-build')).toHaveCount(0);
+    await expect(picker).not.toContainText('node');
+  });
+
+  test('the version picker is operable from the keyboard', async ({ page }) => {
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const picker = page.getByTestId('version-picker');
+    await picker.focus();
+
+    await page.keyboard.press('ArrowDown');
+    await expect(picker).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('listbox')).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    await expect(picker).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+    await expect(picker).toContainText('1.1.0');
+    await expect(picker).not.toContainText('latest');
+    await expect(picker).toBeFocused();
   });
 
   test('Install posts the chosen version to the node', async ({ page }) => {
@@ -316,6 +402,64 @@ test.describe('Marketplace', () => {
       package: 'com.calimero.merochat',
       version: '1.2.0',
     });
+  });
+
+  test('Install posts a version picked from the listbox', async ({ page }) => {
+    const posted: string[] = [];
+    await page.route('**/admin-api/install-application', (route) => {
+      posted.push(route.request().postData() ?? '');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { applicationId: 'installed-1' } }),
+      });
+    });
+
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    await page.getByTestId('version-picker').click();
+    await page.getByRole('option', { name: /^1\.1\.0/ }).click();
+    await expect(page.getByTestId('version-picker')).toContainText('1.1.0');
+    await page.getByTestId('detail-install').click();
+
+    await expect(page.getByText(/Mero Chat installed/)).toBeVisible();
+    expect(posted).toHaveLength(1);
+    expect(JSON.parse(posted[0] ?? '{}')).toEqual({
+      package: 'com.calimero.merochat',
+      version: '1.1.0',
+    });
+  });
+
+  test('names the publishing organization and links to it', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const org = page.getByTestId('app-detail-org');
+    await expect(org).toContainText('Calimero Network');
+    await expect(org).toContainText('calimero-network');
+
+    const popupPromise = context.waitForEvent('page');
+    await org.click();
+    const popup = await popupPromise;
+    await popup.waitForURL(/\/orgs\//);
+    expect(popup.url()).toBe(
+      'https://apps.calimero.network/orgs/calimero-network',
+    );
+    await popup.close();
+  });
+
+  test('a package with no organization has no Organization section', async ({
+    page,
+  }) => {
+    // The registry answers `null` for an individually published package — a
+    // normal answer, so the section is hidden rather than left empty.
+    await page.goto('/admin-dashboard/marketplace/com.calimero.meroblocks');
+    await expect(page.getByTestId('app-detail-page')).toBeVisible();
+    await expect(page.getByTestId('version-picker')).toBeVisible();
+    await expect(page.getByTestId('app-detail-org')).toHaveCount(0);
+    await expect(
+      page.getByRole('region', { name: 'Organization' }),
+    ).toHaveCount(0);
   });
 
   test('back returns to the listing', async ({ page }) => {

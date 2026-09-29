@@ -2,7 +2,9 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   fetchAppVersions,
   fetchPackageAssets,
+  fetchPackageOrg,
   compareSemverDesc,
+  nodeBuildLabel,
 } from '../utils/registry';
 
 const REGISTRY = 'https://registry.example/';
@@ -57,6 +59,34 @@ describe('fetchAppVersions', () => {
 
     const versions = await fetchAppVersions(REGISTRY, 'com.example.app');
     expect(versions.map((v) => v.semver)).toEqual(['1.0.0']);
+  });
+
+  it('labels each version with the node build it was compiled against', async () => {
+    global.fetch = mockBundles([
+      {
+        package: 'com.example.app',
+        appVersion: '1.2.0',
+        buildInfo: { sdkVersion: '0.11.0-rc.54' },
+      },
+      {
+        package: 'com.example.app',
+        appVersion: '1.1.0',
+        buildInfo: { sdkRev: '90ea153deadbeef' },
+      },
+      // ⚠️ minRuntimeVersion is NOT a build — it must never leak into the label.
+      {
+        package: 'com.example.app',
+        appVersion: '1.0.0',
+        minRuntimeVersion: '0.1.0',
+      },
+    ]) as unknown as typeof fetch;
+
+    const versions = await fetchAppVersions(REGISTRY, 'com.example.app');
+    expect(versions.map((v) => [v.semver, v.nodeBuild])).toEqual([
+      ['1.2.0', '0.11.0-rc.54'],
+      ['1.1.0', '90ea153'],
+      ['1.0.0', null],
+    ]);
   });
 
   it('rejects an invalid package id before making a request', async () => {
@@ -185,5 +215,100 @@ describe('fetchPackageAssets', () => {
 
     global.fetch = vi.fn().mockRejectedValue(new Error('offline'));
     expect(await fetchPackageAssets(REGISTRY, 'com.x')).toEqual([]);
+  });
+});
+
+describe('nodeBuildLabel', () => {
+  it('prefers the release version', () => {
+    expect(
+      nodeBuildLabel({ sdkVersion: '0.11.0-rc.54', sdkRev: '90ea153abc' }),
+    ).toBe('0.11.0-rc.54');
+  });
+
+  it('falls back to the commit, shortened to seven characters', () => {
+    expect(nodeBuildLabel({ sdkRev: '90ea153deadbeefcafe' })).toBe('90ea153');
+    expect(nodeBuildLabel({ sdkVersion: '  ', sdkRev: ' abc1234567 ' })).toBe(
+      'abc1234',
+    );
+  });
+
+  it('is null when the bundle does not say', () => {
+    expect(nodeBuildLabel(undefined)).toBeNull();
+    expect(nodeBuildLabel(null)).toBeNull();
+    expect(nodeBuildLabel({})).toBeNull();
+    expect(nodeBuildLabel({ sdkSource: 'path+file:///x' })).toBeNull();
+    expect(nodeBuildLabel({ sdkVersion: '', sdkRev: '' })).toBeNull();
+    expect(nodeBuildLabel({ sdkVersion: 5 as unknown as string })).toBeNull();
+  });
+});
+
+describe('fetchPackageOrg', () => {
+  const realFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it('asks the registry by package and parses the org', async () => {
+    const f = mockBundles({
+      id: 'calimero-network',
+      name: 'Calimero Network',
+      slug: 'calimero-network',
+      updated_at: '2026-08-07T06:17:40.728Z',
+    });
+    global.fetch = f as unknown as typeof fetch;
+
+    const org = await fetchPackageOrg(REGISTRY, 'com.example.app');
+    expect(org).toEqual({
+      id: 'calimero-network',
+      name: 'Calimero Network',
+      slug: 'calimero-network',
+    });
+    const url = new URL(String(f.mock.calls[0]?.[0]));
+    expect(url.origin + url.pathname).toBe(
+      'https://registry.example/api/v2/orgs',
+    );
+    expect(url.searchParams.get('package')).toBe('com.example.app');
+  });
+
+  it('keeps an id-only answer (the caller gates on name)', async () => {
+    global.fetch = mockBundles({ id: 'org-1' }) as unknown as typeof fetch;
+    expect(await fetchPackageOrg(REGISTRY, 'com.example.app')).toEqual({
+      id: 'org-1',
+    });
+  });
+
+  it('is null for a package published by an individual', async () => {
+    global.fetch = mockBundles(null) as unknown as typeof fetch;
+    expect(await fetchPackageOrg(REGISTRY, 'com.example.app')).toBeNull();
+  });
+
+  it('is null for a malformed body', async () => {
+    for (const body of [[], 'x', { name: 'No Id' }, { id: 7 }]) {
+      global.fetch = mockBundles(body) as unknown as typeof fetch;
+      expect(await fetchPackageOrg(REGISTRY, 'com.example.app')).toBeNull();
+    }
+  });
+
+  it('is null, not a throw, on an HTTP error or a network failure', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    } as unknown as Response) as unknown as typeof fetch;
+    expect(await fetchPackageOrg(REGISTRY, 'com.example.app')).toBeNull();
+
+    global.fetch = vi
+      .fn()
+      .mockRejectedValue(
+        new TypeError('Failed to fetch'),
+      ) as unknown as typeof fetch;
+    expect(await fetchPackageOrg(REGISTRY, 'com.example.app')).toBeNull();
+  });
+
+  it('refuses an invalid package id without a request', async () => {
+    const f = vi.fn();
+    global.fetch = f as unknown as typeof fetch;
+    expect(await fetchPackageOrg(REGISTRY, '../etc/passwd')).toBeNull();
+    expect(f).not.toHaveBeenCalled();
   });
 });
