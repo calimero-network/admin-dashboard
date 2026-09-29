@@ -1,3 +1,10 @@
+## [1.18.6](https://github.com/calimero-network/admin-dashboard/compare/v1.18.5...v1.18.6) (2026-09-29)
+
+
+### Bug Fixes
+
+* **apps:** open an app with its own scoped token pair ([#164](https://github.com/calimero-network/admin-dashboard/issues/164)) ([8e70e90](https://github.com/calimero-network/admin-dashboard/commit/8e70e90129b74bba0a66834cc3a5479ff066c57a))
+
 ## [1.18.5](https://github.com/calimero-network/admin-dashboard/compare/v1.18.4...v1.18.5) (2026-09-29)
 
 
