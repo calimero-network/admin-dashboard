@@ -10,6 +10,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 const CORE_REPO = 'calimero-network/core';
 // Keep this in step with the API surface the dashboard targets. rc.23 deleted
@@ -42,6 +43,36 @@ const CORE_REPO = 'calimero-network/core';
 // the dashboard can actually drive. Measured, not guessed — the live suite is
 // green on rc.28/29/30 and fails install on rc.31/32/33.
 const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.30';
+
+// sha256 of each pinned release archive, from the release's asset digests
+// (`gh api repos/calimero-network/core/releases/tags/<tag> --jq '.assets[].digest'`).
+// The archive is extracted and EXECUTED, so the pinned version's bytes are
+// pinned too — a release asset can be replaced without a new tag. Bump these
+// together with MEROD_VERSION. An overridden MEROD_VERSION falls back to the
+// digest GitHub reports for the asset, which still catches a corrupted or
+// tampered download.
+const PINNED_SHA256 = {
+  '0.11.0-rc.30': {
+    'merod_aarch64-apple-darwin.tar.gz':
+      'aa5b2bb9dd2956b8995b2a6201441a462f40f96e1a5c2bcd4e923f166744ee67',
+    'merod_aarch64-unknown-linux-gnu.tar.gz':
+      '359bf7da0e573a6d32ef0d6c57f85bec3b6c67277224cc8a48c6406467737b60',
+    'merod_x86_64-unknown-linux-gnu.tar.gz':
+      '926d2bbb6333792673325cfd3a84db0460aceed722db1a000f268e5aa223e8fb',
+  },
+};
+
+/** The sha256 the archive must hash to, or throw if there is none to check. */
+function expectedSha256(assetName, asset) {
+  const pinned = PINNED_SHA256[MEROD_VERSION]?.[assetName];
+  if (pinned) return pinned;
+  const reported = /^sha256:([0-9a-f]{64})$/.exec(asset.digest ?? '')?.[1];
+  if (reported) return reported;
+  throw new Error(
+    `No sha256 to verify ${assetName} (${MEROD_VERSION}) against: not pinned ` +
+      'here and GitHub reports no digest for it. Refusing to run it unverified.',
+  );
+}
 
 const rootDir = path.resolve(import.meta.dirname, '..');
 const binDir = path.join(rootDir, '.merod');
@@ -138,7 +169,19 @@ async function main() {
     redirect: 'follow',
   });
   if (!dl.ok) throw new Error(`Asset download failed: ${dl.status}`);
-  await fs.writeFile(archivePath, Buffer.from(await dl.arrayBuffer()));
+  const archive = Buffer.from(await dl.arrayBuffer());
+
+  const expected = expectedSha256(assetName, asset);
+  const actual = createHash('sha256').update(archive).digest('hex');
+  if (actual !== expected) {
+    throw new Error(
+      `${assetName} sha256 mismatch: expected ${expected}, got ${actual}. ` +
+        'Not extracting it.',
+    );
+  }
+  console.log(`Verified ${assetName} sha256 ${actual}`);
+
+  await fs.writeFile(archivePath, archive);
 
   execFileSync('tar', ['-xzf', archivePath, '-C', binDir], {
     stdio: 'inherit',
