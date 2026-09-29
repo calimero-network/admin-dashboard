@@ -105,9 +105,6 @@ describe('developer mode default', () => {
   });
 
   it('is on when a stored false was only the persisted old default', () => {
-    // Every write spreads getSettings(), which used to fill in
-    // developerMode: false, so a stored false with no developerModeChosen is
-    // not the user's choice.
     saveSettings({ registries: [DEFAULT_REGISTRY_URL], developerMode: false });
     expect(getSettings().developerMode).toBe(true);
   });

@@ -73,7 +73,6 @@ describe('fetchAppVersions', () => {
         appVersion: '1.1.0',
         buildInfo: { sdkRev: '90ea153deadbeef' },
       },
-      // ⚠️ minRuntimeVersion is NOT a build — it must never leak into the label.
       {
         package: 'com.example.app',
         appVersion: '1.0.0',

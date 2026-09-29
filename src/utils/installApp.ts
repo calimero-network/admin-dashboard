@@ -9,23 +9,6 @@ import { getAccessToken } from '@calimero-network/calimero-client';
 import { getNodeUrl } from './nodeUrl';
 import { recordDownload, type AppSummary } from './registry';
 
-/**
- * Install one version of a package onto the connected node, BY COORDINATES.
- *
- * Since core 0.11.0-rc.31 `POST /admin-api/install-application` takes exactly
- * `{ package, version }` (`deny_unknown_fields`) and the node fetches the
- * bundle from its OWN configured `[registry]`. The old body — a download `url`
- * plus metadata and a hash, which the SDK's `installApplication` still sends —
- * is refused outright ("unknown field `url`"), so Install could not work
- * against any current node. It was also the weaker design: the dashboard chose
- * the URL the node downloaded from.
- *
- * The node's registry may differ from the one this listing came from; a
- * package it does not know is answered with a 502 naming the coordinates,
- * which is surfaced as-is.
- *
- * Throws on failure; the caller decides how to surface it.
- */
 export async function installApplication(
   app: AppSummary & { registry: string },
   version: string,
@@ -44,8 +27,6 @@ export async function installApplication(
     body: JSON.stringify({ package: app.id, version }),
   });
 
-  // Success is `{ data: { applicationId } }`; failures are a plain-text body
-  // (502 not published, 500 install error) or a JSON `{ error }`.
   const text = await res.text();
   let json: {
     data?: { applicationId?: string };
@@ -87,11 +68,6 @@ export function registryAppUrl(registry: string, packageId: string): string {
   return `${base}/apps/${encodeURIComponent(packageId)}`;
 }
 
-/**
- * An organization's page on the registry's own site, for the app page's
- * Organization row. Same origin rule as `registryAppUrl`: a registry configured
- * with a path would otherwise produce `<path>/orgs/<id>`, which is not served.
- */
 export function registryOrgUrl(registry: string, orgId: string): string {
   const base = (() => {
     try {

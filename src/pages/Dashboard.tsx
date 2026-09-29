@@ -230,9 +230,6 @@ export default function Dashboard() {
               <ArrowRight size={14} />
             </button>
           </div>
-          {/* The Applications page's own card, so an app looks the same in
-              both places (its icon, package id, description, version), minus
-              the More menu: Home only opens apps, it never uninstalls them. */}
           <div className="installed-apps-grid" data-testid="home-apps-grid">
             {apps.slice(0, 4).map((app, index) => (
               <InstalledAppCard

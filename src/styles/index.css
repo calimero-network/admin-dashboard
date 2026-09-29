@@ -82,8 +82,6 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-enter: 600ms;
   --dur-color: 0.3s;
-  /* The dashboard's earlier names for the same three, kept as aliases so the
-     page sheets that read them keep working. */
   --ease-reveal: var(--ease-out);
   --duration-reveal: var(--dur-enter);
   --duration-color: var(--dur-color);
@@ -120,12 +118,8 @@
   --accent-light: rgba(165, 255, 17, 0.08);
   --accent-glow: rgba(165, 255, 17, 0.15);
 
-  /* Ink as a channel triplet, for the translucent washes (hover rows,
-     scrollbars, dividers) that must darken on paper rather than lighten. */
   --ink-rgb: 252 252 252;
 
-  /* Status, as channel triplets so a wash can be derived from them. The light
-     theme overrides the triplets, and the colours below follow. */
   --success-rgb: 95 214 138;
   --error-rgb: 255 107 107;
   --warning-rgb: 245 185 66;
@@ -133,8 +127,6 @@
   --success: rgb(var(--success-rgb));
   --error: rgb(var(--error-rgb));
   --error-strong: #ff5252;
-  /* Ink on a solid error fill: charcoal on the bright dark-mode red, white on
-     the deeper light-mode one. */
   --on-error: #131215;
   --error-bg: rgb(var(--error-rgb) / 0.08);
   --error-border: rgb(var(--error-rgb) / 0.24);
@@ -177,7 +169,6 @@
   /* Layout */
   --header-height: 56px;
   --sidebar-width: 240px;
-  /* Full-screen backdrops; toasts and menus stay above at 10000. */
   --z-modal: 1000;
   /* Square. The landing has no rounded surface anywhere. */
   --radius-sm: 0;

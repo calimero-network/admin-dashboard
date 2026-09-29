@@ -51,8 +51,6 @@
   padding: 6px 8px;
 }
 
-/* The desktop's More is a `.button-secondary` (grey outline, no bloom); here
-   it is a plain `.button`, so the desktop's secondary ink is set directly. */
 .installed-app-more-btn.button {
   color: var(--text-secondary);
 }

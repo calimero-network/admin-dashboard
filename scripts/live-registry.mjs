@@ -1,23 +1,3 @@
-/**
- * A minimal app registry for the live e2e suite — and the live NODE's registry.
- *
- * Two jobs:
- *   1. The Marketplace READ paths — listing, search, filter pills, the version
- *      picker — asserted against a deterministic listing (the E2E Probe),
- *      instead of whatever is published on apps.calimero.network today.
- *   2. INSTALLS. Since core rc.31 a node installs `package@version` from its own
- *      `[registry] base_url`, fetching
- *      `{base}/artifacts/{pkg}/{ver}/{pkg}-{ver}.mpk` with no host guard (it is
- *      operator config). scripts/live-node.mjs points the node here, so the
- *      install test goes Marketplace -> node -> this server, never the public
- *      registry. It serves one real bundle, Mero Chat, from the sha256-pinned
- *      copy prepare-merod.mjs downloads (scripts/live-fixtures.mjs), and counts
- *      artifact downloads at /__stats so a test can prove the node fetched from
- *      its configured registry.
- *
- * The probe has no `.mpk`: it is listing-only, so installing it would be the
- * node's 502 "not published", which nothing asserts on.
- */
 import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -66,10 +46,6 @@ const bundle = {
 /** An older version, so the detail modal's version picker has a real choice. */
 const olderBundle = { ...bundle, appVersion: '1.0.0' };
 
-/**
- * Read one file out of a gzipped tar (a `.mpk`). ustar only, which is what
- * cargo-mero writes; enough for the manifest, with no dependency.
- */
 function readFromTarGz(buf, wanted) {
   const tar = zlib.gunzipSync(buf);
   for (let off = 0; off + 512 <= tar.length; ) {
@@ -88,7 +64,6 @@ function readFromTarGz(buf, wanted) {
   return null;
 }
 
-/** The pinned Mero Chat bundle, or null when prepare-merod.mjs has not run. */
 function loadChat() {
   const file = path.join(FIXTURES_DIR, FIXTURES.chat.file);
   if (!fs.existsSync(file)) {
@@ -101,8 +76,6 @@ function loadChat() {
   const manifestBytes = readFromTarGz(bytes, 'manifest.json');
   if (!manifestBytes) throw new Error(`${file} has no manifest.json`);
   const manifest = JSON.parse(manifestBytes.toString('utf8'));
-  // The listing shape the real registry answers with: the manifest minus the
-  // payload descriptors and the signature.
   const { signature: _s, wasm: _w, abi: _a, ...listing } = manifest;
   return {
     bytes,
@@ -139,7 +112,6 @@ const server = http.createServer((req, res) => {
   // Health, for Playwright's webServer readiness probe.
   if (url.pathname === '/health') return json(res, { status: 'ok' });
 
-  // What the node fetched, for tests that must prove the install came from here.
   if (url.pathname === '/__stats') return json(res, { downloads });
 
   // GET /api/v2/bundles — a BARE ARRAY, matching the real registry.

@@ -18,14 +18,9 @@ test.describe('Marketplace', () => {
           verified: true,
           publisherVerified: true,
           downloads: 42,
-          // A release build: the picker labels it `node 0.11.0-rc.54`.
           buildInfo: { sdkVersion: '0.11.0-rc.54' },
         },
         {
-          // An OLDER release of the same app, so the picker has a second row.
-          // Built from a branch, so it names a commit rather than a release.
-          // The listing still shows ONE Mero Chat card: without all_versions
-          // the registry (and the fixture) answer one bundle per package.
           package: 'com.calimero.merochat',
           appVersion: '1.1.0',
           metadata: { name: 'Mero Chat', description: 'Chat over Calimero.' },
@@ -47,8 +42,6 @@ test.describe('Marketplace', () => {
           },
         },
       ],
-      // Mero Chat is published by an org; Mero Blocks by an individual, which
-      // the registry answers with a literal `null`.
       orgs: {
         'com.calimero.merochat': {
           id: 'calimero-network',
@@ -306,7 +299,6 @@ test.describe('Marketplace', () => {
     await expect(picker).toContainText('1.2.0');
     await expect(picker).toContainText('latest');
 
-    // Not a native <select> any more: the options only exist once opened.
     await picker.click();
     const options = page
       .getByRole('listbox', { name: 'Version' })
@@ -320,8 +312,6 @@ test.describe('Marketplace', () => {
   test('each version names the node build it was compiled against', async ({
     page,
   }) => {
-    // ⚠️ `buildInfo`, NOT `minRuntimeVersion`: the second is a hand-declared
-    // floor the registry defaults to a 0.1.0 placeholder.
     await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
     const picker = page.getByTestId('version-picker');
     const build = picker.getByTestId('version-node-build');
@@ -336,7 +326,6 @@ test.describe('Marketplace', () => {
     );
 
     await picker.click();
-    // A branch build names its commit, shortened to seven characters.
     await expect(page.getByRole('option', { name: /^1\.1\.0/ })).toContainText(
       'node 90ea153',
     );
@@ -396,8 +385,6 @@ test.describe('Marketplace', () => {
 
     await expect(page.getByText(/Mero Chat installed/)).toBeVisible();
     expect(posted).toHaveLength(1);
-    // By coordinates, and nothing else: since rc.31 the route is
-    // deny_unknown_fields, so a stray `url` would be refused outright.
     expect(JSON.parse(posted[0] ?? '{}')).toEqual({
       package: 'com.calimero.merochat',
       version: '1.2.0',
@@ -451,8 +438,6 @@ test.describe('Marketplace', () => {
   test('a package with no organization has no Organization section', async ({
     page,
   }) => {
-    // The registry answers `null` for an individually published package — a
-    // normal answer, so the section is hidden rather than left empty.
     await page.goto('/admin-dashboard/marketplace/com.calimero.meroblocks');
     await expect(page.getByTestId('app-detail-page')).toBeVisible();
     await expect(page.getByTestId('version-picker')).toBeVisible();

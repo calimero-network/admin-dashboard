@@ -1,8 +1,5 @@
 name: Doc Auto-Update
 
-# Manual only. The push trigger never actually ran (see the pin below), so
-# keeping it would quietly START spending API credit and opening doc PRs on
-# every merge the moment the ref resolves.
 on:
   workflow_dispatch:
     inputs:
@@ -15,15 +12,11 @@ on:
         type: boolean
         default: false
 
-# Nothing here needs more than the called workflow's own job asks for.
 permissions:
   contents: read
 
 jobs:
   doc-update:
-    # Pinned by SHA: this job is handed GH_PAT and ANTHROPIC_API_KEY, so a
-    # moving ref would let whoever moves it read them. (`@main` never existed —
-    # the repo's default branch is master — so every run so far failed to start.)
     permissions:
       contents: write
       pull-requests: write

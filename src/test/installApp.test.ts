@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { installApplication } from '../utils/installApp';
 
-// vitest hoists vi.mock above the imports, so declaring them after keeps
-// eslint's import/first rule satisfied.
 vi.mock('@calimero-network/calimero-client', () => ({
   getAccessToken: () => 'admin.jwt',
 }));
@@ -50,7 +48,6 @@ describe('installApplication', () => {
     expect((init.headers as Record<string, string>)['Authorization']).toBe(
       'Bearer admin.jwt',
     );
-    // deny_unknown_fields on the node: any extra key is a refusal.
     expect(Object.keys(JSON.parse(init.body as string)).sort()).toEqual([
       'package',
       'version',

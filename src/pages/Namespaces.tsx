@@ -323,7 +323,6 @@ function NamespaceCards({
 }: {
   namespaces: Namespace[];
   installedApps: InstalledApp[];
-  /** Per-namespace disk bytes; `null` hides every size. */
   usage: Map<string, NamespaceBytes> | null;
   deleting: string | null;
   onOpen: (ns: Namespace) => void;

@@ -118,41 +118,15 @@ export interface VersionInfo {
   semver: string;
   cid: string;
   yanked?: boolean;
-  /**
-   * The core release this version was built against (see `nodeBuildLabel`),
-   * or null when the bundle does not say.
-   */
   nodeBuild: string | null;
 }
 
-/**
- * Build provenance stamped into a bundle manifest by `cargo mero bundle`, read
- * off the resolved `calimero-sdk` dependency. Every field is optional: not
- * every resolution names a release.
- */
 export interface BuildInfo {
   sdkSource?: string;
   sdkVersion?: string;
   sdkRev?: string;
 }
 
-/**
- * The core release a bundle was compiled against, as a label — or `null` when
- * the bundle does not say. Same rule as the registry's own version history
- * (app-registry `nodeBuildLabel`) and the desktop's version picker, so all
- * three show the same thing per version.
- *
- * ⚠️ NOT `minRuntimeVersion`: that is hand-declared, means "refuse to run below
- * this", and is the registry's `0.1.0` placeholder for anyone who never set it.
- *
- * ⚠️ NULL IS COMMON AND MUST RENDER AS NOTHING. Every bundle published before
- * cargo-mero began stamping `buildInfo` has none; a placeholder would assert a
- * version the bundle never claimed.
- *
- *   - a release -> `0.11.0-rc.54` (a git `tag=`, or a crates.io version)
- *   - a commit  -> `90ea153`      (a branch/rev build: no release to name)
- *   - neither   -> `null`         (a local path build, or an old bundle)
- */
 export function nodeBuildLabel(build?: BuildInfo | null): string | null {
   const version =
     typeof build?.sdkVersion === 'string' ? build.sdkVersion.trim() : '';
@@ -667,30 +641,12 @@ export async function fetchPackageAssets(
   }
 }
 
-/** An organization as the registry models it. */
 export interface RegistryOrg {
   id: string;
   name?: string;
   slug?: string;
 }
 
-/**
- * Which organization published a package, or null when it belongs to an
- * individual (or the lookup failed — both render as no section).
- *
- * ⚠️ NULL IS A NORMAL ANSWER, NOT A FAILURE. Measured against
- * apps.calimero.network: the calimero-network packages resolve to an org while
- * community-published ones (com.calimero.mdtest-good) answer a literal `null`.
- * So the caller hides the section rather than rendering an empty one.
- *
- * ⚠️ AND THE CALLER GATES ON `name`, NOT ON THE OBJECT. The lookup can answer
- * with a body that carries only an id, which renders as a heading over a blank
- * row.
- *
- * No `Content-Type` header, unlike the other lookups: a bare GET is a CORS
- * simple request and skips the preflight. (The registry does answer both with
- * `access-control-allow-origin: *`, measured 2026-09-29.)
- */
 export async function fetchPackageOrg(
   registryUrl: string,
   packageId: string,

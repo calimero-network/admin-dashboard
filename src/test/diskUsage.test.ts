@@ -40,7 +40,6 @@ function errResponse(status: number, text: string) {
   } as unknown as Response);
 }
 
-/** A row exactly as core's `NamespaceUsage` serializes it (camelCase). */
 const row = (namespaceId: string, total: number) => ({
   namespaceId,
   contextCount: 1,
@@ -167,7 +166,6 @@ describe('useDiskUsage', () => {
     const { result, unmount } = renderHook(() => useDiskUsage());
     await waitFor(() => expect(result.current?.get('aa')?.total).toBe(42));
 
-    // The next read fails. Coming back to the tab re-reads immediately.
     mockFetch.mockReturnValue(errResponse(500, 'boom'));
     hidden = true;
     act(() => {

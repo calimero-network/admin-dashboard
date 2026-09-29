@@ -1,6 +1,3 @@
-/* The version picker. See VersionSelect.tsx for why this is not a <select>.
-   Ported from the desktop so both surfaces render a version the same way. */
-
 .version-select {
   position: relative;
   display: inline-flex;
@@ -57,8 +54,6 @@
   transform: rotate(180deg);
 }
 
-/* "latest" is a fact about the row, not a second value — it reads as a quiet
-   tag rather than competing with the semver next to it. */
 .version-select-latest {
   flex-shrink: 0;
   padding: 1px 6px;
@@ -71,8 +66,6 @@
   letter-spacing: 0.02em;
 }
 
-/* Portalled to <body> and `fixed`, positioned from the trigger's measured
-   rect: an ancestor with a backdrop-filter would otherwise contain AND clip it. */
 .version-select-menu {
   position: fixed;
   z-index: 70;
@@ -100,8 +93,6 @@
   white-space: nowrap;
 }
 
-/* Hover and keyboard focus are the SAME state on purpose: with two highlights
-   the list shows two "current" rows at once and neither means anything. */
 .version-select-option.is-active {
   background: var(--bg-tertiary);
 }
