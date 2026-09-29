@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/calimero-network/admin-dashboard/compare/v1.18.0...v1.18.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **keys:** remove the NEAR wallet root-key provider ([#169](https://github.com/calimero-network/admin-dashboard/issues/169)) ([f41e7ba](https://github.com/calimero-network/admin-dashboard/commit/f41e7ba8139fbaa6cdaa8078cb885ec72fa81bae))
+
 # [1.18.0](https://github.com/calimero-network/admin-dashboard/compare/v1.17.0...v1.18.0) (2026-09-25)
 
 
