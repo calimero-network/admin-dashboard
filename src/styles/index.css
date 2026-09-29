@@ -70,8 +70,8 @@
 
   /* Type */
   --font-sans: 'Power Grotesk', arial, helvetica, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
-    Menlo, Consolas, monospace;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, 'SF Mono',
+    SFMono-Regular, Menlo, Consolas, monospace;
   /* Letter-spacing for the all-caps roles, from the landing's type scale. */
   --tracking-eyebrow: 0.28em;
   --tracking-label: 0.16em;
@@ -79,9 +79,14 @@
 
   /* Motion: the landing's reveal curve. A long, soft ease-out with no
      overshoot, so nothing on the page appears to jump. */
-  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-reveal: 600ms;
-  --duration-color: 0.3s;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-enter: 600ms;
+  --dur-color: 0.3s;
+  /* The dashboard's earlier names for the same three, kept as aliases so the
+     page sheets that read them keep working. */
+  --ease-reveal: var(--ease-out);
+  --duration-reveal: var(--dur-enter);
+  --duration-color: var(--dur-color);
 
   /* Surfaces */
   --bg-primary: #131215;
@@ -105,6 +110,7 @@
      `--accent-fill` is the raw lime as a FILL, always with `--on-accent` ink
      on it. In dark mode they are the same colour; on paper they split,
      because #a5ff11 as text on white is ~1.2:1. */
+  --accent-rgb: 165 255 17;
   --accent-primary: #a5ff11;
   --accent-hover: #b8ff4a;
   --accent-fill: #a5ff11;
@@ -114,34 +120,50 @@
   --accent-light: rgba(165, 255, 17, 0.08);
   --accent-glow: rgba(165, 255, 17, 0.15);
 
-  /* Status */
-  --success: #5fd68a;
-  --error: #ff6b6b;
-  --warning: #f5b942;
-  --info: #6ea8ff;
+  /* Ink as a channel triplet, for the translucent washes (hover rows,
+     scrollbars, dividers) that must darken on paper rather than lighten. */
+  --ink-rgb: 252 252 252;
+
+  /* Status, as channel triplets so a wash can be derived from them. The light
+     theme overrides the triplets, and the colours below follow. */
+  --success-rgb: 95 214 138;
+  --error-rgb: 255 107 107;
+  --warning-rgb: 245 185 66;
+  --info-rgb: 110 168 255;
+  --success: rgb(var(--success-rgb));
+  --error: rgb(var(--error-rgb));
+  --error-strong: #ff5252;
+  /* Ink on a solid error fill: charcoal on the bright dark-mode red, white on
+     the deeper light-mode one. */
+  --on-error: #131215;
+  --error-bg: rgb(var(--error-rgb) / 0.08);
+  --error-border: rgb(var(--error-rgb) / 0.24);
+  --warning: rgb(var(--warning-rgb));
+  --info: rgb(var(--info-rgb));
 
   /* Shadows. Cards are flat; only floating panels get depth. */
   --shadow-sm: none;
-  --shadow-md: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --shadow-md: none;
   --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.5);
   --shadow-glow: none;
   /* The landing's button hover: a lime bloom, not a lift. */
   --shadow-button: 0 0 20px 0 rgba(165, 255, 17, 0.45);
 
   /* Gradients (kept for call sites; the design is flat, so mostly solid). */
   --gradient-primary: linear-gradient(135deg, #a5ff11 0%, #a5ff11 100%);
-  --gradient-secondary: linear-gradient(135deg, #211f23 0%, #1a191c 100%);
+  --gradient-secondary: #211f23;
   --gradient-text: linear-gradient(135deg, #fcfcfc 30%, #a5ff11 100%);
   --gradient-surface: none;
 
   /* Formerly glass; now plain surfaces. The landing uses no blur. */
   --surface-glass: #1a191c;
-  --surface-glass-soft: #1a191c;
+  --surface-glass-soft: #131215;
   --surface-glass-strong: #131215;
+  --surface-hover: #211f23;
   --header-glass: #131215;
   --button-glass: transparent;
-  --button-glass-hover: rgba(252, 252, 252, 0.04);
+  --button-glass-hover: rgb(var(--accent-rgb) / 0.08);
   --hover-wash: rgba(252, 252, 252, 0.04);
   --skeleton-a: rgba(252, 252, 252, 0.04);
   --skeleton-b: rgba(252, 252, 252, 0.08);
@@ -153,8 +175,10 @@
   --logo-filter: none;
 
   /* Layout */
-  --header-height: 64px;
-  --sidebar-width: 248px;
+  --header-height: 56px;
+  --sidebar-width: 240px;
+  /* Full-screen backdrops; toasts and menus stay above at 10000. */
+  --z-modal: 1000;
   /* Square. The landing has no rounded surface anywhere. */
   --radius-sm: 0;
   --radius-md: 0;
@@ -163,10 +187,14 @@
 
   /* The page's vertical column lines (the landing's grid-line). */
   --grid-line: rgba(252, 252, 252, 0.035);
-  --desktop-space-background: none;
-  --desktop-space-size: auto;
-  --desktop-space-position: top center;
-  --desktop-space-repeat: no-repeat;
+  --desktop-space-background: linear-gradient(
+    90deg,
+    var(--grid-line) 1px,
+    transparent 1px
+  );
+  --desktop-space-size: 25% 100%;
+  --desktop-space-position: 0 0;
+  --desktop-space-repeat: repeat-x;
 
   /* ── Legacy aliases (pre-port pages) ── */
   --radius: 0;
@@ -191,6 +219,7 @@
   --border-color: #dcdcd4;
   --border-strong: #b9b9b0;
   --border-hover: #b9b9b0;
+  --accent-rgb: 72 120 0;
   --accent-primary: #487800;
   --accent-hover: #385e00;
   --accent-fill: #a5ff11;
@@ -199,31 +228,33 @@
   --accent-dim: rgba(72, 120, 0, 0.4);
   --accent-light: rgba(72, 120, 0, 0.08);
   --accent-glow: rgba(72, 120, 0, 0.14);
-  --success: #1b7a3a;
-  --error: #c62828;
-  --warning: #8a5a00;
-  --info: #1f5fbf;
+  --ink-rgb: 19 18 21;
+  --success-rgb: 27 122 58;
+  --error-rgb: 198 40 40;
+  --warning-rgb: 138 90 0;
+  --info-rgb: 37 99 235;
+  --error-strong: #a61f1f;
+  --on-error: #ffffff;
   --shadow-sm: none;
-  --shadow-md: 0 16px 40px rgba(19, 18, 21, 0.12),
-    0 2px 6px rgba(19, 18, 21, 0.06);
+  --shadow-md: none;
   --shadow-lg: 0 16px 40px rgba(19, 18, 21, 0.12),
     0 2px 6px rgba(19, 18, 21, 0.06);
-  --shadow-xl: 0 16px 40px rgba(19, 18, 21, 0.14),
+  --shadow-xl: 0 16px 40px rgba(19, 18, 21, 0.12),
     0 2px 6px rgba(19, 18, 21, 0.06);
   --shadow-glow: none;
   /* A lime bloom on white reads as a smudge; a hard ink offset reads as the
      landing's line-art instead. */
   --shadow-button: 3px 3px 0 0 #131215;
   --gradient-primary: linear-gradient(135deg, #a5ff11 0%, #a5ff11 100%);
-  --gradient-secondary: linear-gradient(135deg, #ebebe4 0%, #ffffff 100%);
+  --gradient-secondary: #ebebe4;
   --gradient-text: linear-gradient(135deg, #131215 30%, #487800 100%);
   --gradient-surface: none;
   --surface-glass: #ffffff;
-  --surface-glass-soft: #ffffff;
+  --surface-glass-soft: #fafaf7;
   --surface-glass-strong: #f5f5f0;
+  --surface-hover: #fafaf7;
   --header-glass: #f5f5f0;
   --button-glass: transparent;
-  --button-glass-hover: rgba(19, 18, 21, 0.04);
   --hover-wash: rgba(19, 18, 21, 0.04);
   --skeleton-a: rgba(19, 18, 21, 0.04);
   --skeleton-b: rgba(19, 18, 21, 0.08);

@@ -46,12 +46,12 @@
 .lightbox-nav {
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgb(var(--ink-rgb) / 0.16);
   border-radius: 0;
   /* Fixed light-on-dark, NOT theme tokens: this sits on a near-black scrim in
      both themes, so a token that inverts would make the controls vanish on a
      light theme — the same trap the icon fallback's letter falls into. */
-  background: var(--hover-wash);
+  background: rgb(var(--ink-rgb) / 0.08);
   color: #fff;
   cursor: pointer;
   transition:
@@ -61,8 +61,8 @@
 
 .lightbox-close:hover,
 .lightbox-nav:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--ink-rgb) / 0.18);
+  border-color: rgb(var(--ink-rgb) / 0.3);
 }
 
 .lightbox-close:focus-visible,
