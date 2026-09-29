@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/calimero-network/admin-dashboard/compare/v1.20.0...v1.21.0) (2026-09-29)
+
+
+### Features
+
+* **ui:** bring Home, Applications, member roles and developer mode in line with the desktop ([#174](https://github.com/calimero-network/admin-dashboard/issues/174)) ([c184b89](https://github.com/calimero-network/admin-dashboard/commit/c184b89a247d6be0ab9c8dd05fc54bed3af3192d))
+
 # [1.20.0](https://github.com/calimero-network/admin-dashboard/compare/v1.19.0...v1.20.0) (2026-09-29)
 
 
