@@ -1,8 +1,9 @@
 name: Doc Auto-Update
 
+# Manual only. The push trigger never actually ran (see the pin below), so
+# keeping it would quietly START spending API credit and opening doc PRs on
+# every merge the moment the ref resolves.
 on:
-  push:
-    branches: [main, master]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -14,9 +15,19 @@ on:
         type: boolean
         default: false
 
+# Nothing here needs more than the called workflow's own job asks for.
+permissions:
+  contents: read
+
 jobs:
   doc-update:
-    uses: calimero-network/ai-code-reviewer/.github/workflows/doc-update.yaml@main
+    # Pinned by SHA: this job is handed GH_PAT and ANTHROPIC_API_KEY, so a
+    # moving ref would let whoever moves it read them. (`@main` never existed —
+    # the repo's default branch is master — so every run so far failed to start.)
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: calimero-network/ai-code-reviewer/.github/workflows/doc-update.yaml@a065f220db4648dc0f01cd93bb4af9c832b80193 # master
     with:
       dry_run: ${{ github.event.inputs.dry_run == 'true' }}
       pr_number: ${{ github.event.inputs.pr_number }}
