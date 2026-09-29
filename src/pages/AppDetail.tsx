@@ -45,7 +45,7 @@ import {
   shortenKey,
 } from '../utils/appCards';
 import { parseApiError } from '../utils/appUtils';
-import { openExternal } from '../utils/openApp';
+import { isSafeWebUrl, openExternal } from '../utils/openApp';
 import './AppDetail.css';
 
 interface DetailApp extends AppSummary {
@@ -287,6 +287,13 @@ export default function AppDetail() {
 
   const title = app.alias ?? app.name;
   const tags = (app.tags ?? []).filter((t) => t && t !== app.category);
+  // Publisher-written and unvalidated upstream — show only http(s) links.
+  const safeLink = (u?: string) => (u && isSafeWebUrl(u) ? u : undefined);
+  const safeLinks = {
+    frontend: safeLink(app.links?.frontend),
+    github: safeLink(app.links?.github),
+    docs: safeLink(app.links?.docs),
+  };
 
   return (
     <div className="app-detail-page" data-testid="app-detail-page">
@@ -413,29 +420,29 @@ export default function AppDetail() {
         )}
       </section>
 
-      {(app.links?.github || app.links?.docs || app.links?.frontend) && (
+      {(safeLinks.github || safeLinks.docs || safeLinks.frontend) && (
         <section className="app-detail-section" aria-label="Links">
           <p className="app-detail-section-heading">Links</p>
           <div className="app-detail-links">
-            {app.links?.frontend && (
+            {safeLinks.frontend && (
               <LinkCard
                 icon={Monitor}
                 label="Try it out on web"
-                href={app.links.frontend}
+                href={safeLinks.frontend}
               />
             )}
-            {app.links?.github && (
+            {safeLinks.github && (
               <LinkCard
                 icon={Code2}
                 label="Source code"
-                href={app.links.github}
+                href={safeLinks.github}
               />
             )}
-            {app.links?.docs && (
+            {safeLinks.docs && (
               <LinkCard
                 icon={BookOpen}
                 label="Documentation"
-                href={app.links.docs}
+                href={safeLinks.docs}
               />
             )}
           </div>

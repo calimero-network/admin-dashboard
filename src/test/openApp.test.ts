@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url -- these tests assert that javascript: links are refused */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import {
@@ -5,8 +6,12 @@ import {
   buildAppUrl,
   appTabName,
   openAppInNewTab,
+  openExternal,
+  isSafeWebUrl,
+  isAllowedAppFrontendUrl,
   PopupBlockedError,
   MixedContentError,
+  UnsafeUrlError,
 } from '../utils/openApp';
 
 const ACCESS_TOKEN = 'header.payload.signature';
@@ -218,7 +223,7 @@ describe('openAppInNewTab', () => {
     setLocation('https://node.example/admin-dashboard/applications');
     const open = vi.fn();
     window.open = open;
-    expect(() => openAppInNewTab('http://app.example/')).toThrow(
+    expect(() => openAppInNewTab('http://localhost:5173/')).toThrow(
       MixedContentError,
     );
     // No blank tab should be left behind.
@@ -233,5 +238,88 @@ describe('openAppInNewTab', () => {
       .mockReturnValue({ location: { replace } } as unknown as Window);
     expect(() => openAppInNewTab('https://app.example/')).not.toThrow();
     expect(replace).toHaveBeenCalled();
+  });
+
+  /**
+   * The tab is still on about:blank — the dashboard's own origin — when it is
+   * navigated, so a `javascript:` frontend would run with the admin tokens in
+   * reach. The value is publisher-written and nothing upstream checks it.
+   */
+  it.each([
+    'javascript:alert(document.domain)//',
+    'JavaScript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'blob:https://node.example/abc',
+    '/relative/path',
+    'not a url',
+    '',
+  ])('refuses a non-http(s) frontend %j without opening a tab', (url) => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openAppInNewTab(url)).toThrow(UnsafeUrlError);
+    expect(open).not.toHaveBeenCalled();
+  });
+});
+
+describe('isSafeWebUrl', () => {
+  it('accepts absolute http(s) URLs only', () => {
+    expect(isSafeWebUrl('https://app.example/')).toBe(true);
+    expect(isSafeWebUrl('http://localhost:5173/')).toBe(true);
+    expect(isSafeWebUrl('javascript:alert(1)')).toBe(false);
+    expect(isSafeWebUrl(' javascript:alert(1)')).toBe(false);
+    expect(isSafeWebUrl('data:text/html,x')).toBe(false);
+    expect(isSafeWebUrl('//evil.example/')).toBe(false);
+  });
+});
+
+describe('isAllowedAppFrontendUrl', () => {
+  const originalOpen = window.open;
+  afterEach(() => {
+    window.open = originalOpen;
+  });
+
+  it('matches the desktop: https anywhere, http on loopback only', () => {
+    expect(isAllowedAppFrontendUrl('https://app.example/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://localhost:5173/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://127.0.0.1:5173/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://[::1]:5173/')).toBe(true);
+    // The hash carries a session; plain http to a remote host leaks it.
+    expect(isAllowedAppFrontendUrl('http://app.example/')).toBe(false);
+    expect(isAllowedAppFrontendUrl('javascript:alert(1)')).toBe(false);
+  });
+
+  it('refuses a remote http frontend without opening a tab', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openAppInNewTab('http://app.example/')).toThrow(
+      UnsafeUrlError,
+    );
+    expect(open).not.toHaveBeenCalled();
+  });
+});
+
+describe('openExternal', () => {
+  const originalOpen = window.open;
+  afterEach(() => {
+    window.open = originalOpen;
+  });
+
+  it('opens http(s) links with noopener', () => {
+    const open = vi.fn();
+    window.open = open;
+    openExternal('https://github.com/calimero-network');
+    expect(open).toHaveBeenCalledWith(
+      'https://github.com/calimero-network',
+      '_blank',
+      'noopener,noreferrer',
+    );
+  });
+
+  it('refuses a javascript: link', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openExternal('javascript:alert(1)')).toThrow(UnsafeUrlError);
+    expect(open).not.toHaveBeenCalled();
   });
 });

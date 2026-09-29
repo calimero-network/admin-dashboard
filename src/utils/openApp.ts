@@ -29,6 +29,57 @@ export class PopupBlockedError extends Error {
   }
 }
 
+export class UnsafeUrlError extends Error {
+  constructor(url: string) {
+    super(
+      `Refusing to open ${url}: app frontends must be served over HTTPS (or HTTP on localhost), and links must be http(s).`,
+    );
+    this.name = 'UnsafeUrlError';
+  }
+}
+
+/**
+ * Whether `url` is an absolute http(s) URL — the only kind this dashboard will
+ * navigate to on an app's behalf.
+ *
+ * App links (`links.frontend`, `links.github`, `links.docs`) come from the
+ * bundle manifest, which the publisher writes and nothing upstream validates.
+ * `openAppInNewTab` navigates a tab that is still on `about:blank` — and so
+ * still on THIS origin — to that value; a `javascript:` URL would run there,
+ * with the admin tokens in localStorage in reach. Relative and unparseable
+ * values are refused too: there is no app origin to hand anything to.
+ */
+export function isSafeWebUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether an app FRONTEND may be opened with an SSO bundle: `https:`, or
+ * `http:` on loopback only — the desktop's rule (tauri-app
+ * `isAllowedAppFrontendUrl`). Stricter than {@link isSafeWebUrl}: the hash
+ * carries a session, and over plain http to a remote host anyone on the path
+ * reads it.
+ */
+export function isAllowedAppFrontendUrl(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return false;
+  }
+  if (u.protocol === 'https:') return u.hostname !== '';
+  const loopback =
+    u.hostname === 'localhost' ||
+    u.hostname === '127.0.0.1' ||
+    u.hostname === '[::1]';
+  return u.protocol === 'http:' && loopback;
+}
+
 export class MixedContentError extends Error {
   constructor(url: string) {
     super(
@@ -142,6 +193,9 @@ export function openAppInNewTab(
   frontendUrl: string,
   opts: OpenAppOptions = {},
 ): Window {
+  if (!isAllowedAppFrontendUrl(frontendUrl)) {
+    throw new UnsafeUrlError(frontendUrl);
+  }
   if (isMixedContent(frontendUrl)) {
     throw new MixedContentError(frontendUrl);
   }
@@ -178,5 +232,6 @@ export function openAppInNewTab(
  * handle, so the null return value the flag forces costs us nothing.
  */
 export function openExternal(url: string): void {
+  if (!isSafeWebUrl(url)) throw new UnsafeUrlError(url);
   window.open(url, '_blank', 'noopener,noreferrer');
 }
