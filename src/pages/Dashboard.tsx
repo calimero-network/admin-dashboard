@@ -19,19 +19,11 @@ import { useToast } from '../contexts/ToastContext';
 import { getSettings } from '../utils/settings';
 import { getNodeUrl } from '../utils/nodeUrl';
 import { useNodeStatus } from '../components/AppShell';
-import {
-  decodeMetadata,
-  appDisplayName,
-  appFrontendUrl,
-} from '../utils/appUtils';
+import InstalledAppCard from '../components/InstalledAppCard';
+import { decodeMetadata } from '../utils/appUtils';
+import type { InstalledApplication } from '../utils/installedApps';
 import { openAppInNewTab, openExternal } from '../utils/openApp';
 import './Dashboard.css';
-
-interface HomeApp {
-  id: string;
-  name: string;
-  frontendUrl: string | null;
-}
 
 interface Stats {
   installedApps: number;
@@ -81,7 +73,7 @@ export default function Dashboard() {
     contexts: 0,
     namespaces: 0,
   });
-  const [apps, setApps] = useState<HomeApp[]>([]);
+  const [apps, setApps] = useState<InstalledApplication[]>([]);
   const [loadingApps, setLoadingApps] = useState(true);
 
   const load = useCallback(async () => {
@@ -91,22 +83,11 @@ export default function Dashboard() {
       const raw = res.data as
         | { apps?: unknown[]; data?: { apps?: unknown[] } }
         | undefined;
-      const list = (raw?.data?.apps ?? raw?.apps ?? []) as {
-        id: string;
-        name?: string | null;
-        metadata?: number[] | string;
-      }[];
+      const list = (raw?.data?.apps ??
+        raw?.apps ??
+        []) as InstalledApplication[];
       installedApps = list.length;
-      setApps(
-        list.map((app) => {
-          const meta = decodeMetadata(app.metadata);
-          return {
-            id: app.id,
-            name: appDisplayName(app, meta),
-            frontendUrl: appFrontendUrl(meta),
-          };
-        }),
-      );
+      setApps(list);
     } catch {
       // Leave the grid empty; the stat card shows 0.
     } finally {
@@ -140,12 +121,8 @@ export default function Dashboard() {
   }, [load]);
 
   /** Synchronous by necessity — see utils/openApp.ts. */
-  const openApp = (app: HomeApp) => {
-    if (!app.frontendUrl) {
-      navigate('/applications');
-      return;
-    }
-    openAppInNewTab(app.frontendUrl, {
+  const openApp = (frontendUrl: string, app: InstalledApplication) => {
+    openAppInNewTab(frontendUrl, {
       applicationId: app.id,
       devMode: getSettings().developerMode,
     }).catch((e: unknown) => {
@@ -253,26 +230,17 @@ export default function Dashboard() {
               <ArrowRight size={14} />
             </button>
           </div>
-          <div className="home-apps-grid">
-            {apps.slice(0, 4).map((app) => (
-              <button
-                key={app.id}
-                type="button"
-                onClick={() => openApp(app)}
-                className="app-card-mini"
-                data-testid="home-app-card"
-                title={
-                  app.frontendUrl
-                    ? `Open ${app.name} in a new tab`
-                    : `View ${app.name} details`
-                }
-              >
-                <Package className="app-icon" size={28} />
-                <span className="app-name">{app.name}</span>
-                {app.frontendUrl && (
-                  <span className="app-card-open-hint">Open</span>
-                )}
-              </button>
+          {/* The Applications page's own card, so an app looks the same in
+              both places (its icon, package id, description, version), minus
+              the More menu: Home only opens apps, it never uninstalls them. */}
+          <div className="installed-apps-grid" data-testid="home-apps-grid">
+            {apps.slice(0, 4).map((app, index) => (
+              <InstalledAppCard
+                key={app.id || `home-app-${index}`}
+                app={app}
+                metadata={decodeMetadata(app.metadata)}
+                onOpen={(frontendUrl) => openApp(frontendUrl, app)}
+              />
             ))}
           </div>
         </div>

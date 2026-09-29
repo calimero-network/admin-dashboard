@@ -623,8 +623,22 @@
 }
 
 .ns-role-select[data-role='readonly'],
-.ns-role-select[data-role='readonlytee'] {
+.ns-role-select[data-role='readonlytee'],
+.ns-role-static[data-role='readonlytee'] {
   color: var(--text-tertiary);
+}
+
+/* TEE roles are granted by attestation only, so they render as text, not a
+   select. A relay also relays members' writes; a replica does not. */
+.ns-role-static {
+  display: inline-block;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ns-role-static[data-role='relaytee'] {
+  color: var(--text-secondary);
 }
 
 /* ── Copy / rename controls ── */

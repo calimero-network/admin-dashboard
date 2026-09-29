@@ -17,6 +17,7 @@ import {
   type GroupMembersResult,
   type GroupRole,
 } from '../../api/namespaceApi';
+import { isTeeRole, roleLabel } from '../../utils/groupRoles';
 import { useNodeIdentity } from './useNodeIdentity';
 import {
   ConfirmButton,
@@ -29,8 +30,9 @@ import {
 
 /**
  * Roles, least- to most-privileged. Promote/demote step one rung along this
- * ladder; `ReadOnlyTee` is absent on purpose — core only ever grants it via
- * TEE attestation and rejects it on this endpoint.
+ * ladder; the TEE roles (`RelayTee`, `ReadOnlyTee`) are absent on purpose —
+ * core only ever grants them via TEE attestation and rejects them on this
+ * endpoint, so a TEE member's role is shown read-only.
  */
 const ROLE_LADDER: GroupRole[] = ['ReadOnly', 'Member', 'Admin'];
 
@@ -299,30 +301,41 @@ export function MembersSection({
                     <CopyBtn value={m.identity} />
                   </td>
                   <td>
-                    <select
-                      className="ns-role-select"
-                      value={m.role}
-                      onChange={(e) =>
-                        changeRole(m.identity, e.target.value as GroupRole)
-                      }
-                      disabled={busy === m.identity}
-                      data-role={String(m.role).toLowerCase()}
-                      aria-label={`Role of ${m.name ?? m.identity}`}
-                    >
-                      {/* A role the node assigned but that we don't offer
-                          (e.g. ReadOnlyTee) still has to render, or the select
-                          would silently show the wrong value. */}
-                      {(ROLE_LADDER as string[]).includes(m.role) ? null : (
-                        <option value={m.role}>{m.role}</option>
-                      )}
-                      {ROLE_LADDER.slice()
-                        .reverse()
-                        .map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                    </select>
+                    {isTeeRole(m.role) ? (
+                      <span
+                        className="ns-role-static"
+                        data-role={String(m.role).toLowerCase()}
+                        data-testid="member-role"
+                        title="Granted by TEE attestation; it cannot be changed here"
+                      >
+                        {roleLabel(m.role)}
+                      </span>
+                    ) : (
+                      <select
+                        className="ns-role-select"
+                        value={m.role}
+                        onChange={(e) =>
+                          changeRole(m.identity, e.target.value as GroupRole)
+                        }
+                        disabled={busy === m.identity}
+                        data-role={String(m.role).toLowerCase()}
+                        aria-label={`Role of ${m.name ?? m.identity}`}
+                      >
+                        {/* A role the node assigned but that we don't offer
+                            still has to render, or the select would silently
+                            show the wrong value. */}
+                        {(ROLE_LADDER as string[]).includes(m.role) ? null : (
+                          <option value={m.role}>{roleLabel(m.role)}</option>
+                        )}
+                        {ROLE_LADDER.slice()
+                          .reverse()
+                          .map((role) => (
+                            <option key={role} value={role}>
+                              {roleLabel(role)}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </td>
                   <td className="ns-table-right">
                     <div className="ns-row-actions">
