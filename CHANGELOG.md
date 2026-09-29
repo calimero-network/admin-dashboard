@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/calimero-network/admin-dashboard/compare/v1.19.0...v1.20.0) (2026-09-29)
+
+
+### Features
+
+* **marketplace:** show each version's node build and the publishing organization, like the desktop ([#177](https://github.com/calimero-network/admin-dashboard/issues/177)) ([ea124d7](https://github.com/calimero-network/admin-dashboard/commit/ea124d7669ded43d0f48f2874a2a24eea687f414))
+
 # [1.19.0](https://github.com/calimero-network/admin-dashboard/compare/v1.18.7...v1.19.0) (2026-09-29)
 
 
