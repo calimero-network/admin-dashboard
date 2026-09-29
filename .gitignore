@@ -97,3 +97,6 @@ temp/
 # merobox writes each container's node state here — hundreds of MB per run.
 /data/
 /playwright-report-live/
+
+# vite outDir — produced by `pnpm build`, shipped as the release zip, never committed
+/build
