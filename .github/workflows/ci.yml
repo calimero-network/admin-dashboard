@@ -177,14 +177,15 @@ jobs:
       - name: Install Playwright browser
         run: pnpm test:e2e:install
 
-      # Cache the merod binary: it is a pinned release asset, so the key only
-      # changes when MEROD_VERSION does.
+      # Cache merod and the pinned bundle fixtures (.merod/fixtures): all of it
+      # is sha256-pinned in scripts/prepare-merod.mjs + scripts/live-fixtures.mjs,
+      # so the key only changes when those do.
       - name: Cache merod
         id: merod-cache
         uses: actions/cache@v4
         with:
           path: .merod
-          key: merod-${{ runner.os }}-${{ runner.arch }}-0.11.0-rc.30
+          key: merod-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/prepare-merod.mjs', 'scripts/live-fixtures.mjs') }}
 
       - name: Download merod
         if: steps.merod-cache.outputs.cache-hit != 'true'

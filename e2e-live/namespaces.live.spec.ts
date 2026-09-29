@@ -258,7 +258,6 @@ test.describe.serial('Live: namespaces', () => {
       data?: { namespaceId?: string };
     }>('POST', '/namespaces', {
       applicationId: appId,
-      upgradePolicy: 'Automatic',
       name: 'doomed',
     });
     const doomedId = created.data?.namespaceId;

@@ -7,6 +7,8 @@ import {
   PROBE_VERSION,
   REAL_APP_NAME,
   REAL_PACKAGE,
+  REAL_VERSION,
+  stubDownloads,
   NODE_URL,
 } from './fixtures/live';
 
@@ -49,14 +51,15 @@ test.describe('Live: Marketplace reads a registry', () => {
     await openDashboard(page, '/admin-dashboard/marketplace', {
       useStubRegistry: true,
     });
-    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    // The probe (listing-only) and the Mero Chat fixture the node installs from.
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
 
     await page.getByTestId('marketplace-search').fill('nothing-matches-this');
     await expect(page.getByTestId('app-card')).toHaveCount(0);
     await expect(page.getByText('No applications found')).toBeVisible();
 
     await page.getByRole('button', { name: 'Clear search' }).click();
-    await expect(page.getByTestId('app-card')).toHaveCount(1);
+    await expect(page.getByTestId('app-card')).toHaveCount(2);
 
     // Nothing is installed on a fresh node.
     await page.getByRole('button', { name: 'Installed', exact: true }).click();
@@ -65,15 +68,17 @@ test.describe('Live: Marketplace reads a registry', () => {
 });
 
 /**
- * The real install path, end to end: registry -> artifact download by the node ->
- * blob stored -> metadata read back by the dashboard.
+ * The real install path, end to end: Marketplace -> the node fetches
+ * `package@version` from ITS configured registry -> blob stored -> metadata read
+ * back by the dashboard.
  *
- * This one uses the PUBLIC registry, and has to: core refuses install URLs whose
- * host is loopback or private (an SSRF control applied at both validation and
- * fetch time), so a localhost stub cannot serve an install. The upside is that it
- * exercises a genuine .mpk bundle, so the metadata the dashboard reads back is
- * produced by BundleManifest::to_metadata_json — the exact path that used to
- * render every installed app nameless.
+ * Hermetic: the node's `[registry] base_url` is the local stub, which serves a
+ * sha256-pinned Mero Chat bundle (scripts/live-registry.mjs). It used to install
+ * whatever was newest on apps.calimero.network, so every republish with a newer
+ * `minRuntimeVersion` turned this leg red on every branch. It is still a genuine
+ * `.mpk`, so the metadata the dashboard reads back is produced by core's
+ * BundleManifest::to_metadata_json — the exact path that used to render every
+ * installed app nameless.
  *
  * Serial, because each step builds on the node state the previous one left.
  */
@@ -87,7 +92,9 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
   });
 
   test('installs a real bundle onto the node', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/marketplace');
+    await openDashboard(page, '/admin-dashboard/marketplace', {
+      useStubRegistry: true,
+    });
 
     // Select by PACKAGE, never by display name: the registry currently publishes
     // two bundles both named "Mero Chat" (com.calimero.chat and the older
@@ -130,11 +137,6 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     // Assert against the node, not the page: the node downloading the artifact
     // is the slow part, and it is also the source of truth. Polling it avoids
     // depending on exactly when the button label flips.
-    //
-    // This is the ONE test in the suite that reaches the public internet — the
-    // node must fetch from apps.calimero.network because core refuses loopback
-    // install URLs. If it fails while everything else passes, suspect the
-    // registry or egress, not the dashboard. CI retries once for that reason.
     await expect
       .poll(
         async () => {
@@ -145,20 +147,25 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
           timeout: 150_000,
           intervals: [1000, 2000, 5000],
           message:
-            'The node never registered the application. It has to download the ' +
-            'bundle from apps.calimero.network; check egress and that the ' +
-            'package is still published.',
+            'The node never registered the application. It fetches the bundle ' +
+            'from its [registry] base_url, the local stub — check the stub log ' +
+            'and that .merod/fixtures holds the chat bundle.',
         },
       )
       .toBe(1);
 
-    // And the row records where it came from.
+    // It came from the node's configured registry: the stub served the .mpk.
+    // (A coordinate install records a blob-share marker as its `source`, not
+    // a URL, so the stub's own counter is the proof.)
+    expect(
+      await stubDownloads(
+        `/artifacts/${REAL_PACKAGE}/${REAL_VERSION}/${REAL_PACKAGE}-${REAL_VERSION}.mpk`,
+      ),
+    ).toBeGreaterThan(0);
     const { body } = await adminApi<{
-      data?: { apps?: { source?: string; size?: number }[] };
+      data?: { apps?: { size?: number }[] };
     }>('GET', '/applications');
-    const installed = body.data?.apps?.[0];
-    expect(installed?.source).toContain('apps.calimero.network');
-    expect(installed?.size ?? 0).toBeGreaterThan(1000);
+    expect(body.data?.apps?.[0]?.size ?? 0).toBeGreaterThan(1000);
   });
 
   test('Applications renders the bundle metadata the node stored', async ({
@@ -241,7 +248,9 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
   });
 
   test('the Marketplace marks it installed', async ({ page }) => {
-    await openDashboard(page, '/admin-dashboard/marketplace');
+    await openDashboard(page, '/admin-dashboard/marketplace', {
+      useStubRegistry: true,
+    });
     // By PACKAGE, for the same reason the install test searches by it: the
     // registry publishes two packages both displayed as "Mero Chat", so
     // `.first()` on the display name can land on the one that was never

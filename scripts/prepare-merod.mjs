@@ -11,6 +11,7 @@ import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { FIXTURES } from './live-fixtures.mjs';
 
 const CORE_REPO = 'calimero-network/core';
 // Keep this in step with the API surface the dashboard targets. rc.23 deleted
@@ -19,30 +20,17 @@ const CORE_REPO = 'calimero-network/core';
 // node no longer sends — which is precisely how 1.13.0 shipped broken.
 // The cache key in .github/workflows/ci.yml names this version too.
 //
-// ⚠️ THE PIN ALSO HAS TO CLEAR WHAT THE REGISTRY PUBLISHES. The live suite
-// installs a REAL bundle from apps.calimero.network, and core refuses a bundle
-// whose `minRuntimeVersion` is newer than the node:
-//
-//   Failed to install: bundle requires runtime version 0.11.0-rc.28
-//                      but current runtime is 0.11.0-rc.23
-//
-// com.calimero.chat was republished at 3.1.1 / rc.28, which red-lined this leg
-// on every branch from 2026-08-18 onward — including a dependabot PR that
-// touched one devDependency. A bundle can be republished at any time, so this
-// pin is a floor that moves with the fleet, not a value that can be set once.
-//
-// ⚠️ AND A CEILING: rc.31 IS AS FAR AS THIS CAN GO TODAY. rc.31 made the admin
-// install route take COORDINATES and nothing else, so the url-based call the
-// dashboard's client makes is rejected outright:
-//
-//   unknown field `url`, expected `package` or `version`
-//
-// @calimero-network/calimero-client is already on its newest published build
-// (1.25.0-beta.2) and still posts { url, metadata, hash }, so there is no
-// client release that speaks rc.31+ yet. rc.30 is therefore the newest core
-// the dashboard can actually drive. Measured, not guessed — the live suite is
-// green on rc.28/29/30 and fails install on rc.31/32/33.
-const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.30';
+// ⚠️ THIS WAS STUCK AT rc.30 FOR A MONTH, and that is why the leg went red.
+// rc.31 made install take `{ package, version }` only, and the dashboard still
+// posted `{ url, … }`, so rc.30 was the newest node it could drive — while the
+// install test pulled whatever Mero Chat was newest on apps.calimero.network,
+// whose `minRuntimeVersion` kept climbing (rc.57, then rc.62) until rc.30 could
+// install nothing. The dashboard now installs by coordinates, and the install
+// no longer touches the public registry at all: the node's `[registry]` is the
+// local stub (scripts/live-registry.mjs), serving the pinned FIXTURES below. So
+// nothing published elsewhere can move this leg any more — bumping it is a
+// deliberate edit here, with the chat fixture's minRuntimeVersion <= this.
+const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.62';
 
 // sha256 of each pinned release archive, from the release's asset digests
 // (`gh api repos/calimero-network/core/releases/tags/<tag> --jq '.assets[].digest'`).
@@ -52,6 +40,14 @@ const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.30';
 // digest GitHub reports for the asset, which still catches a corrupted or
 // tampered download.
 const PINNED_SHA256 = {
+  '0.11.0-rc.62': {
+    'merod_aarch64-apple-darwin.tar.gz':
+      '210956a74539fc3518ca44d33173432d10e9a804e7c30c374d0b53a4377ed778',
+    'merod_aarch64-unknown-linux-gnu.tar.gz':
+      '78c4ff12c2022c22ba312436e5d933eb9e6a7187ec65012bd47d29792d7597e0',
+    'merod_x86_64-unknown-linux-gnu.tar.gz':
+      'fbbbc49a8fe3939c50b1ddb9f4d2ce6bdeeef0b183e2e8f11604b2b5e60638e7',
+  },
   '0.11.0-rc.30': {
     'merod_aarch64-apple-darwin.tar.gz':
       'aa5b2bb9dd2956b8995b2a6201441a462f40f96e1a5c2bcd4e923f166744ee67',
@@ -77,6 +73,7 @@ function expectedSha256(assetName, asset) {
 const rootDir = path.resolve(import.meta.dirname, '..');
 const binDir = path.join(rootDir, '.merod');
 const binaryPath = path.join(binDir, 'merod');
+const fixturesDir = path.join(binDir, 'fixtures');
 
 /** Release asset suffix for the host platform. */
 function assetSuffix() {
@@ -118,7 +115,7 @@ async function findBinary(dir) {
   return null;
 }
 
-async function main() {
+async function ensureMerod() {
   if (existsSync(binaryPath) && !process.env['MEROD_FORCE_DOWNLOAD']) {
     const version = execFileSync(binaryPath, ['--version'], {
       encoding: 'utf8',
@@ -209,6 +206,58 @@ async function main() {
     encoding: 'utf8',
   }).trim();
   console.log(`merod ready: ${version} -> ${binaryPath}`);
+}
+
+/** Download one fixture unless a copy with the right hash is already there. */
+async function ensureFixture(name, url, sha256) {
+  await fs.mkdir(fixturesDir, { recursive: true });
+  const dest = path.join(fixturesDir, name);
+  if (existsSync(dest)) {
+    const have = createHash('sha256')
+      .update(await fs.readFile(dest))
+      .digest('hex');
+    if (have === sha256) {
+      console.log(`fixture ${name} already present`);
+      return;
+    }
+  }
+  console.log(`Downloading fixture ${name}…`);
+  const res = await fetch(url, { redirect: 'follow' });
+  if (!res.ok)
+    throw new Error(`Fixture ${name}: HTTP ${res.status} from ${url}`);
+  const bytes = Buffer.from(await res.arrayBuffer());
+  const actual = createHash('sha256').update(bytes).digest('hex');
+  if (actual !== sha256) {
+    throw new Error(
+      `Fixture ${name} sha256 mismatch: expected ${sha256}, got ${actual}.`,
+    );
+  }
+  await fs.writeFile(dest, bytes);
+  console.log(`Verified fixture ${name} sha256 ${actual}`);
+}
+
+async function ensureFixtures() {
+  const kvSha = FIXTURES.kvStore.sha256[MEROD_VERSION];
+  if (!kvSha) {
+    throw new Error(
+      `No pinned kv-store fixture sha256 for ${MEROD_VERSION}; add it to FIXTURES.`,
+    );
+  }
+  await ensureFixture(
+    FIXTURES.kvStore.file,
+    FIXTURES.kvStore.url(MEROD_VERSION),
+    kvSha,
+  );
+  await ensureFixture(
+    FIXTURES.chat.file,
+    FIXTURES.chat.url(),
+    FIXTURES.chat.sha256,
+  );
+}
+
+async function main() {
+  await ensureMerod();
+  await ensureFixtures();
 }
 
 main().catch((err) => {

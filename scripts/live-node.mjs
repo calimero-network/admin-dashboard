@@ -20,6 +20,11 @@ export const SWARM_PORT = Number(process.env['LIVE_SWARM_PORT'] ?? '3428');
 export const ADMIN_USER = process.env['LIVE_ADMIN_USER'] ?? 'e2eadmin';
 export const ADMIN_PASSWORD =
   process.env['LIVE_ADMIN_PASSWORD'] ?? 'e2e-admin-password';
+// The local stub (scripts/live-registry.mjs). Since rc.31 a node installs by
+// `package@version` from ITS OWN `[registry] base_url` — no host guard, since
+// it is operator config — so pointing it here makes every install in the suite
+// hermetic: nothing published on apps.calimero.network can move this leg.
+const REGISTRY_URL = `http://localhost:${process.env['LIVE_REGISTRY_PORT'] ?? '4600'}`;
 
 if (!fs.existsSync(merod)) {
   console.error(`merod not found at ${merod}. Run: pnpm merod:prepare`);
@@ -33,7 +38,9 @@ const home =
   process.env['LIVE_NODE_HOME'] ??
   fs.mkdtempSync(path.join(os.tmpdir(), 'mero-e2e-'));
 
-console.log(`[live-node] home=${home} node=${NODE_NAME} port=${SERVER_PORT}`);
+console.log(
+  `[live-node] home=${home} node=${NODE_NAME} port=${SERVER_PORT} registry=${REGISTRY_URL}`,
+);
 
 // `--auth-mode embedded` is required, and is NOT the default: merod defaults to
 // `proxy`, where authentication is fronted by a separate mero-auth service and
@@ -61,6 +68,8 @@ try {
       'embedded',
       '--admin-user',
       ADMIN_USER,
+      '--registry-url',
+      REGISTRY_URL,
     ],
     {
       stdio: 'inherit',
