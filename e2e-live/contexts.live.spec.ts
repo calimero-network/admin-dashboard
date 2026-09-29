@@ -2,7 +2,10 @@ import { test, expect } from '@playwright/test';
 import {
   adminApi,
   clearNamespaces,
+  installByCoords,
   openNamespacesForApp,
+  REAL_PACKAGE,
+  REAL_VERSION,
   uninstallAllApps,
 } from './fixtures/live';
 
@@ -19,15 +22,11 @@ import {
  * arguments.
  *
  * mero-chat's `init` takes five, which is why it is the fixture here: the
- * probe app used by the other live specs is an 8-byte stub with no ABI and no
- * runnable `init`, so it can only ever prove the failure path.
+ * kv-store fixture the namespaces spec installs has a parameterless `init`,
+ * so it cannot exercise the generated form.
  *
  * Serial: every test works off the one installed app and namespace.
  */
-const PACKAGE = 'com.calimero.chat';
-const VERSION = '2.0.0';
-const ARTIFACT = `https://apps.calimero.network/artifacts/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.mpk`;
-
 test.describe.serial('Live: create context', () => {
   let appId = '';
   let namespaceId = '';
@@ -36,28 +35,14 @@ test.describe.serial('Live: create context', () => {
     test.setTimeout(300_000);
     await uninstallAllApps();
 
-    // Installed by URL, not through the Marketplace UI: this spec is about the
-    // context form. The node must fetch it from apps.calimero.network — core
-    // refuses loopback install URLs — so this is the second test in the suite
-    // that needs egress.
-    const install = await adminApi<{ data?: { applicationId?: string } }>(
-      'POST',
-      '/install-application',
-      { url: ARTIFACT, metadata: [] },
-    );
-    expect(
-      install.status,
-      `install failed: ${JSON.stringify(install.body)}. The node downloads the ` +
-        'bundle from apps.calimero.network; check egress and that the package ' +
-        'is still published.',
-    ).toBeLessThan(300);
-    appId = install.body.data?.applicationId as string;
-    expect(appId).toBeTruthy();
+    // By coordinates, not through the Marketplace UI: this spec is about the
+    // context form. The node fetches the pinned bundle from the local stub.
+    appId = await installByCoords(REAL_PACKAGE, REAL_VERSION);
 
     const ns = await adminApi<{ data?: { namespaceId?: string } }>(
       'POST',
       '/namespaces',
-      { applicationId: appId, upgradePolicy: 'Automatic', name: 'ctx-live' },
+      { applicationId: appId, name: 'ctx-live' },
     );
     namespaceId = ns.body.data?.namespaceId as string;
     expect(namespaceId).toBeTruthy();

@@ -310,7 +310,12 @@ test.describe('Marketplace', () => {
 
     await expect(page.getByText(/Mero Chat installed/)).toBeVisible();
     expect(posted).toHaveLength(1);
-    expect(posted[0]).toContain('com.calimero.merochat-1.2.0.mpk');
+    // By coordinates, and nothing else: since rc.31 the route is
+    // deny_unknown_fields, so a stray `url` would be refused outright.
+    expect(JSON.parse(posted[0] ?? '{}')).toEqual({
+      package: 'com.calimero.merochat',
+      version: '1.2.0',
+    });
   });
 
   test('back returns to the listing', async ({ page }) => {

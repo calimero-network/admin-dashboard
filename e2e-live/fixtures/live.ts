@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { expect, request, type Page } from '@playwright/test';
 import { NODE_URL, REGISTRY_URL } from '../../playwright.live.config';
 
@@ -121,17 +122,6 @@ export async function openDashboard(
 }
 
 /**
- * The real registry package used by the install test.
- *
- * The install source must be PUBLIC: core refuses install URLs whose host is a
- * loopback/private address (an SSRF control in
- * crates/server/primitives/src/validation.rs, re-applied at fetch time to cover
- * redirects), so the local stub cannot serve an install. The registry serves this
- * bundle's .mpk directly over https at ~310KB — small and fast — and because it
- * is a real bundle the install exercises the metadata path that matters:
- * BundleManifest::to_metadata_json, whose output the dashboard reads back.
- */
-/**
  * Open one application's namespace list.
  *
  * The Namespaces page opens on a grid of APPLICATIONS, not namespaces — a
@@ -153,53 +143,73 @@ export async function openNamespacesForApp(
     .click();
 }
 
+/**
+ * The real bundle the install, Open and create-context tests use.
+ *
+ * Served to the NODE by the local stub registry (scripts/live-registry.mjs),
+ * from a sha256-pinned copy scripts/prepare-merod.mjs downloads — the node's
+ * `[registry] base_url` is the stub (scripts/live-node.mjs), and since rc.31 it
+ * installs `package@version` from there. So a new publish on
+ * apps.calimero.network cannot change or break what these tests install.
+ * Keep in step with FIXTURES.chat in scripts/live-fixtures.mjs.
+ */
 export const REAL_PACKAGE = 'com.calimero.chat';
+export const REAL_VERSION = '3.1.16';
 export const REAL_APP_NAME = 'Mero Chat';
+
+/** The kv-store fixture core ships with every release (scripts/live-fixtures.mjs). */
+export const KV_FIXTURE_PATH = path.resolve(
+  process.cwd(),
+  '.merod',
+  'fixtures',
+  'kv-store-test-fixture.mpk',
+);
+
+/** How many times the node fetched `path` from the stub registry. */
+export async function stubDownloads(artifactPath: string): Promise<number> {
+  const res = await fetch(`${REGISTRY_URL}/__stats`);
+  const body = (await res.json()) as { downloads?: Record<string, number> };
+  return body.downloads?.[artifactPath] ?? 0;
+}
+
+/** Install `package@version` by coordinates: the node fetches from its registry. */
+export async function installByCoords(
+  pkg: string,
+  version: string,
+): Promise<string> {
+  const { status, body } = await adminApi<{
+    data?: { applicationId?: string };
+  }>('POST', '/install-application', { package: pkg, version });
+  expect(
+    status,
+    `install-application ${pkg}@${version} failed (${status}): ${JSON.stringify(body)}. ` +
+      'The node fetches it from its [registry] base_url — the local stub.',
+  ).toBeLessThan(300);
+  const id = body.data?.applicationId;
+  expect(id, `no applicationId in ${JSON.stringify(body)}`).toBeTruthy();
+  return id as string;
+}
 
 /**
  * Install an application straight onto the node, for tests that need an app to
  * exist but are not testing the install path itself (namespaces need one to
  * create against).
  *
- * Uses `install-dev-application`, which takes a filesystem PATH rather than a
- * URL and so sidesteps the SSRF guard entirely — the node and the test share a
- * machine. Deterministic and offline.
+ * Uses `install-dev-application`, which takes a filesystem PATH — the node and
+ * the test share a machine — and since rc.31 takes `{ path }` and nothing else,
+ * and refuses a raw `.wasm`. So this installs core's own kv-store fixture
+ * bundle, built against the very node release under test. Deterministic and
+ * offline.
  */
 export async function installProbeApp(): Promise<string> {
-  const os = await import('node:os');
-  const fsp = await import('node:fs/promises');
-  const nodePath = await import('node:path');
-
-  // The smallest valid wasm module. install-* stores the blob without compiling
-  // it (compilation happens when a context is created), so this is enough.
-  const wasm = Buffer.from([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
-  const dir = await fsp.mkdtemp(nodePath.join(os.tmpdir(), 'mero-e2e-app-'));
-  const wasmPath = nodePath.join(dir, 'probe.wasm');
-  await fsp.writeFile(wasmPath, wasm);
-
-  const metadata = Array.from(
-    new TextEncoder().encode(
-      JSON.stringify({
-        name: PROBE_NAME,
-        version: PROBE_VERSION,
-        description:
-          'Fixture app installed directly for live e2e arrange steps.',
-      }),
-    ),
-  );
-
   const { status, body } = await adminApi<{
     data?: { applicationId?: string };
-  }>('POST', '/install-dev-application', {
-    path: wasmPath,
-    metadata,
-    package: PROBE_PACKAGE,
-    version: PROBE_VERSION,
-  });
+  }>('POST', '/install-dev-application', { path: KV_FIXTURE_PATH });
 
   expect(
     status,
-    `install-dev-application failed: ${JSON.stringify(body)}`,
+    `install-dev-application failed: ${JSON.stringify(body)}. ` +
+      `Is ${KV_FIXTURE_PATH} there? Run \`pnpm merod:prepare\`.`,
   ).toBeLessThan(300);
   const id = body.data?.applicationId;
   expect(id, `no applicationId in ${JSON.stringify(body)}`).toBeTruthy();
