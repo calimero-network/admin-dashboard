@@ -187,7 +187,7 @@ describe('mintAppTokens', () => {
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('http://localhost:2528/admin/client-key');
     expect(init.method).toBe('POST');
-    expect((init.headers as Record<string, string>).Authorization).toBe(
+    expect((init.headers as Record<string, string>)['Authorization']).toBe(
       `Bearer ${ACCESS_TOKEN}`,
     );
     const body = JSON.parse(init.body as string);

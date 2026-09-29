@@ -146,8 +146,8 @@ export async function mintAppTokens(
     ttl_secs: APP_TOKEN_TTL_SECS,
   };
   if (opts.contextId && opts.executorPublicKey) {
-    body.context_id = opts.contextId;
-    body.context_identity = opts.executorPublicKey;
+    body['context_id'] = opts.contextId;
+    body['context_identity'] = opts.executorPublicKey;
   }
 
   let res: Response;
