@@ -5,8 +5,11 @@ import {
   buildAppUrl,
   appTabName,
   openAppInNewTab,
+  openExternal,
+  isSafeWebUrl,
   PopupBlockedError,
   MixedContentError,
+  UnsafeUrlError,
 } from '../utils/openApp';
 
 const ACCESS_TOKEN = 'header.payload.signature';
@@ -233,5 +236,62 @@ describe('openAppInNewTab', () => {
       .mockReturnValue({ location: { replace } } as unknown as Window);
     expect(() => openAppInNewTab('https://app.example/')).not.toThrow();
     expect(replace).toHaveBeenCalled();
+  });
+
+  /**
+   * The tab is still on about:blank — the dashboard's own origin — when it is
+   * navigated, so a `javascript:` frontend would run with the admin tokens in
+   * reach. The value is publisher-written and nothing upstream checks it.
+   */
+  it.each([
+    'javascript:alert(document.domain)//',
+    'JavaScript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'blob:https://node.example/abc',
+    '/relative/path',
+    'not a url',
+    '',
+  ])('refuses a non-http(s) frontend %j without opening a tab', (url) => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openAppInNewTab(url)).toThrow(UnsafeUrlError);
+    expect(open).not.toHaveBeenCalled();
+  });
+});
+
+describe('isSafeWebUrl', () => {
+  it('accepts absolute http(s) URLs only', () => {
+    expect(isSafeWebUrl('https://app.example/')).toBe(true);
+    expect(isSafeWebUrl('http://localhost:5173/')).toBe(true);
+    expect(isSafeWebUrl('javascript:alert(1)')).toBe(false);
+    expect(isSafeWebUrl(' javascript:alert(1)')).toBe(false);
+    expect(isSafeWebUrl('data:text/html,x')).toBe(false);
+    expect(isSafeWebUrl('//evil.example/')).toBe(false);
+  });
+});
+
+describe('openExternal', () => {
+  const originalOpen = window.open;
+  afterEach(() => {
+    window.open = originalOpen;
+  });
+
+  it('opens http(s) links with noopener', () => {
+    const open = vi.fn();
+    window.open = open;
+    openExternal('https://github.com/calimero-network');
+    expect(open).toHaveBeenCalledWith(
+      'https://github.com/calimero-network',
+      '_blank',
+      'noopener,noreferrer',
+    );
+  });
+
+  it('refuses a javascript: link', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openExternal('javascript:alert(1)')).toThrow(UnsafeUrlError);
+    expect(open).not.toHaveBeenCalled();
   });
 });
