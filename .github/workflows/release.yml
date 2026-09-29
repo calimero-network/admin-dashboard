@@ -97,27 +97,22 @@ jobs:
         env:
           DASHBOARD_VERSION: ${{ steps.next.outputs.new_release_version }}
 
+      # The .sha256 is what core pins against.
       - name: Create release zip
         run: |
           cd build
           zip -r ../admin-dashboard-build.zip .
           cd ..
+          sha256sum admin-dashboard-build.zip > admin-dashboard-build.zip.sha256
+          cat admin-dashboard-build.zip.sha256
 
+      # The zip and its .sha256 are attached BY semantic-release (.releaserc.json
+      # `assets`): it creates the release as a draft, uploads, then publishes.
+      # A separate `gh release upload` after publishing cannot work once the
+      # repo has immutable releases on, and with --clobber it let anyone with
+      # write access swap the zip merod builds embed.
       - name: Release
         id: release
         uses: cycjimmy/semantic-release-action@16ca923e6ccbb50770c415a0ccd43709a8c5f7a4 # v4.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # No --clobber: a published zip is what merod builds embed, so it must
-      # never be replaced in place. A re-run fails here instead. The .sha256
-      # file is what core pins against.
-      - name: Upload build artifact
-        if: steps.release.outputs.new_release_published == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.release.outputs.new_release_version }}
-        run: |
-          sha256sum admin-dashboard-build.zip > admin-dashboard-build.zip.sha256
-          cat admin-dashboard-build.zip.sha256
-          gh release upload "v$VERSION" admin-dashboard-build.zip admin-dashboard-build.zip.sha256

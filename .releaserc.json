@@ -20,7 +20,15 @@
     ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    "@semantic-release/github",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          { "path": "admin-dashboard-build.zip" },
+          { "path": "admin-dashboard-build.zip.sha256" }
+        ]
+      }
+    ],
     [
       "@semantic-release/git",
       {
