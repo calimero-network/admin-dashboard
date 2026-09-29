@@ -8,9 +8,6 @@ import {
   setContextAndIdentityFromJWT,
   clearAccessToken,
   clearRefreshToken,
-  clearApplicationId,
-  clearContextId,
-  clearExecutorPublicKey,
   apiClient,
 } from '@calimero-network/calimero-client';
 import LoginPage from '../pages/LoginPage';
@@ -20,6 +17,7 @@ import {
   consumeLoginState,
   stripLoginState,
 } from '../utils/loginState';
+import { endSession } from '../utils/session';
 
 /**
  * `no-url` is gone compared with the pre-port flow: there is no ConnectPage and
@@ -161,12 +159,10 @@ export default function AuthWrapper({
     }
   };
 
-  const handleReset = () => {
-    clearAccessToken();
-    clearRefreshToken();
-    clearApplicationId();
-    clearContextId();
-    clearExecutorPublicKey();
+  const handleReset = async () => {
+    // Retire it on the node BEFORE the override below is cleared: the refresh
+    // token belongs to the node getNodeUrl() currently names.
+    await endSession();
     // ⚠️ THE NODE OVERRIDE IS PART OF THE SESSION. A `?nodeUrl=` is persisted
     // to sessionStorage and then outranks the serving origin, so without this
     // "Clear session" could not unpin a dashboard that had once been pointed
@@ -191,7 +187,7 @@ export default function AuthWrapper({
     return (
       <LoginPage
         onLogin={handleLogin}
-        onReset={handleReset}
+        onReset={() => void handleReset()}
         nodeUrl={nodeUrl}
       />
     );
