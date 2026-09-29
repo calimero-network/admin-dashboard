@@ -39,7 +39,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install ai-code-reviewer
-        run: pip install git+https://github.com/calimero-network/ai-code-reviewer.git
+        # Pinned by SHA: the next step runs it with GH_PAT and ANTHROPIC_API_KEY.
+        run: pip install git+https://github.com/calimero-network/ai-code-reviewer.git@a065f220db4648dc0f01cd93bb4af9c832b80193
 
       - name: Determine PR number and agent count
         id: pr
