@@ -31,7 +31,9 @@ export class PopupBlockedError extends Error {
 
 export class UnsafeUrlError extends Error {
   constructor(url: string) {
-    super(`Refusing to open ${url}: only http(s) app links can be opened.`);
+    super(
+      `Refusing to open ${url}: app frontends must be served over HTTPS (or HTTP on localhost), and links must be http(s).`,
+    );
     this.name = 'UnsafeUrlError';
   }
 }
@@ -54,6 +56,28 @@ export function isSafeWebUrl(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Whether an app FRONTEND may be opened with an SSO bundle: `https:`, or
+ * `http:` on loopback only — the desktop's rule (tauri-app
+ * `isAllowedAppFrontendUrl`). Stricter than {@link isSafeWebUrl}: the hash
+ * carries a session, and over plain http to a remote host anyone on the path
+ * reads it.
+ */
+export function isAllowedAppFrontendUrl(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return false;
+  }
+  if (u.protocol === 'https:') return u.hostname !== '';
+  const loopback =
+    u.hostname === 'localhost' ||
+    u.hostname === '127.0.0.1' ||
+    u.hostname === '[::1]';
+  return u.protocol === 'http:' && loopback;
 }
 
 export class MixedContentError extends Error {
@@ -169,7 +193,7 @@ export function openAppInNewTab(
   frontendUrl: string,
   opts: OpenAppOptions = {},
 ): Window {
-  if (!isSafeWebUrl(frontendUrl)) {
+  if (!isAllowedAppFrontendUrl(frontendUrl)) {
     throw new UnsafeUrlError(frontendUrl);
   }
   if (isMixedContent(frontendUrl)) {

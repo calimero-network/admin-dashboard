@@ -8,6 +8,7 @@ import {
   openAppInNewTab,
   openExternal,
   isSafeWebUrl,
+  isAllowedAppFrontendUrl,
   PopupBlockedError,
   MixedContentError,
   UnsafeUrlError,
@@ -222,7 +223,7 @@ describe('openAppInNewTab', () => {
     setLocation('https://node.example/admin-dashboard/applications');
     const open = vi.fn();
     window.open = open;
-    expect(() => openAppInNewTab('http://app.example/')).toThrow(
+    expect(() => openAppInNewTab('http://localhost:5173/')).toThrow(
       MixedContentError,
     );
     // No blank tab should be left behind.
@@ -269,6 +270,32 @@ describe('isSafeWebUrl', () => {
     expect(isSafeWebUrl(' javascript:alert(1)')).toBe(false);
     expect(isSafeWebUrl('data:text/html,x')).toBe(false);
     expect(isSafeWebUrl('//evil.example/')).toBe(false);
+  });
+});
+
+describe('isAllowedAppFrontendUrl', () => {
+  const originalOpen = window.open;
+  afterEach(() => {
+    window.open = originalOpen;
+  });
+
+  it('matches the desktop: https anywhere, http on loopback only', () => {
+    expect(isAllowedAppFrontendUrl('https://app.example/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://localhost:5173/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://127.0.0.1:5173/')).toBe(true);
+    expect(isAllowedAppFrontendUrl('http://[::1]:5173/')).toBe(true);
+    // The hash carries a session; plain http to a remote host leaks it.
+    expect(isAllowedAppFrontendUrl('http://app.example/')).toBe(false);
+    expect(isAllowedAppFrontendUrl('javascript:alert(1)')).toBe(false);
+  });
+
+  it('refuses a remote http frontend without opening a tab', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openAppInNewTab('http://app.example/')).toThrow(
+      UnsafeUrlError,
+    );
+    expect(open).not.toHaveBeenCalled();
   });
 });
 
