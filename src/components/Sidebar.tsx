@@ -11,14 +11,8 @@ import {
   Settings2,
   LogOut,
 } from 'lucide-react';
-import {
-  clearAccessToken,
-  clearRefreshToken,
-  clearApplicationId,
-  clearContextId,
-  clearExecutorPublicKey,
-} from '@calimero-network/calimero-client';
 import { getSettings } from '../utils/settings';
+import { endSession } from '../utils/session';
 import calimeroLogo from '../assets/calimero-wordmark.svg';
 import './Sidebar.css';
 
@@ -57,12 +51,7 @@ export default function Sidebar() {
     location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const logout = () => {
-    clearAccessToken();
-    clearRefreshToken();
-    clearApplicationId();
-    clearContextId();
-    clearExecutorPublicKey();
-    window.location.reload();
+    void endSession().finally(() => window.location.reload());
   };
 
   const items = NAV_ITEMS.filter((item) => !item.devOnly || developerMode);

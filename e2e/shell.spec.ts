@@ -215,6 +215,23 @@ test.describe('App shell', () => {
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(page.getByTestId('login-screen')).toBeVisible();
   });
+
+  test('logout retires the refresh token on the node', async ({ page }) => {
+    // Clearing localStorage alone leaves the refresh token live on the node.
+    const retired: unknown[] = [];
+    await page.route('**/auth/logout', async (route) => {
+      retired.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { success: true }, error: null }),
+      });
+    });
+    await page.goto('/admin-dashboard/dashboard');
+    await page.getByRole('button', { name: 'Logout' }).click();
+    await expect(page.getByTestId('login-screen')).toBeVisible();
+    expect(retired).toEqual([{ refresh_token: 'refresh-e2e' }]);
+  });
 });
 
 test.describe('Auth', () => {
