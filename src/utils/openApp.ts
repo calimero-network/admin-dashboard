@@ -5,8 +5,7 @@
  * This is the web counterpart of the desktop's `openAppFrontend`
  * (tauri-app/apps/desktop/src/utils/appUtils.ts). The desktop opens a Tauri
  * window (or a native per-app launcher); we can only open a tab. The auth
- * hand-off is the same URL-hash contract, carrying a token pair minted for the
- * app (see `mintAppTokens`) rather than the dashboard's own.
+ * hand-off is the same URL-hash contract.
  */
 import { getAccessToken } from '@calimero-network/calimero-client';
 import { getNodeUrl, isMixedContent } from './nodeUrl';
@@ -38,17 +37,6 @@ export class UnsafeUrlError extends Error {
   }
 }
 
-/**
- * Whether `url` is an absolute http(s) URL — the only kind this dashboard will
- * navigate to on an app's behalf.
- *
- * App links (`links.frontend`, `links.github`, `links.docs`) come from the
- * bundle manifest, which the publisher writes and nothing upstream validates.
- * `openAppInNewTab` navigates a tab that is still on `about:blank` — and so
- * still on THIS origin — to that value; a `javascript:` URL would run there,
- * with the admin tokens in localStorage in reach. Relative and unparseable
- * values are refused too: there is no app origin to hand anything to.
- */
 export function isSafeWebUrl(url: string): boolean {
   try {
     const { protocol } = new URL(url);
@@ -58,13 +46,6 @@ export function isSafeWebUrl(url: string): boolean {
   }
 }
 
-/**
- * Whether an app FRONTEND may be opened with an SSO bundle: `https:`, or
- * `http:` on loopback only — the desktop's rule (tauri-app
- * `isAllowedAppFrontendUrl`). Stricter than {@link isSafeWebUrl}: the hash
- * carries a session, and over plain http to a remote host anyone on the path
- * reads it.
- */
 export function isAllowedAppFrontendUrl(url: string): boolean {
   let u: URL;
   try {
@@ -90,11 +71,6 @@ export class MixedContentError extends Error {
   }
 }
 
-/**
- * What an app tab's token may do: the MultiContext set from mero-react's
- * `getPermissionsForMode` — everything an app needs, and nothing that manages
- * the node itself (root keys, installs, other apps' keys).
- */
 export const APP_TOKEN_PERMISSIONS: readonly string[] = [
   'context:create',
   'context:list',
@@ -107,11 +83,6 @@ export const APP_TOKEN_PERMISSIONS: readonly string[] = [
   'context:alias',
 ];
 
-/**
- * How long a minted app key lives. A tab open longer than this falls back to
- * its own login, which is where it used to land once the forwarded access
- * token expired.
- */
 export const APP_TOKEN_TTL_SECS = 24 * 60 * 60;
 
 export interface AppTokens {
@@ -126,14 +97,6 @@ export class AppTokenError extends Error {
   }
 }
 
-/**
- * Mint a token pair for one app tab: a client key under our root key, scoped
- * to {@link APP_TOKEN_PERMISSIONS} (plus the context, when opening one).
- *
- * The dashboard's own token carries `admin` and must never leave this origin:
- * the app frontend URL is chosen by the bundle's publisher, and an admin token
- * there is a root-key-add away from permanent control of the node.
- */
 export async function mintAppTokens(
   opts: OpenAppOptions = {},
   fetchImpl: typeof fetch = fetch,
@@ -181,20 +144,6 @@ export async function mintAppTokens(
   };
 }
 
-/**
- * Build the SSO hash fragment handed to an app frontend.
- *
- * The tokens are the app's OWN pair from {@link mintAppTokens}, never the
- * dashboard's. That is also why the refresh token can travel now: refresh
- * tokens are single-use (calimero-network/core#3083) and re-presenting one
- * revokes its whole family, so handing an app tab OUR refresh token would have
- * let it log the dashboard out. A freshly minted family has one holder — the
- * tab — so it rotates without touching anyone else.
- *
- * Both `application_id` and `app-id` are sent: mero-js >= 7 reads
- * `application_id` (mero-js/src/auth/index.ts), while calimero-client and
- * mero-js 2.x read `app-id`. An app that only knows one key ignores the other.
- */
 export function buildSsoHash(
   tokens: AppTokens,
   opts: OpenAppOptions = {},
@@ -271,15 +220,8 @@ export function appTabName(applicationId?: string): string {
  * doing that here would break every "Open" button, so instead we open
  * `about:blank` immediately and only then navigate it.
  *
- * It is `async` only for the token mint, which runs AFTER `window.open`: an
- * async function body runs synchronously up to its first `await`, so the tab
- * is still opened inside the click's user-activation.
- *
- * @throws {UnsafeUrlError} not https, or http off loopback
  * @throws {MixedContentError} https dashboard -> http app frontend
  * @throws {PopupBlockedError} the browser refused the tab
- * @throws {AppTokenError} the node refused to mint the app's token (the blank
- *   tab is closed)
  */
 export async function openAppInNewTab(
   frontendUrl: string,

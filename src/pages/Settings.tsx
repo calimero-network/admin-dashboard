@@ -26,8 +26,6 @@ export default function SettingsPage() {
 
   const handleDeveloperModeToggle = () => {
     const developerMode = !settings.developerMode;
-    // Marks this as the user's own choice, so an opt-out survives the
-    // on-by-default (see resolveDeveloperMode in utils/settings).
     setSettings(updateSettings({ developerMode, developerModeChosen: true }));
     toast.success(`Developer mode ${developerMode ? 'enabled' : 'disabled'}`);
   };

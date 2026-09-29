@@ -94,7 +94,6 @@
    win on specificity and collapse the left padding the icon sits in. */
 .search-container .search-input {
   width: 100%;
-  /* Desktop's 12px/42px, with the right side kept clear of the X button. */
   padding: 12px 38px 12px 42px;
   border: 1px solid var(--border-strong);
   border-radius: 0;

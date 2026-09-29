@@ -28,12 +28,6 @@ import {
   type ShowToast,
 } from './shared';
 
-/**
- * Roles, least- to most-privileged. Promote/demote step one rung along this
- * ladder; the TEE roles (`RelayTee`, `ReadOnlyTee`) are absent on purpose —
- * core only ever grants them via TEE attestation and rejects them on this
- * endpoint, so a TEE member's role is shown read-only.
- */
 const ROLE_LADDER: GroupRole[] = ['ReadOnly', 'Member', 'Admin'];
 
 function neighbour(role: string, direction: 1 | -1): GroupRole | null {

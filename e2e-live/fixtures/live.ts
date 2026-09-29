@@ -143,21 +143,10 @@ export async function openNamespacesForApp(
     .click();
 }
 
-/**
- * The real bundle the install, Open and create-context tests use.
- *
- * Served to the NODE by the local stub registry (scripts/live-registry.mjs),
- * from a sha256-pinned copy scripts/prepare-merod.mjs downloads — the node's
- * `[registry] base_url` is the stub (scripts/live-node.mjs), and since rc.31 it
- * installs `package@version` from there. So a new publish on
- * apps.calimero.network cannot change or break what these tests install.
- * Keep in step with FIXTURES.chat in scripts/live-fixtures.mjs.
- */
 export const REAL_PACKAGE = 'com.calimero.chat';
 export const REAL_VERSION = '3.1.16';
 export const REAL_APP_NAME = 'Mero Chat';
 
-/** The kv-store fixture core ships with every release (scripts/live-fixtures.mjs). */
 export const KV_FIXTURE_PATH = path.resolve(
   process.cwd(),
   '.merod',
@@ -165,14 +154,12 @@ export const KV_FIXTURE_PATH = path.resolve(
   'kv-store-test-fixture.mpk',
 );
 
-/** How many times the node fetched `path` from the stub registry. */
 export async function stubDownloads(artifactPath: string): Promise<number> {
   const res = await fetch(`${REGISTRY_URL}/__stats`);
   const body = (await res.json()) as { downloads?: Record<string, number> };
   return body.downloads?.[artifactPath] ?? 0;
 }
 
-/** Install `package@version` by coordinates: the node fetches from its registry. */
 export async function installByCoords(
   pkg: string,
   version: string,
@@ -190,17 +177,6 @@ export async function installByCoords(
   return id as string;
 }
 
-/**
- * Install an application straight onto the node, for tests that need an app to
- * exist but are not testing the install path itself (namespaces need one to
- * create against).
- *
- * Uses `install-dev-application`, which takes a filesystem PATH — the node and
- * the test share a machine — and since rc.31 takes `{ path }` and nothing else,
- * and refuses a raw `.wasm`. So this installs core's own kv-store fixture
- * bundle, built against the very node release under test. Deterministic and
- * offline.
- */
 export async function installProbeApp(): Promise<string> {
   const { status, body } = await adminApi<{
     data?: { applicationId?: string };

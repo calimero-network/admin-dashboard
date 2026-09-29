@@ -10,16 +10,7 @@
 export interface AppSettings {
   /** Registry base URLs browsed by the Marketplace. */
   registries: string[];
-  /**
-   * Reveals the Node diagnostics page; forwarded to apps as `dev_mode=1`.
-   * On unless the user turned it off (see `developerModeChosen`). Always read
-   * through `getSettings()`, which resolves it.
-   */
   developerMode: boolean;
-  /**
-   * True once the user flipped the Developer Mode toggle themselves; only then
-   * is a stored `developerMode` honoured.
-   */
   developerModeChosen?: boolean;
 }
 
@@ -71,15 +62,6 @@ function migrateRegistries(registries: unknown): string[] {
   return out.length > 0 ? out : [...DEFAULTS.registries];
 }
 
-/**
- * Developer mode is on unless the user explicitly switched it off.
- *
- * A stored `developerMode: false` alone is not a choice: it used to default to
- * false, and every settings write spreads getSettings(), so that default was
- * persisted for every browser that saved anything. Only the Settings toggle
- * sets `developerModeChosen`, so it is what separates an opt-out from the old
- * default. Ported from the desktop (tauri-app#278).
- */
 export function resolveDeveloperMode(raw: Partial<AppSettings>): boolean {
   if (!raw.developerModeChosen) return true;
   return raw.developerMode ?? true;
@@ -92,7 +74,6 @@ export function getSettings(): AppSettings {
     registries: migrateRegistries(raw.registries),
     developerMode: resolveDeveloperMode(raw),
   };
-  // Carried through so a write that spreads getSettings() keeps the opt-out.
   if (raw.developerModeChosen) settings.developerModeChosen = true;
   return settings;
 }

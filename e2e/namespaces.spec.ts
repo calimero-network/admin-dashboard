@@ -255,8 +255,6 @@ test.describe('Namespaces', () => {
   test('TEE members show their role as a label, not an editable select', async ({
     page,
   }) => {
-    // Core grants RelayTee / ReadOnlyTee only through attestation and refuses
-    // them on the role endpoint, so a select could only ever fail.
     const RELAY = 'aa'.repeat(32);
     const REPLICA = 'bb'.repeat(32);
     await mockNode(page, {
@@ -496,15 +494,6 @@ test.describe('Namespaces', () => {
   });
 });
 
-// ─── Disk usage (ported from tauri-app#277) ─────────────────────────────────
-
-/**
- * Three namespaces: two for Mero Blocks, one for the headless app. The node
- * reports usage for the first two only — `c…` is deliberately absent, to pin
- * that a namespace the node says nothing about shows no figure rather than
- * "0 B". The first id is upper-cased in the usage body to pin the
- * case-insensitive join against the listing.
- */
 const DISK_NS_A = 'a'.repeat(64);
 const DISK_NS_B = 'b'.repeat(64);
 const DISK_NS_C = 'c'.repeat(64);
@@ -567,7 +556,6 @@ test.describe('Namespaces – disk usage', () => {
         `.ns-app-card[data-application-id="${APP_WITH_FRONTEND.id}"] [data-testid="ns-app-card-disk"]`,
       ),
     ).toHaveText('2 MB');
-    // Nothing reported for its only namespace: no figure, not "0 B".
     await expect(
       page.locator(
         `.ns-app-card[data-application-id="${APP_WITHOUT_FRONTEND.id}"] [data-testid="ns-app-card-disk"]`,
@@ -589,7 +577,6 @@ test.describe('Namespaces – disk usage', () => {
   test('a node that cannot answer /usage shows no sizes at all', async ({
     page,
   }) => {
-    // 404, as a merod older than the route answers.
     await mockNode(page, { ...DISK_FIXTURE, usage: null });
     await page.goto('/admin-dashboard/namespaces');
 

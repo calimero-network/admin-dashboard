@@ -11,33 +11,6 @@ import { Check, ChevronDown } from 'lucide-react';
 import type { VersionInfo } from '../utils/registry';
 import './VersionSelect.css';
 
-/**
- * The version picker on an application page. Ported from the desktop
- * (tauri-app apps/desktop/src/components/VersionSelect.tsx) so both surfaces
- * show the same thing per version.
- *
- * ⚠️ NOT A NATIVE <select>, AND THAT IS THE POINT. A native `<option>` holds
- * plain text only, so it cannot carry the per-version node build as a quiet
- * secondary label, nor match the page's typography. This draws the list itself.
- *
- * What a native select gives away for free, and is therefore rebuilt here:
- *  - keyboard operation (Up/Down/Home/End to move, Enter/Space to choose,
- *    Escape to dismiss, Tab to leave) — focus stays on the trigger, which is a
- *    select-only `combobox` (ARIA 1.2) exposing the highlighted row through
- *    `aria-activedescendant`, the pattern for a popup that does not take focus,
- *  - `role="listbox"` / `role="option"` with `aria-selected`, so it is still
- *    announced as a picker rather than as a pile of buttons,
- *  - dismissal on an outside click.
- *
- * ⚠️ THE MENU IS PORTALLED AND POSITIONED `fixed` FROM THE TRIGGER'S RECT. Any
- * ancestor with `backdrop-filter`, `transform` or `overflow` would otherwise
- * contain or clip it — the trap the Lightbox documents too.
- *
- * Each option also names the core release it was built against (`node
- * 0.11.0-rc.54`): two releases of the same app can target different nodes, and
- * this is where the choice is made. Omitted, not placeholdered, when the bundle
- * does not say.
- */
 export default function VersionSelect({
   id,
   versions,
@@ -82,8 +55,6 @@ export default function VersionSelect({
       if (listRef.current?.contains(e.target as Node)) return;
       setOpen(false);
     };
-    // `true` — capture. A click that lands on something which stops
-    // propagation would otherwise leave the menu open over the page.
     document.addEventListener('mousedown', close, true);
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
@@ -94,7 +65,6 @@ export default function VersionSelect({
     };
   }, [open, place]);
 
-  // Keep the keyboard-highlighted row in view in a list taller than the menu.
   useEffect(() => {
     if (!open) return;
     const el = document.getElementById(`${baseId}-opt-${active}`);
@@ -214,7 +184,6 @@ export default function VersionSelect({
                 }`}
                 className={`version-select-option${i === active ? ' is-active' : ''}`}
                 onMouseEnter={() => setActive(i)}
-                // Keep focus on the trigger, which owns the keyboard handling.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => choose(i)}
               >

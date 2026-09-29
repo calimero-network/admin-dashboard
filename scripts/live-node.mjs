@@ -20,10 +20,6 @@ export const SWARM_PORT = Number(process.env['LIVE_SWARM_PORT'] ?? '3428');
 export const ADMIN_USER = process.env['LIVE_ADMIN_USER'] ?? 'e2eadmin';
 export const ADMIN_PASSWORD =
   process.env['LIVE_ADMIN_PASSWORD'] ?? 'e2e-admin-password';
-// The local stub (scripts/live-registry.mjs). Since rc.31 a node installs by
-// `package@version` from ITS OWN `[registry] base_url` — no host guard, since
-// it is operator config — so pointing it here makes every install in the suite
-// hermetic: nothing published on apps.calimero.network can move this leg.
 const REGISTRY_URL = `http://localhost:${process.env['LIVE_REGISTRY_PORT'] ?? '4600'}`;
 
 if (!fs.existsSync(merod)) {

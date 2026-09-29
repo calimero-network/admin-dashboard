@@ -93,8 +93,6 @@ jobs:
 
       # This zip is what core/crates/server/build.rs downloads and bakes into
       # merod, so a PR that breaks its shape breaks the node build. Assert the
-      # entrypoint is present. (merod's SPA fallback is index.html itself; the
-      # old 404.html only served the GitHub Pages redirect trick.)
       - name: Verify release bundle shape
         run: |
           test -f build/index.html || { echo "::error::build/index.html missing"; exit 1; }
@@ -180,9 +178,6 @@ jobs:
       - name: Install Playwright browser
         run: pnpm test:e2e:install
 
-      # Cache merod and the pinned bundle fixtures (.merod/fixtures): all of it
-      # is sha256-pinned in scripts/prepare-merod.mjs + scripts/live-fixtures.mjs,
-      # so the key only changes when those do.
       - name: Cache merod
         id: merod-cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4

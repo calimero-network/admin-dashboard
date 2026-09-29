@@ -4,8 +4,6 @@
   flex-direction: column;
   height: 100vh;
   background-color: var(--bg-primary);
-  /* The landing's four faint column lines, drawn across the whole window as
-     the desktop app draws them; the sidebar and header cover their share. */
   background-image: var(--desktop-space-background);
   background-size: var(--desktop-space-size);
   background-position: var(--desktop-space-position);
@@ -903,9 +901,6 @@
   position: relative;
   z-index: 1;
 }
-
-/* The landing's column lines are drawn by `.app` itself, from the
- * --desktop-space-* tokens, as the desktop app does. */
 
 /* ── Page titles ──
  * Every page's own h1 is the landing's headline — uppercase, weight 950,

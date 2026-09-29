@@ -1,4 +1,4 @@
-/* eslint-disable no-script-url -- these tests assert that javascript: links are refused */
+/* eslint-disable no-script-url */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import {
@@ -17,12 +17,9 @@ import {
   UnsafeUrlError,
 } from '../utils/openApp';
 
-/** The dashboard's own (admin) token. It must never reach an app tab. */
 const ACCESS_TOKEN = 'header.payload.signature';
-/** A pair minted for one app tab. */
 const TOKENS = { access_token: 'app.access', refresh_token: 'app.refresh' };
 
-/** A fetch that answers the client-key mint the way core does. */
 function mintFetch(
   status = 200,
   body: unknown = { data: TOKENS, error: null },
@@ -69,10 +66,6 @@ describe('buildSsoHash', () => {
     expect(params.get('refresh_token')).toBe(TOKENS.refresh_token);
   });
 
-  /**
-   * The load-bearing assertion of this whole feature. The app frontend URL is
-   * chosen by the bundle's publisher; the dashboard's token carries `admin`.
-   */
   it("NEVER carries the dashboard's own token", () => {
     expect(buildSsoHash(TOKENS, { applicationId: 'app-1' })).not.toContain(
       ACCESS_TOKEN,
@@ -253,8 +246,6 @@ describe('openAppInNewTab', () => {
   }
 
   it('opens about:blank synchronously, then navigates with the minted pair', async () => {
-    // Opening about:blank before any await is what preserves the
-    // user-activation; navigating afterwards is what avoids a popup block.
     const tab = fakeTab();
     const open = vi.fn().mockReturnValue(tab);
     window.open = open;
@@ -338,11 +329,6 @@ describe('openAppInNewTab', () => {
     expect(tab.location.replace).toHaveBeenCalled();
   });
 
-  /**
-   * The tab is still on about:blank — the dashboard's own origin — when it is
-   * navigated, so a `javascript:` frontend would run with the admin tokens in
-   * reach. The value is publisher-written and nothing upstream checks it.
-   */
   it.each([
     'javascript:alert(document.domain)//',
     'JavaScript:alert(1)',
@@ -360,7 +346,6 @@ describe('openAppInNewTab', () => {
       UnsafeUrlError,
     );
     expect(open).not.toHaveBeenCalled();
-    // Refused before anything is minted for it.
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
@@ -387,7 +372,6 @@ describe('isAllowedAppFrontendUrl', () => {
     expect(isAllowedAppFrontendUrl('http://localhost:5173/')).toBe(true);
     expect(isAllowedAppFrontendUrl('http://127.0.0.1:5173/')).toBe(true);
     expect(isAllowedAppFrontendUrl('http://[::1]:5173/')).toBe(true);
-    // The hash carries a session; plain http to a remote host leaks it.
     expect(isAllowedAppFrontendUrl('http://app.example/')).toBe(false);
     expect(isAllowedAppFrontendUrl('javascript:alert(1)')).toBe(false);
   });

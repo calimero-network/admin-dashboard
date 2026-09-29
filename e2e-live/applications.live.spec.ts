@@ -42,8 +42,6 @@ test.describe('Live: Marketplace reads a registry', () => {
     await expect(detail.getByTestId('detail-install')).toBeVisible();
 
     // The stub publishes 1.4.2 and 1.0.0; the newest non-yanked must be default.
-    // The picker is a listbox, not a native <select>: the trigger shows the
-    // chosen version and the options exist only once it is opened.
     const picker = detail.getByTestId('version-picker');
     await expect(picker).toContainText(PROBE_VERSION);
     await picker.click();
@@ -60,7 +58,6 @@ test.describe('Live: Marketplace reads a registry', () => {
     await openDashboard(page, '/admin-dashboard/marketplace', {
       useStubRegistry: true,
     });
-    // The probe (listing-only) and the Mero Chat fixture the node installs from.
     await expect(page.getByTestId('app-card')).toHaveCount(2);
 
     await page.getByTestId('marketplace-search').fill('nothing-matches-this');
@@ -76,21 +73,6 @@ test.describe('Live: Marketplace reads a registry', () => {
   });
 });
 
-/**
- * The real install path, end to end: Marketplace -> the node fetches
- * `package@version` from ITS configured registry -> blob stored -> metadata read
- * back by the dashboard.
- *
- * Hermetic: the node's `[registry] base_url` is the local stub, which serves a
- * sha256-pinned Mero Chat bundle (scripts/live-registry.mjs). It used to install
- * whatever was newest on apps.calimero.network, so every republish with a newer
- * `minRuntimeVersion` turned this leg red on every branch. It is still a genuine
- * `.mpk`, so the metadata the dashboard reads back is produced by core's
- * BundleManifest::to_metadata_json — the exact path that used to render every
- * installed app nameless.
- *
- * Serial, because each step builds on the node state the previous one left.
- */
 test.describe.serial('Live: install and uninstall from the registry', () => {
   test.beforeAll(async () => {
     await uninstallAllApps();
@@ -163,9 +145,6 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       )
       .toBe(1);
 
-    // It came from the node's configured registry: the stub served the .mpk.
-    // (A coordinate install records a blob-share marker as its `source`, not
-    // a URL, so the stub's own counter is the proof.)
     expect(
       await stubDownloads(
         `/artifacts/${REAL_PACKAGE}/${REAL_VERSION}/${REAL_PACKAGE}-${REAL_VERSION}.mpk`,
@@ -245,7 +224,6 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       .not.toBe('about:blank');
 
     const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
-    // A real JWT the node minted for THIS app — not the dashboard's own.
     expect(hash.get('access_token')?.split('.')).toHaveLength(3);
     const ownAccess = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('access-token') ?? 'null'),
@@ -254,7 +232,6 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
     // The node the dashboard is actually pointed at, so the app talks to the
     // same one rather than to whatever origin served the dashboard.
     expect(hash.get('node_url')).toBe(NODE_URL);
-    // Its own refresh token, so rotating it cannot revoke ours (core#3083).
     expect(hash.get('refresh_token')).toBeTruthy();
     const ownRefresh = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('refresh-token') ?? 'null'),

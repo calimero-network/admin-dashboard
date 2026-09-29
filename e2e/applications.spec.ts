@@ -73,7 +73,6 @@ test.describe('Applications', () => {
     await page.getByTestId('open-app').click();
     const popup = await popupPromise;
 
-    // The pair is minted for this tab, scoped below admin.
     const minted = (await mintRequest).postDataJSON() as {
       permissions: string[];
     };
@@ -94,9 +93,6 @@ test.describe('Applications', () => {
     expect(hash.get('application_id')).toBe(APP_WITH_FRONTEND.id);
     expect(hash.get('app-id')).toBe(APP_WITH_FRONTEND.id);
 
-    // The single most important assertion in the suite: the dashboard's own
-    // tokens carry `admin` and never leave this origin — the app gets its own
-    // family, so rotating it cannot revoke ours (core#3083).
     const ownAccess = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('access-token') ?? 'null'),
     );
@@ -163,7 +159,6 @@ test.describe('Applications', () => {
     await mockNode(page, { apps: [] });
     await page.goto('/admin-dashboard/applications');
     await expect(page.getByText('No applications installed.')).toBeVisible();
-    // The sidebar has a Marketplace link too; this is the one in the copy.
     await page
       .locator('.empty-state')
       .getByRole('link', { name: 'Marketplace' })

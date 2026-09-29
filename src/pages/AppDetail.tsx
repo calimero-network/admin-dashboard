@@ -207,10 +207,6 @@ export default function AppDetail() {
     };
   }, [app]);
 
-  // Which organization published this. ⚠️ Null for a package owned by an
-  // individual — a normal answer, so the section is hidden, not emptied. A
-  // registry that cannot be reached answers null too: this is decoration, not
-  // something worth a toast.
   const [org, setOrg] = useState<RegistryOrg | null>(null);
   useEffect(() => {
     if (!app) return;
@@ -313,7 +309,6 @@ export default function AppDetail() {
 
   const title = app.alias ?? app.name;
   const tags = (app.tags ?? []).filter((t) => t && t !== app.category);
-  // Publisher-written and unvalidated upstream — show only http(s) links.
   const safeLink = (u?: string) => (u && isSafeWebUrl(u) ? u : undefined);
   const safeLinks = {
     frontend: safeLink(app.links?.frontend),
@@ -439,9 +434,6 @@ export default function AppDetail() {
         )}
       </section>
 
-      {/* ⚠️ GATED ON `name`, NOT ON THE OBJECT. The lookup can answer with a
-          body carrying only an id, which would render as a heading over an
-          empty row. */}
       {org?.name && (
         <section className="app-detail-section" aria-label="Organization">
           <p className="app-detail-section-heading">Organization</p>

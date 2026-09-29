@@ -53,9 +53,6 @@ export default function AuthWrapper({
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
-    // Only a hand-back from a login THIS tab started (see utils/loginState).
-    // Anything else — a crafted link carrying someone's tokens — is dropped
-    // from the address bar and the existing session, if any, is kept.
     const hasHashTokens = Boolean(encodedAccessToken && encodedRefreshToken);
     const stateMatches = hasHashTokens && consumeLoginState();
     if (hasHashTokens && !stateMatches) {
@@ -160,8 +157,6 @@ export default function AuthWrapper({
   };
 
   const handleReset = async () => {
-    // Retire it on the node BEFORE the override below is cleared: the refresh
-    // token belongs to the node getNodeUrl() currently names.
     await endSession();
     // ⚠️ THE NODE OVERRIDE IS PART OF THE SESSION. A `?nodeUrl=` is persisted
     // to sessionStorage and then outranks the serving origin, so without this

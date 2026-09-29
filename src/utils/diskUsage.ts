@@ -1,18 +1,3 @@
-/**
- * Per-namespace disk usage from the node's `GET /admin-api/usage`.
- *
- * Ported from the Calimero Desktop (tauri-app#277). The body is bare
- * (`{ namespaces: [...] }`): core serializes this route through an
- * `ApiResponse` whose `into_response` writes the payload with no `data`
- * envelope (core `crates/server/src/admin/service.rs`, `ApiResponse`). Both
- * shapes are accepted so a future envelope does not blank the sizes.
- *
- * Bytes are RocksDB estimates of state, private state, deltas and governance
- * (`Store::approximate_size`, sampled from SST metadata). Blobs and
- * application bytecode are shared across namespaces and are not in any
- * namespace's figure.
- */
-
 export interface NamespaceBytes {
   state: number;
   privateState: number;
@@ -35,11 +20,6 @@ function asRecord(v: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-/**
- * Namespace id (lowercase hex) → its bytes. A row with a missing, negative or
- * non-numeric field is dropped rather than half-reported: a breakdown missing a
- * column reads as a real, smaller number.
- */
 export function parseUsage(raw: unknown): Map<string, NamespaceBytes> {
   const out = new Map<string, NamespaceBytes>();
   const outer = asRecord(raw);
@@ -68,7 +48,6 @@ export function parseUsage(raw: unknown): Map<string, NamespaceBytes> {
   return out;
 }
 
-/** Look one namespace up, tolerating id case. */
 export function usageFor(
   usage: Map<string, NamespaceBytes> | null,
   namespaceId: string,
@@ -76,10 +55,6 @@ export function usageFor(
   return usage?.get(namespaceId.trim().toLowerCase());
 }
 
-/**
- * Total bytes over `namespaceIds`, or `null` when none of them has a figure —
- * "not reported" and "empty" are different statements.
- */
 export function sumUsage(
   usage: Map<string, NamespaceBytes> | null,
   namespaceIds: string[],
@@ -96,7 +71,6 @@ export function sumUsage(
   return found ? total : null;
 }
 
-/** Decimal units ("1.23 MB"), matching how the cloud plans state storage. */
 export function formatBytes(n: number): string {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = Math.max(0, Number.isFinite(n) ? n : 0);
@@ -110,7 +84,6 @@ export function formatBytes(n: number): string {
   return `${text.includes('.') ? text.replace(/\.?0+$/, '') : text} ${units[i]}`;
 }
 
-/** Tooltip text breaking a namespace's figure into its columns. */
 export function describeBytes(b: NamespaceBytes): string {
   return [
     `Disk used on this node: ${formatBytes(b.total)} (estimate)`,

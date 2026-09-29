@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { endSession, retireSession } from '../utils/session';
 
-// vitest hoists vi.hoisted/vi.mock above the imports, so declaring them after
-// keeps eslint's import/first rule satisfied.
-
 const store = vi.hoisted(() => ({
   refresh: 'refresh.jwt' as string | null,
   cleared: [] as string[],
@@ -46,10 +43,6 @@ describe('retireSession', () => {
     });
   });
 
-  /**
-   * /admin/revoke takes a KEY id and revokes the key; an admin session's key is
-   * the node's root key. Calling it on logout would lock the node out.
-   */
   it('never calls /admin/revoke', async () => {
     const fetchImpl = fetchReturning(200);
     await retireSession(fetchImpl);

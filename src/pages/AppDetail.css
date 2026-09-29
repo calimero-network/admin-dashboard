@@ -334,8 +334,6 @@
   word-break: break-all;
 }
 
-/* ── Organization ───────────────────────────────────────────────────────── */
-
 .app-detail-org {
   display: flex;
   align-items: center;

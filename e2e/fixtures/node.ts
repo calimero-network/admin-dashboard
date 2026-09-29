@@ -122,19 +122,9 @@ export interface MockNodeOptions {
      */
     min_runtime_version?: string;
     minRuntimeVersion?: string;
-    /**
-     * Build provenance `cargo mero bundle` stamps into the manifest — the
-     * version picker's per-version "node X" label. Absent on every bundle
-     * published before cargo-mero began stamping it.
-     */
     buildInfo?: { sdkSource?: string; sdkVersion?: string; sdkRev?: string };
     yanked?: boolean;
   }[];
-  /**
-   * `GET /api/v2/orgs?package=` — the publishing organization, keyed by
-   * package. A package with no entry answers a literal `null`, which is what
-   * the real registry serves for one published by an individual.
-   */
   orgs?: Record<string, { id: string; name?: string; slug?: string } | null>;
   /** `GET /admin-api/blobs` — snake_case, exactly as the node returns it. */
   blobs?: { blob_id: string; size: number }[];
@@ -164,19 +154,9 @@ export interface MockNodeOptions {
    * 404, which is the real "raw wasm, no embedded ABI" case.
    */
   abis?: Record<string, unknown>;
-  /**
-   * `GET /admin-api/usage` — per-namespace disk bytes on this node.
-   *
-   * Served BARE (`{ namespaces }`, no `data` envelope), exactly as core does:
-   * its `ApiResponse::into_response` writes the payload with no wrapper, unlike
-   * the neighbouring listings — which is the difference a mock copied from a
-   * neighbour would hide. `null` serves the 404 of a merod older than the
-   * route, where every size must be hidden rather than shown as zero.
-   */
   usage?: MockUsageRow[] | null;
 }
 
-/** `NamespaceUsage`, camelCase as core serializes it. */
 export interface MockUsageRow {
   namespaceId: string;
   contextCount?: number;
@@ -224,7 +204,6 @@ export interface MockGroup {
   subgroups?: { groupId: string; name?: string }[];
 }
 
-/** What the mocked `POST /admin/client-key` answers with. */
 export const MINTED_APP_TOKENS = {
   access_token: 'app.minted.access',
   refresh_token: 'app-minted-refresh',
@@ -320,7 +299,6 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     json(route, { data: opts.clientKeys ?? [] }),
   );
 
-  // The per-app token pair "Open" mints (utils/openApp.ts mintAppTokens).
   await page.route('**/admin/client-key', (route) =>
     json(route, { data: MINTED_APP_TOKENS, error: null }),
   );
@@ -524,9 +502,6 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     const params = new URL(route.request().url()).searchParams;
     const pkg = params.get('package');
     let list = pkg ? bundles.filter((b) => b.package === pkg) : bundles;
-    // Without `all_versions` the real registry answers ONE bundle per package
-    // (its newest), so a fixture carrying several versions of an app must not
-    // turn into several cards in the listing. List the newest first.
     if (params.get('all_versions') !== 'true') {
       const seen = new Set<string>();
       list = list.filter((b) => {
@@ -538,15 +513,12 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
     return json(route, list);
   });
 
-  // GET /api/v2/orgs?package=<pkg> — the org that published it, or `null`.
   const orgs = opts.orgs ?? {};
   await page.route('**/api/v2/orgs**', (route) => {
     const pkg = new URL(route.request().url()).searchParams.get('package');
     return json(route, (pkg && orgs[pkg]) ?? null);
   });
 
-  // The registry's own org pages, opened in a new tab from the app page's
-  // Organization row. On the context, for the same reason as app.invalid below.
   await page.context().route('https://apps.calimero.network/orgs/**', (route) =>
     route.fulfill({
       status: 200,

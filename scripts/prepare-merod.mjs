@@ -20,25 +20,8 @@ const CORE_REPO = 'calimero-network/core';
 // node no longer sends — which is precisely how 1.13.0 shipped broken.
 // The cache key in .github/workflows/ci.yml names this version too.
 //
-// ⚠️ THIS WAS STUCK AT rc.30 FOR A MONTH, and that is why the leg went red.
-// rc.31 made install take `{ package, version }` only, and the dashboard still
-// posted `{ url, … }`, so rc.30 was the newest node it could drive — while the
-// install test pulled whatever Mero Chat was newest on apps.calimero.network,
-// whose `minRuntimeVersion` kept climbing (rc.57, then rc.62) until rc.30 could
-// install nothing. The dashboard now installs by coordinates, and the install
-// no longer touches the public registry at all: the node's `[registry]` is the
-// local stub (scripts/live-registry.mjs), serving the pinned FIXTURES below. So
-// nothing published elsewhere can move this leg any more — bumping it is a
-// deliberate edit here, with the chat fixture's minRuntimeVersion <= this.
 const MEROD_VERSION = process.env['MEROD_VERSION'] ?? '0.11.0-rc.62';
 
-// sha256 of each pinned release archive, from the release's asset digests
-// (`gh api repos/calimero-network/core/releases/tags/<tag> --jq '.assets[].digest'`).
-// The archive is extracted and EXECUTED, so the pinned version's bytes are
-// pinned too — a release asset can be replaced without a new tag. Bump these
-// together with MEROD_VERSION. An overridden MEROD_VERSION falls back to the
-// digest GitHub reports for the asset, which still catches a corrupted or
-// tampered download.
 const PINNED_SHA256 = {
   '0.11.0-rc.62': {
     'merod_aarch64-apple-darwin.tar.gz':
@@ -58,7 +41,6 @@ const PINNED_SHA256 = {
   },
 };
 
-/** The sha256 the archive must hash to, or throw if there is none to check. */
 function expectedSha256(assetName, asset) {
   const pinned = PINNED_SHA256[MEROD_VERSION]?.[assetName];
   if (pinned) return pinned;
@@ -208,7 +190,6 @@ async function ensureMerod() {
   console.log(`merod ready: ${version} -> ${binaryPath}`);
 }
 
-/** Download one fixture unless a copy with the right hash is already there. */
 async function ensureFixture(name, url, sha256) {
   await fs.mkdir(fixturesDir, { recursive: true });
   const dest = path.join(fixturesDir, name);

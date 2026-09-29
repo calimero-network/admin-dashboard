@@ -628,8 +628,6 @@
   color: var(--text-tertiary);
 }
 
-/* TEE roles are granted by attestation only, so they render as text, not a
-   select. A relay also relays members' writes; a replica does not. */
 .ns-role-static {
   display: inline-block;
   padding: 4px 0;
@@ -871,12 +869,10 @@
   height: 14px;
 }
 
-/* The "·" between the namespace count and the disk figure (tauri-app#277). */
 .ns-app-card-dot {
   color: var(--text-tertiary);
 }
 
-/* Secondary line under the page intro: disk used across every namespace. */
 .page-header-left .ns-page-subtitle {
   margin: 4px 0 0;
   max-width: 640px;

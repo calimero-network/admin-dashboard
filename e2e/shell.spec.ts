@@ -51,10 +51,6 @@ test.describe('App shell', () => {
     }
   });
 
-  /**
-   * The desktop gates its Nodes tab on Developer Mode, which is on by default
-   * since tauri-app#278; we mirror both for the Node diagnostics page.
-   */
   test('Node page shows by default and hides once Developer Mode is turned off', async ({
     page,
   }) => {
@@ -75,8 +71,6 @@ test.describe('App shell', () => {
   test('a stored developerMode: false that was never chosen stays on', async ({
     page,
   }) => {
-    // Older builds persisted the old default with every settings write, so a
-    // bare false is not an opt-out; only the toggle's developerModeChosen is.
     await page.addInitScript(() =>
       localStorage.setItem(
         'calimero-admin-settings',
@@ -156,8 +150,6 @@ test.describe('App shell', () => {
   test('Home shows installed apps with the Applications page card', async ({
     page,
   }) => {
-    // Home used to draw every app as the same generic package glyph with a
-    // bare name, whatever icon the bundle carried (desktop #281).
     await page.goto('/admin-dashboard/dashboard');
     const grid = page.getByTestId('home-apps-grid');
     const blocks = grid
@@ -177,7 +169,6 @@ test.describe('App shell', () => {
   }) => {
     await page.goto('/admin-dashboard/dashboard');
     const grid = page.getByTestId('home-apps-grid');
-    // No More menu on Home, so Uninstall is unreachable from here.
     await expect(
       grid.getByRole('button', { name: /More options/ }),
     ).toHaveCount(0);
@@ -193,7 +184,6 @@ test.describe('App shell', () => {
     await popup.waitForURL(/app\.invalid/);
     const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
     expect(hash.get('application_id')).toBe(APP_WITH_FRONTEND.id);
-    // Developer mode is on by default, so apps are told so.
     expect(hash.get('dev_mode')).toBe('1');
     await popup.close();
   });
@@ -217,7 +207,6 @@ test.describe('App shell', () => {
   });
 
   test('logout retires the refresh token on the node', async ({ page }) => {
-    // Clearing localStorage alone leaves the refresh token live on the node.
     const retired: unknown[] = [];
     await page.route('**/auth/logout', async (route) => {
       retired.push(route.request().postDataJSON());
@@ -235,8 +224,6 @@ test.describe('App shell', () => {
 });
 
 test.describe('Auth', () => {
-  // A link carrying tokens in its hash must not log anyone in (or swap the
-  // session): only a hand-back answering a login this tab started is adopted.
   const craftedHash = () => {
     const b64 = (obj: unknown) => btoa(JSON.stringify(obj));
     const jwt = [

@@ -35,8 +35,6 @@ test.describe.serial('Live: create context', () => {
     test.setTimeout(300_000);
     await uninstallAllApps();
 
-    // By coordinates, not through the Marketplace UI: this spec is about the
-    // context form. The node fetches the pinned bundle from the local stub.
     appId = await installByCoords(REAL_PACKAGE, REAL_VERSION);
 
     const ns = await adminApi<{ data?: { namespaceId?: string } }>(

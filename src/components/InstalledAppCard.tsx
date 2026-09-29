@@ -25,9 +25,6 @@ import './InstalledAppCard.css';
  * More controls, and nesting a button inside a button is invalid HTML that
  * browsers recover from by dropping the inner one — so the whole card would
  * have become one click target and Uninstall would have been unreachable.
- *
- * Home renders the same card without `onToggleMenu`: the More button (and so
- * Uninstall) is left out, and Open is the only action.
  */
 export default function InstalledAppCard({
   app,
@@ -40,7 +37,6 @@ export default function InstalledAppCard({
   app: InstalledApplication;
   metadata: AppMetadata | null;
   menuOpen?: boolean;
-  /** Omitted on Home, where the card only opens the app. */
   onToggleMenu?: (e: React.MouseEvent) => void;
   onContextMenu?: (e: React.MouseEvent) => void;
   onOpen: (frontendUrl: string) => void;
