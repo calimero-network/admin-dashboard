@@ -81,6 +81,8 @@ describe('getNodeUrl (production build)', () => {
   });
 
   it('ignores VITE_NODE_URL', () => {
+    // A value that would win if it were read, so the assertion means something.
+    vi.stubEnv('VITE_NODE_URL', 'http://localhost:9999');
     setLocation('http://localhost:2528/admin-dashboard/');
     expect(getNodeUrl()).toBe('http://localhost:2528');
     expect(isDevOverrideActive()).toBe(false);
@@ -137,6 +139,8 @@ describe('getNodeUrl (production build)', () => {
 describe('getNodeUrl (dev server)', () => {
   beforeEach(() => {
     vi.stubEnv('DEV', true);
+    // Stubbed, not read from a .env: the repo no longer tracks one.
+    vi.stubEnv('VITE_NODE_URL', 'http://localhost:2528');
   });
 
   it('uses VITE_NODE_URL even on the /admin-dashboard/ path', () => {
