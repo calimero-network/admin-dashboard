@@ -12,10 +12,10 @@ describe('settings', () => {
     localStorage.clear();
   });
 
-  it('defaults to the Calimero registry and developer mode off', () => {
+  it('defaults to the Calimero registry and developer mode on', () => {
     const s = getSettings();
     expect(s.registries).toEqual([DEFAULT_REGISTRY_URL]);
-    expect(s.developerMode).toBe(false);
+    expect(s.developerMode).toBe(true);
   });
 
   it('round-trips through localStorage', () => {
@@ -26,8 +26,8 @@ describe('settings', () => {
   });
 
   it('merges partial updates', () => {
-    updateSettings({ developerMode: true });
-    expect(getSettings().developerMode).toBe(true);
+    updateSettings({ developerMode: false, developerModeChosen: true });
+    expect(getSettings().developerMode).toBe(false);
     expect(getSettings().registries).toEqual([DEFAULT_REGISTRY_URL]);
   });
 
@@ -83,6 +83,49 @@ describe('settings', () => {
     clearLocalState();
     expect(localStorage.length).toBe(0);
     expect(sessionStorage.length).toBe(0);
+    expect(getSettings().developerMode).toBe(true);
+  });
+});
+
+describe('developer mode default', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('is on for a fresh browser with nothing stored', () => {
+    expect(getSettings().developerMode).toBe(true);
+  });
+
+  it('is on when stored settings never mention it', () => {
+    localStorage.setItem(
+      'calimero-admin-settings',
+      JSON.stringify({ registries: ['https://r.example/'] }),
+    );
+    expect(getSettings().developerMode).toBe(true);
+  });
+
+  it('is on when a stored false was only the persisted old default', () => {
+    // Every write spreads getSettings(), which used to fill in
+    // developerMode: false, so a stored false with no developerModeChosen is
+    // not the user's choice.
+    saveSettings({ registries: [DEFAULT_REGISTRY_URL], developerMode: false });
+    expect(getSettings().developerMode).toBe(true);
+  });
+
+  it('respects an explicit opt-out made through the toggle', () => {
+    updateSettings({ developerMode: false, developerModeChosen: true });
     expect(getSettings().developerMode).toBe(false);
+  });
+
+  it('keeps the opt-out across unrelated writes that spread the settings', () => {
+    updateSettings({ developerMode: false, developerModeChosen: true });
+    updateSettings({ registries: ['https://r.example/'] });
+    expect(getSettings().developerMode).toBe(false);
+    expect(getSettings().registries).toEqual(['https://r.example/']);
+  });
+
+  it('respects an explicit opt-in', () => {
+    updateSettings({ developerMode: true, developerModeChosen: true });
+    expect(getSettings().developerMode).toBe(true);
   });
 });

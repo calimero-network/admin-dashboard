@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockNode } from './fixtures/node';
+import { APP_WITH_FRONTEND, mockNode } from './fixtures/node';
 
 test.describe('App shell', () => {
   test.beforeEach(async ({ page }) => {
@@ -52,21 +52,41 @@ test.describe('App shell', () => {
   });
 
   /**
-   * The desktop hides its Nodes tab unless Developer Mode is on; we mirror that
-   * for the Node diagnostics page.
+   * The desktop gates its Nodes tab on Developer Mode, which is on by default
+   * since tauri-app#278; we mirror both for the Node diagnostics page.
    */
-  test('Node page is hidden until Developer Mode is enabled', async ({
+  test('Node page shows by default and hides once Developer Mode is turned off', async ({
     page,
   }) => {
     await page.goto('/admin-dashboard/dashboard');
     await expect(
       page.getByRole('link', { name: 'Node', exact: true }),
-    ).toHaveCount(0);
+    ).toBeVisible();
 
     await page.getByRole('link', { name: 'Settings', exact: true }).click();
-    await page.getByLabel('Developer Mode').check({ force: true });
+    await page.getByLabel('Developer Mode').uncheck({ force: true });
     await page.reload();
 
+    await expect(
+      page.getByRole('link', { name: 'Node', exact: true }),
+    ).toHaveCount(0);
+  });
+
+  test('a stored developerMode: false that was never chosen stays on', async ({
+    page,
+  }) => {
+    // Older builds persisted the old default with every settings write, so a
+    // bare false is not an opt-out; only the toggle's developerModeChosen is.
+    await page.addInitScript(() =>
+      localStorage.setItem(
+        'calimero-admin-settings',
+        JSON.stringify({
+          registries: ['https://apps.calimero.network/'],
+          developerMode: false,
+        }),
+      ),
+    );
+    await page.goto('/admin-dashboard/dashboard');
     await expect(
       page.getByRole('link', { name: 'Node', exact: true }),
     ).toBeVisible();
@@ -131,6 +151,51 @@ test.describe('App shell', () => {
     await expect(
       page.getByText('View and manage your applications'),
     ).toBeVisible();
+  });
+
+  test('Home shows installed apps with the Applications page card', async ({
+    page,
+  }) => {
+    // Home used to draw every app as the same generic package glyph with a
+    // bare name, whatever icon the bundle carried (desktop #281).
+    await page.goto('/admin-dashboard/dashboard');
+    const grid = page.getByTestId('home-apps-grid');
+    const blocks = grid
+      .getByTestId('installed-app-card')
+      .filter({ hasText: 'Mero Blocks' });
+    await expect(blocks.locator('img.app-icon-img')).toBeVisible();
+    await expect(blocks).toContainText('Minecraft-style P2P voxel sandbox.');
+    const headless = grid
+      .getByTestId('installed-app-card')
+      .filter({ hasText: 'Headless Service' });
+    await expect(headless.getByTestId('app-icon-fallback')).toHaveText('H');
+  });
+
+  test('Home app cards offer Open, and nothing that removes an app', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/admin-dashboard/dashboard');
+    const grid = page.getByTestId('home-apps-grid');
+    // No More menu on Home, so Uninstall is unreachable from here.
+    await expect(
+      grid.getByRole('button', { name: /More options/ }),
+    ).toHaveCount(0);
+    const headless = grid
+      .getByTestId('installed-app-card')
+      .filter({ hasText: 'Headless Service' });
+    await expect(headless.getByTestId('open-app')).toHaveCount(0);
+    await expect(headless).toContainText('No web frontend');
+
+    const popupPromise = context.waitForEvent('page');
+    await grid.getByTestId('open-app').click();
+    const popup = await popupPromise;
+    await popup.waitForURL(/app\.invalid/);
+    const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
+    expect(hash.get('application_id')).toBe(APP_WITH_FRONTEND.id);
+    // Developer mode is on by default, so apps are told so.
+    expect(hash.get('dev_mode')).toBe('1');
+    await popup.close();
   });
 
   test('the document title is Admin Dashboard', async ({ page }) => {

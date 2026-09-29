@@ -25,6 +25,9 @@ import './InstalledAppCard.css';
  * More controls, and nesting a button inside a button is invalid HTML that
  * browsers recover from by dropping the inner one — so the whole card would
  * have become one click target and Uninstall would have been unreachable.
+ *
+ * Home renders the same card without `onToggleMenu`: the More button (and so
+ * Uninstall) is left out, and Open is the only action.
  */
 export default function InstalledAppCard({
   app,
@@ -36,9 +39,10 @@ export default function InstalledAppCard({
 }: {
   app: InstalledApplication;
   metadata: AppMetadata | null;
-  menuOpen: boolean;
-  onToggleMenu: (e: React.MouseEvent) => void;
-  onContextMenu: (e: React.MouseEvent) => void;
+  menuOpen?: boolean;
+  /** Omitted on Home, where the card only opens the app. */
+  onToggleMenu?: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   onOpen: (frontendUrl: string) => void;
 }) {
   const name = appDisplayName(app, metadata);
@@ -121,20 +125,22 @@ export default function InstalledAppCard({
             inside the card is laid out against the CARD and then clipped by its
             `overflow: hidden`. It opened, it just could not be seen or clicked.
             The page renders it as a sibling of the grid instead. */}
-        <div
-          className="installed-app-more"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            className="button installed-app-more-btn"
-            title="More options"
-            aria-label={`More options for ${name}`}
-            aria-expanded={menuOpen}
-            onClick={onToggleMenu}
+        {onToggleMenu && (
+          <div
+            className="installed-app-more"
+            onClick={(e) => e.stopPropagation()}
           >
-            <MoreHorizontal size={15} />
-          </button>
-        </div>
+            <button
+              className="button installed-app-more-btn"
+              title="More options"
+              aria-label={`More options for ${name}`}
+              aria-expanded={menuOpen ?? false}
+              onClick={onToggleMenu}
+            >
+              <MoreHorizontal size={15} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

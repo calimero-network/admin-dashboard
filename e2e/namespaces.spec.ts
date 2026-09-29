@@ -252,6 +252,42 @@ test.describe('Namespaces', () => {
     ]);
   });
 
+  test('TEE members show their role as a label, not an editable select', async ({
+    page,
+  }) => {
+    // Core grants RelayTee / ReadOnlyTee only through attestation and refuses
+    // them on the role endpoint, so a select could only ever fail.
+    const RELAY = 'aa'.repeat(32);
+    const REPLICA = 'bb'.repeat(32);
+    await mockNode(page, {
+      ...FIXTURE,
+      groups: {
+        ...FIXTURE.groups,
+        [NS_ID]: {
+          ...FIXTURE.groups[NS_ID],
+          members: [
+            ...FIXTURE.groups[NS_ID].members,
+            { identity: RELAY, role: 'RelayTee', name: 'relay' },
+            { identity: REPLICA, role: 'ReadOnlyTee', name: 'replica' },
+          ],
+        },
+      },
+    });
+    await page.goto('/admin-dashboard/namespaces');
+    await openApp(page);
+    await page.getByTestId('ns-card').click();
+
+    const members = page.getByTestId('ns-members-section');
+    const relayRow = members.locator('tr', { hasText: 'relay' }).first();
+    await expect(relayRow.getByTestId('member-role')).toHaveText('TEE relay');
+    await expect(relayRow.getByRole('combobox')).toHaveCount(0);
+    const replicaRow = members.locator('tr', { hasText: 'replica' });
+    await expect(replicaRow.getByTestId('member-role')).toHaveText(
+      'TEE replica',
+    );
+    await expect(replicaRow.getByRole('combobox')).toHaveCount(0);
+  });
+
   test('add-member refuses an account, because that endpoint takes a key', async ({
     page,
   }) => {

@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { Link } from 'react-router-dom';
 import { apiClient } from '@calimero-network/calimero-client';
 import { RefreshCw, Package } from 'lucide-react';
 import ContextMenu from '../components/ContextMenu';
@@ -347,8 +348,11 @@ export default function ApplicationsPage() {
         ) : sortedApps.length === 0 ? (
           <div className="empty-state">
             <Package size={48} className="empty-icon" />
-            <h3>No applications installed</h3>
-            <p>Visit the Marketplace to install apps on this node.</p>
+            <h3>No applications installed.</h3>
+            <p>
+              Visit the <Link to="/marketplace">Marketplace</Link> to install
+              applications.
+            </p>
           </div>
         ) : (
           <div

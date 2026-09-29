@@ -162,7 +162,15 @@ test.describe('Applications', () => {
   test('empty state points at the Marketplace', async ({ page }) => {
     await mockNode(page, { apps: [] });
     await page.goto('/admin-dashboard/applications');
-    await expect(page.getByText('No applications installed')).toBeVisible();
+    await expect(page.getByText('No applications installed.')).toBeVisible();
+    // The sidebar has a Marketplace link too; this is the one in the copy.
+    await page
+      .locator('.empty-state')
+      .getByRole('link', { name: 'Marketplace' })
+      .click();
+    await expect(page.getByTestId('shell-page-title')).toHaveText(
+      'Marketplace',
+    );
   });
 
   test('refuses to uninstall an app a context still uses', async ({ page }) => {

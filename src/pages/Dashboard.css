@@ -176,16 +176,6 @@
   line-height: 1.5;
 }
 
-/* ── Web additions ──
-   The desktop's home grid relies on `.apps-grid` leaking in from Marketplace.css
-   (both files load globally once bundled). We use an explicit class instead so
-   the two grids can never fight over layout. */
-.home-apps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-
 /* The stat cards are <button>s here (they navigate), so reset button chrome. */
 .dash-stat-card,
 .dash-action-card {

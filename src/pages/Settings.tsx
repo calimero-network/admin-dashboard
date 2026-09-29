@@ -26,7 +26,9 @@ export default function SettingsPage() {
 
   const handleDeveloperModeToggle = () => {
     const developerMode = !settings.developerMode;
-    setSettings(updateSettings({ developerMode }));
+    // Marks this as the user's own choice, so an opt-out survives the
+    // on-by-default (see resolveDeveloperMode in utils/settings).
+    setSettings(updateSettings({ developerMode, developerModeChosen: true }));
     toast.success(`Developer mode ${developerMode ? 'enabled' : 'disabled'}`);
   };
 
@@ -133,8 +135,9 @@ export default function SettingsPage() {
                   </label>
                 </div>
                 <p className="field-hint">
-                  Shows the Node diagnostics page, and tells applications opened
-                  from here to surface their own advanced panels.
+                  On by default: shows the Node diagnostics page, and tells
+                  applications opened from here to surface their own advanced
+                  panels. Turn it off for a simpler dashboard.
                 </p>
               </div>
 
