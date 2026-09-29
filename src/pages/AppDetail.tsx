@@ -44,7 +44,7 @@ import {
   formatRelativeDate,
   shortenKey,
 } from '../utils/appCards';
-import { parseApiError } from '../utils/appUtils';
+import { httpUrl, parseApiError } from '../utils/appUtils';
 import { openExternal } from '../utils/openApp';
 import './AppDetail.css';
 
@@ -287,6 +287,9 @@ export default function AppDetail() {
 
   const title = app.alias ?? app.name;
   const tags = (app.tags ?? []).filter((t) => t && t !== app.category);
+  const frontendLink = httpUrl(app.links?.frontend);
+  const githubLink = httpUrl(app.links?.github);
+  const docsLink = httpUrl(app.links?.docs);
 
   return (
     <div className="app-detail-page" data-testid="app-detail-page">
@@ -413,30 +416,22 @@ export default function AppDetail() {
         )}
       </section>
 
-      {(app.links?.github || app.links?.docs || app.links?.frontend) && (
+      {(frontendLink || githubLink || docsLink) && (
         <section className="app-detail-section" aria-label="Links">
           <p className="app-detail-section-heading">Links</p>
           <div className="app-detail-links">
-            {app.links?.frontend && (
+            {frontendLink && (
               <LinkCard
                 icon={Monitor}
                 label="Try it out on web"
-                href={app.links.frontend}
+                href={frontendLink}
               />
             )}
-            {app.links?.github && (
-              <LinkCard
-                icon={Code2}
-                label="Source code"
-                href={app.links.github}
-              />
+            {githubLink && (
+              <LinkCard icon={Code2} label="Source code" href={githubLink} />
             )}
-            {app.links?.docs && (
-              <LinkCard
-                icon={BookOpen}
-                label="Documentation"
-                href={app.links.docs}
-              />
+            {docsLink && (
+              <LinkCard icon={BookOpen} label="Documentation" href={docsLink} />
             )}
           </div>
         </section>

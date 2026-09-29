@@ -9,6 +9,8 @@ import {
   parseApiError,
 } from '../utils/appUtils';
 
+const SCRIPT_URL = 'javascript:alert(document.domain)'; // eslint-disable-line no-script-url -- the payload under test
+
 /**
  * The exact shape `BundleManifest::to_metadata_json` emits
  * (core/crates/bundle/src/lib.rs) for a bundle install — flat fields plus a
@@ -100,6 +102,20 @@ describe('appFrontendUrl', () => {
   it('reads links.frontend', () => {
     expect(appFrontendUrl({ links: { frontend: 'https://x/' } })).toBe(
       'https://x/',
+    );
+  });
+
+  it('drops a frontend that is not an absolute http(s) URL', () => {
+    for (const frontend of [
+      SCRIPT_URL,
+      'data:text/html,<script>alert(1)</script>',
+      '/relative/path',
+      'not a url',
+    ]) {
+      expect(appFrontendUrl({ links: { frontend } })).toBeNull();
+    }
+    expect(appFrontendUrl({ links: { frontend: 'http://x/' } })).toBe(
+      'http://x/',
     );
   });
 

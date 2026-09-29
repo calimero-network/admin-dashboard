@@ -5,11 +5,14 @@ import {
   buildAppUrl,
   appTabName,
   openAppInNewTab,
+  openExternal,
   PopupBlockedError,
   MixedContentError,
+  UnsupportedUrlError,
 } from '../utils/openApp';
 
 const ACCESS_TOKEN = 'header.payload.signature';
+const SCRIPT_URL = 'javascript:alert(document.domain)'; // eslint-disable-line no-script-url -- the payload under test
 
 // vitest hoists vi.mock above the imports, so declaring it after them is safe
 // and keeps eslint's import/first rule satisfied.
@@ -128,12 +131,6 @@ describe('buildAppUrl', () => {
     expect(out).not.toContain('#/dashboard');
     expect(new URL(out).hash).toContain('access_token=');
   });
-
-  it('still attaches the hash when the URL is unparseable', () => {
-    const out = buildAppUrl('not a url', { applicationId: 'a' }, 1);
-    expect(out).toContain('#');
-    expect(out).toContain('application_id=a');
-  });
 });
 
 describe('appTabName', () => {
@@ -225,6 +222,13 @@ describe('openAppInNewTab', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it('refuses a non-http(s) frontend without opening a tab', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openAppInNewTab(SCRIPT_URL)).toThrow(UnsupportedUrlError);
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it('allows an https app frontend from an https dashboard', () => {
     setLocation('https://node.example/admin-dashboard/applications');
     const replace = vi.fn();
@@ -233,5 +237,31 @@ describe('openAppInNewTab', () => {
       .mockReturnValue({ location: { replace } } as unknown as Window);
     expect(() => openAppInNewTab('https://app.example/')).not.toThrow();
     expect(replace).toHaveBeenCalled();
+  });
+});
+
+describe('openExternal', () => {
+  const originalOpen = window.open;
+
+  afterEach(() => {
+    window.open = originalOpen;
+  });
+
+  it('opens an https link without an opener', () => {
+    const open = vi.fn();
+    window.open = open;
+    openExternal('https://docs.example/');
+    expect(open).toHaveBeenCalledWith(
+      'https://docs.example/',
+      '_blank',
+      'noopener,noreferrer',
+    );
+  });
+
+  it('refuses a non-http(s) link', () => {
+    const open = vi.fn();
+    window.open = open;
+    expect(() => openExternal(SCRIPT_URL)).toThrow(UnsupportedUrlError);
+    expect(open).not.toHaveBeenCalled();
   });
 });

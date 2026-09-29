@@ -85,9 +85,23 @@ export function appDisplayName(
   return metadata?.name || metadata?.alias || app.name || app.id || 'Unknown';
 }
 
-/** The app's web frontend, if the bundle declared one. */
+/**
+ * `value` if it is an absolute http(s) URL, else null. Every app-supplied link
+ * goes through this before it is opened: `javascript:` would run in our origin.
+ */
+export function httpUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The app's web frontend, if the bundle declared a usable one. */
 export function appFrontendUrl(metadata: AppMetadata | null): string | null {
-  return metadata?.links?.frontend ?? null;
+  return httpUrl(metadata?.links?.frontend);
 }
 
 /**

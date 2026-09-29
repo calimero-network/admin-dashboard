@@ -9,6 +9,7 @@
  * documented under "Why no refresh_token" below.
  */
 import { getAccessToken } from '@calimero-network/calimero-client';
+import { httpUrl } from './appUtils';
 import { getNodeUrl, isMixedContent } from './nodeUrl';
 
 export interface OpenAppOptions {
@@ -36,6 +37,13 @@ export class MixedContentError extends Error {
         'which the browser blocks as mixed content.',
     );
     this.name = 'MixedContentError';
+  }
+}
+
+export class UnsupportedUrlError extends Error {
+  constructor(url: string) {
+    super(`Cannot open ${url}: only http and https links can be opened.`);
+    this.name = 'UnsupportedUrlError';
   }
 }
 
@@ -95,24 +103,17 @@ export function buildAppUrl(
   opts: OpenAppOptions = {},
   now: number = Date.now(),
 ): string {
-  const hash = buildSsoHash(opts);
-  try {
-    const u = new URL(frontendUrl);
-    u.searchParams.set('_cb', String(now));
-    // Drop any fragment the frontend URL carried. A hash-routed app
-    // (`https://app.example/#/dashboard`) would otherwise yield two `#`, and
-    // since only the first delimits the fragment the SSO params would land
-    // inside the app's route string — the receiving parser looks for
-    // `key=value&…` and finds none, so the hand-off silently fails. Losing the
-    // deep link is the lesser cost: the app strips this fragment once it has
-    // adopted the tokens anyway.
-    u.hash = '';
-    return `${u.toString()}#${hash}`;
-  } catch {
-    // Non-absolute or unparseable frontend URL — append naively rather than
-    // dropping the SSO bundle entirely.
-    return `${frontendUrl}#${hash}`;
-  }
+  const u = new URL(frontendUrl);
+  u.searchParams.set('_cb', String(now));
+  // Drop any fragment the frontend URL carried. A hash-routed app
+  // (`https://app.example/#/dashboard`) would otherwise yield two `#`, and
+  // since only the first delimits the fragment the SSO params would land
+  // inside the app's route string — the receiving parser looks for
+  // `key=value&…` and finds none, so the hand-off silently fails. Losing the
+  // deep link is the lesser cost: the app strips this fragment once it has
+  // adopted the tokens anyway.
+  u.hash = '';
+  return `${u.toString()}#${buildSsoHash(opts)}`;
 }
 
 /**
@@ -135,6 +136,7 @@ export function appTabName(applicationId?: string): string {
  * doing that here would break every "Open" button, so instead we open
  * `about:blank` immediately and only then navigate it.
  *
+ * @throws {UnsupportedUrlError} the frontend is not an absolute http(s) URL
  * @throws {MixedContentError} https dashboard -> http app frontend
  * @throws {PopupBlockedError} the browser refused the tab
  */
@@ -142,6 +144,7 @@ export function openAppInNewTab(
   frontendUrl: string,
   opts: OpenAppOptions = {},
 ): Window {
+  if (!httpUrl(frontendUrl)) throw new UnsupportedUrlError(frontendUrl);
   if (isMixedContent(frontendUrl)) {
     throw new MixedContentError(frontendUrl);
   }
@@ -178,5 +181,6 @@ export function openAppInNewTab(
  * handle, so the null return value the flag forces costs us nothing.
  */
 export function openExternal(url: string): void {
+  if (!httpUrl(url)) throw new UnsupportedUrlError(url);
   window.open(url, '_blank', 'noopener,noreferrer');
 }

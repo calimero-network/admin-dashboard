@@ -1,9 +1,21 @@
 import { test, expect, type Page } from '@playwright/test';
 import {
   mockNode,
+  bundleMetadata,
+  metadataBytes,
   APP_WITH_FRONTEND,
   APP_WITHOUT_FRONTEND,
 } from './fixtures/node';
+
+const SCRIPT_FRONTEND_APP = {
+  id: 'AppScriptFrontend333333333333333333333333333',
+  metadata: metadataBytes(
+    bundleMetadata({
+      name: 'Script Frontend',
+      links: { frontend: "javascript:localStorage.setItem('x','1')//" }, // eslint-disable-line no-script-url -- the payload under test
+    }),
+  ),
+};
 
 /** One installed-app card, picked by the name it renders. */
 function card(page: Page, name: string) {
@@ -170,4 +182,14 @@ test.describe('Applications', () => {
     await expect(page.getByText('Headless Service')).toBeVisible();
     await expect(page.getByTestId('open-app')).toHaveCount(0);
   });
+});
+
+test('an app whose frontend is not http(s) gets no Open button', async ({
+  page,
+}) => {
+  await mockNode(page, { apps: [SCRIPT_FRONTEND_APP] });
+  await page.goto('/admin-dashboard/applications');
+  const hostile = card(page, 'Script Frontend');
+  await expect(hostile).toContainText('No web frontend');
+  await expect(hostile.getByTestId('open-app')).toHaveCount(0);
 });
