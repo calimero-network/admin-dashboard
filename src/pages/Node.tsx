@@ -9,6 +9,8 @@ import {
   isDevOverrideActive,
 } from '../utils/nodeUrl';
 import { parseApiError } from '../utils/appUtils';
+import { formatBytes } from '../utils/diskUsage';
+import { getUsage, type NamespaceUsage } from '../api/namespaceApi';
 import './Node.css';
 
 /**
@@ -34,20 +36,6 @@ interface NetworkStatus {
   relays?: { peerId: string; reservationStatus: string }[];
   rendezvous?: { peerId: string; registrationStatus: string }[];
   autonat?: { kind: string; reachability: string }[];
-}
-
-interface NamespaceUsage {
-  namespaceId?: string;
-  alias?: string;
-  contextCount?: number;
-  memberCount?: number;
-  subgroupCount?: number;
-  bytes?: {
-    state?: number;
-    privateState?: number;
-    delta?: number;
-    governance?: number;
-  };
 }
 
 /** Unwrap core's `ApiResponse { payload }` / `{ data }` envelopes. */
@@ -79,18 +67,6 @@ async function getReadiness(): Promise<string> {
   return body?.status ?? (res.ok ? 'ready' : 'unknown');
 }
 
-function formatBytes(n: number | undefined): string {
-  if (!n) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let v = n;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
-
 export default function NodePage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -111,7 +87,7 @@ export default function NodePage() {
       getJson<{ status?: string }>('/health'),
       getJson<{ count?: number }>('/peers'),
       getJson<NetworkStatus>('/network/status'),
-      getJson<{ namespaces?: NamespaceUsage[] }>('/usage'),
+      getUsage(),
       getReadiness(),
     ]);
 
@@ -128,7 +104,7 @@ export default function NodePage() {
     if (n.status === 'fulfilled') setNetwork(n.value);
     else problems.push(`Network status: ${parseApiError(n.reason)}`);
 
-    if (u.status === 'fulfilled') setUsage(u.value.namespaces ?? []);
+    if (u.status === 'fulfilled') setUsage(u.value.namespaces);
     else problems.push(`Usage: ${parseApiError(u.reason)}`);
 
     setErrors(problems);
@@ -372,22 +348,26 @@ export default function NodePage() {
                   <th>Members</th>
                   <th>Subgroups</th>
                   <th>State</th>
+                  <th>Private</th>
                   <th>Delta</th>
                   <th>Governance</th>
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody>
                 {usage.map((ns, i) => (
                   <tr key={ns.namespaceId ?? `ns-${i}`}>
-                    <td className="mono">
-                      {ns.alias ?? ns.namespaceId ?? '—'}
-                    </td>
+                    <td className="mono">{ns.namespaceId ?? '—'}</td>
                     <td>{ns.contextCount ?? 0}</td>
                     <td>{ns.memberCount ?? 0}</td>
                     <td>{ns.subgroupCount ?? 0}</td>
-                    <td>{formatBytes(ns.bytes?.state)}</td>
-                    <td>{formatBytes(ns.bytes?.delta)}</td>
-                    <td>{formatBytes(ns.bytes?.governance)}</td>
+                    <td>{formatBytes(ns.bytes?.state ?? 0)}</td>
+                    <td>{formatBytes(ns.bytes?.privateState ?? 0)}</td>
+                    <td>{formatBytes(ns.bytes?.delta ?? 0)}</td>
+                    <td>{formatBytes(ns.bytes?.governance ?? 0)}</td>
+                    <td>
+                      <strong>{formatBytes(ns.bytes?.total ?? 0)}</strong>
+                    </td>
                   </tr>
                 ))}
               </tbody>

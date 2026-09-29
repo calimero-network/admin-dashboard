@@ -89,6 +89,46 @@ test.describe('Node page', () => {
     );
   });
 
+  test('the storage table breaks each namespace into every column, private state and total included', async ({
+    page,
+  }) => {
+    await mockNode(page, {
+      usage: [
+        {
+          namespaceId: 'a'.repeat(64),
+          contextCount: 2,
+          bytes: {
+            state: 1_000_000,
+            privateState: 50_000,
+            delta: 200_000,
+            governance: 34_000,
+            total: 1_284_000,
+          },
+        },
+      ],
+    });
+    await page.goto('/admin-dashboard/node');
+
+    const table = page.locator('table').filter({ hasText: 'Governance' });
+    for (const header of ['State', 'Private', 'Delta', 'Governance', 'Total']) {
+      await expect(
+        table.getByRole('columnheader', { name: header, exact: true }),
+      ).toBeVisible();
+    }
+    const cells = table.locator('tbody tr').first().locator('td');
+    await expect(cells).toHaveText([
+      'a'.repeat(64),
+      '2',
+      '0',
+      '0',
+      '1 MB',
+      '50 KB',
+      '200 KB',
+      '34 KB',
+      '1.28 MB',
+    ]);
+  });
+
   test('degrades panel-by-panel when an endpoint fails', async ({ page }) => {
     // /usage walks the store and can be slow or unavailable; it must not blank
     // the health and network panels.

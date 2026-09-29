@@ -2,8 +2,10 @@ import { expect, test } from '@playwright/test';
 import {
   ABI_WITH_INIT,
   APP_WITH_FRONTEND,
+  APP_WITHOUT_FRONTEND,
   NODE_IDENTITY,
   mockNode,
+  type MockUsageRow,
 } from './fixtures/node';
 
 /**
@@ -455,5 +457,112 @@ test.describe('Namespaces', () => {
     await page.goto('/admin-dashboard/namespaces');
 
     await expect(page.getByText('No applications')).toBeVisible();
+  });
+});
+
+// ─── Disk usage (ported from tauri-app#277) ─────────────────────────────────
+
+/**
+ * Three namespaces: two for Mero Blocks, one for the headless app. The node
+ * reports usage for the first two only — `c…` is deliberately absent, to pin
+ * that a namespace the node says nothing about shows no figure rather than
+ * "0 B". The first id is upper-cased in the usage body to pin the
+ * case-insensitive join against the listing.
+ */
+const DISK_NS_A = 'a'.repeat(64);
+const DISK_NS_B = 'b'.repeat(64);
+const DISK_NS_C = 'c'.repeat(64);
+
+const DISK_FIXTURE = {
+  namespaces: [
+    {
+      namespaceId: DISK_NS_A,
+      targetApplicationId: APP_WITH_FRONTEND.id,
+      name: 'Alpha',
+    },
+    {
+      namespaceId: DISK_NS_B,
+      targetApplicationId: APP_WITH_FRONTEND.id,
+      name: 'Beta',
+    },
+    {
+      namespaceId: DISK_NS_C,
+      targetApplicationId: APP_WITHOUT_FRONTEND.id,
+      name: 'Gamma',
+    },
+  ],
+};
+
+const DISK_USAGE: MockUsageRow[] = [
+  {
+    namespaceId: DISK_NS_A.toUpperCase(),
+    bytes: {
+      state: 1_000_000,
+      privateState: 0,
+      delta: 200_000,
+      governance: 34_000,
+      total: 1_234_000,
+    },
+  },
+  {
+    namespaceId: DISK_NS_B,
+    bytes: {
+      state: 0,
+      privateState: 0,
+      delta: 0,
+      governance: 766_000,
+      total: 766_000,
+    },
+  },
+];
+
+test.describe('Namespaces – disk usage', () => {
+  test("shows the node total, each application's share, and each namespace's size", async ({
+    page,
+  }) => {
+    await mockNode(page, { ...DISK_FIXTURE, usage: DISK_USAGE });
+    await page.goto('/admin-dashboard/namespaces');
+
+    await expect(page.getByTestId('ns-disk-total')).toContainText(
+      '2 MB on disk across 3 namespaces',
+    );
+    await expect(
+      page.locator(
+        `.ns-app-card[data-application-id="${APP_WITH_FRONTEND.id}"] [data-testid="ns-app-card-disk"]`,
+      ),
+    ).toHaveText('2 MB');
+    // Nothing reported for its only namespace: no figure, not "0 B".
+    await expect(
+      page.locator(
+        `.ns-app-card[data-application-id="${APP_WITHOUT_FRONTEND.id}"] [data-testid="ns-app-card-disk"]`,
+      ),
+    ).toHaveCount(0);
+
+    await openApp(page);
+    const sizes = page.getByTestId('ns-card-disk');
+    await expect(sizes).toHaveCount(2);
+    await expect(sizes).toHaveText(['1.23 MB', '766 KB']);
+    await expect(sizes.first()).toHaveAttribute('title', /History 200 KB/);
+
+    await page.getByTestId('ns-card').first().click();
+    const detail = page.getByTestId('ns-detail-disk');
+    await expect(detail).toContainText('1.23 MB');
+    await expect(detail).toContainText('Disk');
+  });
+
+  test('a node that cannot answer /usage shows no sizes at all', async ({
+    page,
+  }) => {
+    // 404, as a merod older than the route answers.
+    await mockNode(page, { ...DISK_FIXTURE, usage: null });
+    await page.goto('/admin-dashboard/namespaces');
+
+    await expect(page.getByTestId('ns-app-card')).toHaveCount(2);
+    await expect(page.getByTestId('ns-disk-total')).toHaveCount(0);
+    await expect(page.getByTestId('ns-app-card-disk')).toHaveCount(0);
+
+    await openApp(page);
+    await expect(page.getByTestId('ns-card')).toHaveCount(2);
+    await expect(page.getByTestId('ns-card-disk')).toHaveCount(0);
   });
 });

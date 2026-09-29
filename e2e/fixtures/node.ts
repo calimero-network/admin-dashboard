@@ -151,6 +151,31 @@ export interface MockNodeOptions {
    * 404, which is the real "raw wasm, no embedded ABI" case.
    */
   abis?: Record<string, unknown>;
+  /**
+   * `GET /admin-api/usage` — per-namespace disk bytes on this node.
+   *
+   * Served BARE (`{ namespaces }`, no `data` envelope), exactly as core does:
+   * its `ApiResponse::into_response` writes the payload with no wrapper, unlike
+   * the neighbouring listings — which is the difference a mock copied from a
+   * neighbour would hide. `null` serves the 404 of a merod older than the
+   * route, where every size must be hidden rather than shown as zero.
+   */
+  usage?: MockUsageRow[] | null;
+}
+
+/** `NamespaceUsage`, camelCase as core serializes it. */
+export interface MockUsageRow {
+  namespaceId: string;
+  contextCount?: number;
+  memberCount?: number;
+  subgroupCount?: number;
+  bytes: {
+    state: number;
+    privateState: number;
+    delta: number;
+    governance: number;
+    total: number;
+  };
 }
 
 export interface MockNamespace {
@@ -301,7 +326,16 @@ export async function mockNode(page: Page, opts: MockNodeOptions = {}) {
   );
 
   await page.route('**/admin-api/usage', (route) =>
-    json(route, { data: { namespaces: [] } }),
+    opts.usage === null
+      ? json(route, { error: 'Not Found' }, 404)
+      : json(route, {
+          namespaces: (opts.usage ?? []).map((row) => ({
+            contextCount: 0,
+            memberCount: 0,
+            subgroupCount: 0,
+            ...row,
+          })),
+        }),
   );
 
   // `GET /admin-api/identity`. `nodeIdentity: null` opts into the 404 a node

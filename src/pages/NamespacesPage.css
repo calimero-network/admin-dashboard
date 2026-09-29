@@ -857,6 +857,20 @@
   height: 14px;
 }
 
+/* The "·" between the namespace count and the disk figure (tauri-app#277). */
+.ns-app-card-dot {
+  color: var(--text-tertiary);
+}
+
+/* Secondary line under the page intro: disk used across every namespace. */
+.page-header-left .ns-page-subtitle {
+  margin: 4px 0 0;
+  max-width: 640px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
 /* ── One application's heading ────────────────────────────────────────────── */
 
 .ns-app-heading {
