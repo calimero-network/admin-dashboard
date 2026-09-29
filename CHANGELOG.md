@@ -1,3 +1,10 @@
+## [1.21.1](https://github.com/calimero-network/admin-dashboard/compare/v1.21.0...v1.21.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **auth:** end the session on the node at logout ([#167](https://github.com/calimero-network/admin-dashboard/issues/167)) ([8a830a7](https://github.com/calimero-network/admin-dashboard/commit/8a830a706a475085c80e1e02b41d2c07aa44b77d))
+
 # [1.21.0](https://github.com/calimero-network/admin-dashboard/compare/v1.20.0...v1.21.0) (2026-09-29)
 
 
