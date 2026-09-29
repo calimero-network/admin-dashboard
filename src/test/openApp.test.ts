@@ -260,6 +260,13 @@ describe('openExternal', () => {
     );
   });
 
+  it('opens the absolute form of a scheme-relative link', () => {
+    const open = vi.fn();
+    window.open = open;
+    openExternal('https:evil.example');
+    expect(open.mock.calls[0]?.[0]).toBe('https://evil.example/');
+  });
+
   it('refuses a non-http(s) link', () => {
     const open = vi.fn();
     window.open = open;

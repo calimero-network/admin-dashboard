@@ -121,10 +121,11 @@ export function appTabName(applicationId?: string): string {
  * @throws {PopupBlockedError} the browser refused the tab
  */
 export function openAppInNewTab(
-  frontendUrl: string,
+  rawUrl: string,
   opts: OpenAppOptions = {},
 ): Window {
-  if (!httpUrl(frontendUrl)) throw new UnsupportedUrlError(frontendUrl);
+  const frontendUrl = httpUrl(rawUrl);
+  if (!frontendUrl) throw new UnsupportedUrlError(rawUrl);
   if (isMixedContent(frontendUrl)) {
     throw new MixedContentError(frontendUrl);
   }
@@ -160,7 +161,8 @@ export function openAppInNewTab(
  * `noopener` is safe here — unlike openAppInNewTab we never need the returned
  * handle, so the null return value the flag forces costs us nothing.
  */
-export function openExternal(url: string): void {
-  if (!httpUrl(url)) throw new UnsupportedUrlError(url);
+export function openExternal(rawUrl: string): void {
+  const url = httpUrl(rawUrl);
+  if (!url) throw new UnsupportedUrlError(rawUrl);
   window.open(url, '_blank', 'noopener,noreferrer');
 }

@@ -119,6 +119,17 @@ describe('appFrontendUrl', () => {
     );
   });
 
+  // A browser resolves `https:<no slashes>` against the page, so the checked
+  // absolute form is what must be returned and opened.
+  it('returns the normalised absolute URL', () => {
+    expect(appFrontendUrl({ links: { frontend: 'https:../auth/login' } })).toBe(
+      'https://../auth/login',
+    );
+    expect(appFrontendUrl({ links: { frontend: 'https:evil.example' } })).toBe(
+      'https://evil.example/',
+    );
+  });
+
   it('is null when the bundle declares no frontend', () => {
     expect(appFrontendUrl({ name: 'x' })).toBeNull();
     expect(appFrontendUrl({ links: {} })).toBeNull();

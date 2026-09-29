@@ -86,14 +86,17 @@ export function appDisplayName(
 }
 
 /**
- * `value` if it is an absolute http(s) URL, else null. Every app-supplied link
- * goes through this before it is opened: `javascript:` would run in our origin.
+ * The normalised absolute form of `value` if it is an http(s) URL, else null.
+ * Callers open the returned string, not the input, so what opens is what was
+ * checked.
  */
 export function httpUrl(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   try {
-    const { protocol } = new URL(value);
-    return protocol === 'http:' || protocol === 'https:' ? value : null;
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:'
+      ? url.href
+      : null;
   } catch {
     return null;
   }
