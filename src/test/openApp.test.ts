@@ -111,7 +111,7 @@ describe('buildAppUrl', () => {
     setLocation('http://localhost:2528/admin-dashboard/applications');
   });
 
-  it('cache-busts in the query and keeps auth in the hash', () => {
+  it('cache-busts in the query and keeps the launch params in the hash', () => {
     const url = new URL(buildAppUrl('https://app.example/', {}, 1234));
     expect(url.searchParams.get('_cb')).toBe('1234');
     // The launch params must be in the fragment: a query string would be sent
