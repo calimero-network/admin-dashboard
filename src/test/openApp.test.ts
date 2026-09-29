@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url -- these tests assert that javascript: links are refused */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import {
