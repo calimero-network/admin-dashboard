@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/calimero-network/admin-dashboard/compare/v1.18.3...v1.18.4) (2026-09-29)
+
+
+### Bug Fixes
+
+* **auth:** adopt hash tokens only for a login this tab started ([#168](https://github.com/calimero-network/admin-dashboard/issues/168)) ([ae1d2dc](https://github.com/calimero-network/admin-dashboard/commit/ae1d2dceb4098810bef17fde6031743443c71d22))
+
 ## [1.18.3](https://github.com/calimero-network/admin-dashboard/compare/v1.18.2...v1.18.3) (2026-09-29)
 
 ## [1.18.2](https://github.com/calimero-network/admin-dashboard/compare/v1.18.1...v1.18.2) (2026-09-29)
