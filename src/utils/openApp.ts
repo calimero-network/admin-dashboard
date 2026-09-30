@@ -87,7 +87,7 @@ export const APP_TOKEN_PERMISSIONS: readonly string[] = [
 
 export const APP_TOKEN_TTL_SECS = 24 * 60 * 60;
 
-export const TRUSTED_APP_ORIGINS_KEY = 'trusted-app-origins';
+export const APPROVED_APP_ORIGINS_KEY = 'approved-app-origins';
 
 export function appFrontendOrigin(url: string): string | null {
   try {
@@ -98,9 +98,9 @@ export function appFrontendOrigin(url: string): string | null {
   }
 }
 
-function readTrustedOrigins(): Record<string, string> {
+function readApprovedOrigins(): Record<string, string> {
   try {
-    const raw = localStorage.getItem(TRUSTED_APP_ORIGINS_KEY);
+    const raw = localStorage.getItem(APPROVED_APP_ORIGINS_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
       ? (parsed as Record<string, string>)
@@ -110,18 +110,18 @@ function readTrustedOrigins(): Record<string, string> {
   }
 }
 
-export function isAppOriginTrusted(
+export function isAppOriginApproved(
   applicationId: string,
   origin: string,
 ): boolean {
-  return readTrustedOrigins()[applicationId] === origin;
+  return readApprovedOrigins()[applicationId] === origin;
 }
 
-export function trustAppOrigin(applicationId: string, origin: string): void {
+export function approveAppOrigin(applicationId: string, origin: string): void {
   try {
-    const all = readTrustedOrigins();
+    const all = readApprovedOrigins();
     all[applicationId] = origin;
-    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, JSON.stringify(all));
+    localStorage.setItem(APPROVED_APP_ORIGINS_KEY, JSON.stringify(all));
   } catch {
     return;
   }

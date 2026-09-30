@@ -11,9 +11,9 @@ import type { InstalledApplication } from '../utils/installedApps';
 import {
   appFrontendOrigin,
   isAllowedAppFrontendUrl,
-  isAppOriginTrusted,
+  isAppOriginApproved,
   openAppInNewTab,
-  trustAppOrigin,
+  approveAppOrigin,
 } from '../utils/openApp';
 
 interface PendingOpen {
@@ -47,7 +47,7 @@ export function useOpenApp() {
       if (
         !origin ||
         !isAllowedAppFrontendUrl(frontendUrl) ||
-        isAppOriginTrusted(app.id, origin)
+        isAppOriginApproved(app.id, origin)
       ) {
         launch(frontendUrl, app);
         return;
@@ -71,7 +71,7 @@ export function useOpenApp() {
       frontendUrl={pending.frontendUrl}
       onCancel={cancel}
       onConfirm={(remember) => {
-        if (remember) trustAppOrigin(pending.app.id, pending.origin);
+        if (remember) approveAppOrigin(pending.app.id, pending.origin);
         setPending(null);
         launch(pending.frontendUrl, pending.app);
       }}

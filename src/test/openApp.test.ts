@@ -12,9 +12,9 @@ import {
   mintAppTokens,
   APP_TOKEN_PERMISSIONS,
   appFrontendOrigin,
-  isAppOriginTrusted,
-  trustAppOrigin,
-  TRUSTED_APP_ORIGINS_KEY,
+  isAppOriginApproved,
+  approveAppOrigin,
+  APPROVED_APP_ORIGINS_KEY,
   AppTokenError,
   PopupBlockedError,
   MixedContentError,
@@ -439,7 +439,7 @@ describe('openExternal', () => {
   });
 });
 
-describe('trusted app origins', () => {
+describe('approved app origins', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -452,27 +452,27 @@ describe('trusted app origins', () => {
   });
 
   it('trusts nothing by default', () => {
-    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
+    expect(isAppOriginApproved('app-1', 'https://app.example')).toBe(false);
   });
 
   it('remembers an origin per application', () => {
-    trustAppOrigin('app-1', 'https://app.example');
-    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(true);
-    expect(isAppOriginTrusted('app-2', 'https://app.example')).toBe(false);
+    approveAppOrigin('app-1', 'https://app.example');
+    expect(isAppOriginApproved('app-1', 'https://app.example')).toBe(true);
+    expect(isAppOriginApproved('app-2', 'https://app.example')).toBe(false);
   });
 
   it('stops trusting when the origin changes', () => {
-    trustAppOrigin('app-1', 'https://app.example');
-    expect(isAppOriginTrusted('app-1', 'https://other.example')).toBe(false);
-    expect(isAppOriginTrusted('app-1', 'http://app.example')).toBe(false);
-    trustAppOrigin('app-1', 'https://other.example');
-    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
+    approveAppOrigin('app-1', 'https://app.example');
+    expect(isAppOriginApproved('app-1', 'https://other.example')).toBe(false);
+    expect(isAppOriginApproved('app-1', 'http://app.example')).toBe(false);
+    approveAppOrigin('app-1', 'https://other.example');
+    expect(isAppOriginApproved('app-1', 'https://app.example')).toBe(false);
   });
 
   it('treats corrupt storage as untrusted', () => {
-    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, '{nope');
-    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
-    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, '["https://app.example"]');
-    expect(isAppOriginTrusted('0', 'https://app.example')).toBe(false);
+    localStorage.setItem(APPROVED_APP_ORIGINS_KEY, '{nope');
+    expect(isAppOriginApproved('app-1', 'https://app.example')).toBe(false);
+    localStorage.setItem(APPROVED_APP_ORIGINS_KEY, '["https://app.example"]');
+    expect(isAppOriginApproved('0', 'https://app.example')).toBe(false);
   });
 });
