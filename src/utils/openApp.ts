@@ -79,11 +79,53 @@ export const APP_TOKEN_PERMISSIONS: readonly string[] = [
   'application:list',
   'namespace',
   'group',
-  'blob',
+  'blob:add',
+  'blob:get',
+  'blob:remove',
   'context:alias',
 ];
 
 export const APP_TOKEN_TTL_SECS = 24 * 60 * 60;
+
+export const TRUSTED_APP_ORIGINS_KEY = 'trusted-app-origins';
+
+export function appFrontendOrigin(url: string): string | null {
+  try {
+    const { origin } = new URL(url);
+    return origin && origin !== 'null' ? origin : null;
+  } catch {
+    return null;
+  }
+}
+
+function readTrustedOrigins(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(TRUSTED_APP_ORIGINS_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+export function isAppOriginTrusted(
+  applicationId: string,
+  origin: string,
+): boolean {
+  return readTrustedOrigins()[applicationId] === origin;
+}
+
+export function trustAppOrigin(applicationId: string, origin: string): void {
+  try {
+    const all = readTrustedOrigins();
+    all[applicationId] = origin;
+    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, JSON.stringify(all));
+  } catch {
+    return;
+  }
+}
 
 export interface AppTokens {
   access_token: string;

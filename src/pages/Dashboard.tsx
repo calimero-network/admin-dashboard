@@ -15,14 +15,13 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { listNamespaces } from '../api/namespaceApi';
-import { useToast } from '../contexts/ToastContext';
-import { getSettings } from '../utils/settings';
 import { getNodeUrl } from '../utils/nodeUrl';
 import { useNodeStatus } from '../components/AppShell';
 import InstalledAppCard from '../components/InstalledAppCard';
 import { decodeMetadata } from '../utils/appUtils';
 import type { InstalledApplication } from '../utils/installedApps';
-import { openAppInNewTab, openExternal } from '../utils/openApp';
+import { openExternal } from '../utils/openApp';
+import { useOpenApp } from '../hooks/useOpenApp';
 import './Dashboard.css';
 
 interface Stats {
@@ -66,7 +65,7 @@ const ECOSYSTEM_LINKS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const toast = useToast();
+  const { requestOpen: openApp, dialog: openAppDialog } = useOpenApp();
   const { state: nodeState, error: nodeError } = useNodeStatus();
   const [stats, setStats] = useState<Stats>({
     installedApps: 0,
@@ -119,18 +118,6 @@ export default function Dashboard() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  /** Synchronous by necessity — see utils/openApp.ts. */
-  const openApp = (frontendUrl: string, app: InstalledApplication) => {
-    openAppInNewTab(frontendUrl, {
-      applicationId: app.id,
-      devMode: getSettings().developerMode,
-    }).catch((e: unknown) => {
-      toast.error(
-        e instanceof Error ? e.message : 'Failed to open application',
-      );
-    });
-  };
 
   return (
     <div className="page-content dashboard-page">
@@ -335,6 +322,7 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+      {openAppDialog}
     </div>
   );
 }

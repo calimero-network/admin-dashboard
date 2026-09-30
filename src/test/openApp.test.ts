@@ -11,6 +11,10 @@ import {
   isAllowedAppFrontendUrl,
   mintAppTokens,
   APP_TOKEN_PERMISSIONS,
+  appFrontendOrigin,
+  isAppOriginTrusted,
+  trustAppOrigin,
+  TRUSTED_APP_ORIGINS_KEY,
   AppTokenError,
   PopupBlockedError,
   MixedContentError,
@@ -187,6 +191,30 @@ describe('mintAppTokens', () => {
     expect(body.permissions).toEqual([...APP_TOKEN_PERMISSIONS]);
     expect(body.ttl_secs).toBeGreaterThan(0);
     expect(body).not.toHaveProperty('context_id');
+  });
+
+  it('requests exactly the grants an app session needs', () => {
+    expect(new Set(APP_TOKEN_PERMISSIONS)).toEqual(
+      new Set([
+        'context:create',
+        'context:list',
+        'context:execute',
+        'context:subscribe',
+        'application:list',
+        'namespace',
+        'group',
+        'blob:add',
+        'blob:get',
+        'blob:remove',
+        'context:alias',
+      ]),
+    );
+    expect(APP_TOKEN_PERMISSIONS).toHaveLength(11);
+  });
+
+  it('does not ask for the blob umbrella or node-wide blob listing', () => {
+    expect(APP_TOKEN_PERMISSIONS).not.toContain('blob');
+    expect(APP_TOKEN_PERMISSIONS).not.toContain('blob:list');
   });
 
   it('never asks for admin', () => {
@@ -408,5 +436,43 @@ describe('openExternal', () => {
     window.open = open;
     expect(() => openExternal('javascript:alert(1)')).toThrow(UnsafeUrlError);
     expect(open).not.toHaveBeenCalled();
+  });
+});
+
+describe('trusted app origins', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('derives the origin of a frontend URL', () => {
+    expect(appFrontendOrigin('https://app.example:8443/x/y?z=1#h')).toBe(
+      'https://app.example:8443',
+    );
+    expect(appFrontendOrigin('not a url')).toBeNull();
+  });
+
+  it('trusts nothing by default', () => {
+    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
+  });
+
+  it('remembers an origin per application', () => {
+    trustAppOrigin('app-1', 'https://app.example');
+    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(true);
+    expect(isAppOriginTrusted('app-2', 'https://app.example')).toBe(false);
+  });
+
+  it('stops trusting when the origin changes', () => {
+    trustAppOrigin('app-1', 'https://app.example');
+    expect(isAppOriginTrusted('app-1', 'https://other.example')).toBe(false);
+    expect(isAppOriginTrusted('app-1', 'http://app.example')).toBe(false);
+    trustAppOrigin('app-1', 'https://other.example');
+    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
+  });
+
+  it('treats corrupt storage as untrusted', () => {
+    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, '{nope');
+    expect(isAppOriginTrusted('app-1', 'https://app.example')).toBe(false);
+    localStorage.setItem(TRUSTED_APP_ORIGINS_KEY, '["https://app.example"]');
+    expect(isAppOriginTrusted('0', 'https://app.example')).toBe(false);
   });
 });

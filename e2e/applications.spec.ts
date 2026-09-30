@@ -68,16 +68,32 @@ test.describe('Applications', () => {
     page,
     context,
   }) => {
+    let minted = false;
+    page.on('request', (r) => {
+      if (r.url().includes('/admin/client-key')) minted = true;
+    });
+    await page.getByTestId('open-app').click();
+    const confirm = page.getByTestId('open-app-confirm');
+    await expect(confirm).toBeVisible();
+    await expect(page.getByTestId('open-app-confirm-host')).toHaveText(
+      'app.invalid',
+    );
+    await expect(page.getByTestId('open-app-confirm-cancel')).toBeFocused();
+    expect(minted).toBe(false);
+
     const mintRequest = page.waitForRequest('**/admin/client-key');
     const popupPromise = context.waitForEvent('page');
-    await page.getByTestId('open-app').click();
+    await page.getByTestId('open-app-confirm-accept').click();
     const popup = await popupPromise;
 
-    const minted = (await mintRequest).postDataJSON() as {
+    const mintBody = (await mintRequest).postDataJSON() as {
       permissions: string[];
     };
-    expect(minted.permissions).not.toContain('admin');
-    expect(minted.permissions).toContain('context:execute');
+    expect(mintBody.permissions).not.toContain('admin');
+    expect(mintBody.permissions).toContain('context:execute');
+    expect(mintBody.permissions).toContain('context:subscribe');
+    expect(mintBody.permissions).not.toContain('blob');
+    expect(mintBody.permissions).not.toContain('blob:list');
 
     // The tab opens at about:blank and is navigated a tick later (see
     // utils/openApp.ts), so wait for the real URL before reading it.
@@ -104,6 +120,28 @@ test.describe('Applications', () => {
     expect(new URL(url).searchParams.get('_cb')).toBeTruthy();
 
     await popup.close();
+  });
+
+  test('cancelling the Open confirmation opens nothing', async ({
+    page,
+    context,
+  }) => {
+    let minted = false;
+    page.on('request', (r) => {
+      if (r.url().includes('/admin/client-key')) minted = true;
+    });
+    let popups = 0;
+    context.on('page', () => {
+      popups += 1;
+    });
+
+    await page.getByTestId('open-app').click();
+    await expect(page.getByTestId('open-app-confirm')).toBeVisible();
+    await page.getByTestId('open-app-confirm-cancel').click();
+    await expect(page.getByTestId('open-app-confirm')).toHaveCount(0);
+
+    expect(minted).toBe(false);
+    expect(popups).toBe(0);
   });
 
   test('sorts by name', async ({ page }) => {
