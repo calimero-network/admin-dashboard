@@ -183,6 +183,11 @@
   flex-shrink: 0;
 }
 
+.app-verified-mark-wrap {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
 .app-verified-mark {
   flex-shrink: 0;
   color: var(--success);

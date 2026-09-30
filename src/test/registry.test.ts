@@ -5,6 +5,7 @@ import {
   fetchPackageOrg,
   compareSemverDesc,
   nodeBuildLabel,
+  registryHost,
 } from '../utils/registry';
 
 const REGISTRY = 'https://registry.example/';
@@ -309,5 +310,18 @@ describe('fetchPackageOrg', () => {
     global.fetch = f as unknown as typeof fetch;
     expect(await fetchPackageOrg(REGISTRY, '../etc/passwd')).toBeNull();
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe('registryHost', () => {
+  it('is the host of the registry URL, port included', () => {
+    expect(registryHost('https://apps.calimero.network/')).toBe(
+      'apps.calimero.network',
+    );
+    expect(registryHost('http://localhost:4600/api')).toBe('localhost:4600');
+  });
+
+  it('falls back to the trimmed input when it is not a URL', () => {
+    expect(registryHost(' registry.example/ ')).toBe('registry.example');
   });
 });

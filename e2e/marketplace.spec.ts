@@ -181,6 +181,39 @@ test.describe('Marketplace', () => {
     await expect(card.getByLabel('Verified author')).toBeVisible();
   });
 
+  test('badges and cards name the registry that made the claim', async ({
+    page,
+  }) => {
+    const card = page.getByTestId('app-card').filter({ hasText: 'Mero Chat' });
+    await expect(card.getByTestId('app-card-source')).toHaveText(
+      'via apps.calimero.network',
+    );
+    await expect(
+      card.getByLabel('Verified package by apps.calimero.network'),
+    ).toBeVisible();
+    await expect(
+      card.getByLabel('Verified author by apps.calimero.network'),
+    ).toBeVisible();
+  });
+
+  test('the application page says where the install resolves from', async ({
+    page,
+  }) => {
+    await page.goto('/admin-dashboard/marketplace/com.calimero.merochat');
+    const detail = page.getByTestId('app-detail-page');
+    await expect(detail.getByTestId('detail-registry')).toHaveText(
+      'apps.calimero.network',
+    );
+    const note = detail.getByTestId('detail-install-source');
+    await expect(note).toContainText('com.calimero.merochat@1.2.0');
+    await expect(note).toContainText(
+      'The node downloads it from the registry it is configured with',
+    );
+    await expect(
+      detail.getByLabel('Verified package by apps.calimero.network'),
+    ).toBeVisible();
+  });
+
   test('preview images load from the registry, not from the app origin', async ({
     page,
   }) => {
