@@ -1,3 +1,17 @@
+# [1.22.0](https://github.com/calimero-network/admin-dashboard/compare/v1.21.3...v1.22.0) (2026-10-01)
+
+
+### Bug Fixes
+
+* ignore ?nodeUrl= in release builds ([#182](https://github.com/calimero-network/admin-dashboard/issues/182)) ([4f08a32](https://github.com/calimero-network/admin-dashboard/commit/4f08a323ab053ffcae7bbd4be4b23d650772e592))
+* re-seed the SDK auth endpoint on every load ([#183](https://github.com/calimero-network/admin-dashboard/issues/183)) ([2e86380](https://github.com/calimero-network/admin-dashboard/commit/2e86380d8a9f04cdd0cdb84487bb8cc82e5e5ac6))
+
+
+### Features
+
+* **apps:** confirm destination before opening an app and request minimal permissions ([#181](https://github.com/calimero-network/admin-dashboard/issues/181)) ([ca5aad0](https://github.com/calimero-network/admin-dashboard/commit/ca5aad0f2e323f39924684e5a0ce5eb709415bc1))
+* **marketplace:** name the registry behind listings and badges ([#185](https://github.com/calimero-network/admin-dashboard/issues/185)) ([a946e35](https://github.com/calimero-network/admin-dashboard/commit/a946e3521a44504e37ccf629e1940fb207305a5b))
+
 ## [1.21.3](https://github.com/calimero-network/admin-dashboard/compare/v1.21.2...v1.21.3) (2026-09-29)
 
 ## [1.21.2](https://github.com/calimero-network/admin-dashboard/compare/v1.21.1...v1.21.2) (2026-09-29)
