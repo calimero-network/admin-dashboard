@@ -171,6 +171,15 @@ export function getNodeUrl(): string {
   return window.location.origin.replace(/\/+$/, '');
 }
 
+export function getAuthEndpointUrl(): string {
+  const nodeUrl = getNodeUrl();
+  try {
+    return new URL(nodeUrl).origin;
+  } catch {
+    return nodeUrl;
+  }
+}
+
 /** The admin API base, e.g. `http://localhost:2528/admin-api`. */
 export function getAdminApiUrl(): string {
   return `${getNodeUrl()}/admin-api`;

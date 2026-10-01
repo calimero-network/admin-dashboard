@@ -3,6 +3,7 @@ import {
   clearNodeUrlOverride,
   getNodeUrl,
   getAdminApiUrl,
+  getAuthEndpointUrl,
   isDevOverrideActive,
   isMixedContent,
 } from '../utils/nodeUrl';
@@ -308,5 +309,23 @@ describe('clearNodeUrlOverride', () => {
     setLocation('http://localhost:2528/admin-dashboard/');
     expect(() => clearNodeUrlOverride()).not.toThrow();
     expect(getNodeUrl()).toBe('http://localhost:2528');
+  });
+});
+
+describe('getAuthEndpointUrl', () => {
+  beforeEach(() => {
+    vi.stubEnv('DEV', false);
+  });
+
+  it('is the origin of the serving node', () => {
+    setLocation('http://localhost:2528/admin-dashboard/dashboard');
+    expect(getAuthEndpointUrl()).toBe('http://localhost:2528');
+  });
+
+  it('follows the node when it changes', () => {
+    setLocation('https://a.example/admin-dashboard/');
+    expect(getAuthEndpointUrl()).toBe('https://a.example');
+    setLocation('https://b.example/admin-dashboard/');
+    expect(getAuthEndpointUrl()).toBe('https://b.example');
   });
 });

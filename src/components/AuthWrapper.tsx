@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   setAppEndpointKey,
+  setAuthEndpointURL,
   getAccessToken,
   getRefreshToken,
   setAccessToken,
@@ -11,7 +12,11 @@ import {
   apiClient,
 } from '@calimero-network/calimero-client';
 import LoginPage from '../pages/LoginPage';
-import { clearNodeUrlOverride, getNodeUrl } from '../utils/nodeUrl';
+import {
+  clearNodeUrlOverride,
+  getAuthEndpointUrl,
+  getNodeUrl,
+} from '../utils/nodeUrl';
 import {
   beginLogin,
   consumeLoginState,
@@ -44,6 +49,7 @@ export default function AuthWrapper({
     // every load so a stale value from a previous deployment can never win.
     const resolvedNodeUrl = getNodeUrl();
     setAppEndpointKey(resolvedNodeUrl);
+    setAuthEndpointURL(getAuthEndpointUrl());
     setNodeUrl(resolvedNodeUrl);
 
     // Adopt tokens handed back by the auth frontend in the URL hash.
@@ -141,11 +147,10 @@ export default function AuthWrapper({
   }, [checkAuth]);
 
   const handleLogin = () => {
-    const url = getNodeUrl();
-    if (!url) return;
+    if (!getNodeUrl()) return;
     try {
       apiClient.auth().login({
-        url: new URL(url).origin,
+        url: getAuthEndpointUrl(),
         callbackUrl: beginLogin(),
         permissions: ['admin'],
         applicationId: '',
