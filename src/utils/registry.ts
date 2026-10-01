@@ -44,6 +44,14 @@ export function resolveCategory(
   return undefined;
 }
 
+export function registryHost(registryUrl: string): string {
+  try {
+    return new URL(registryUrl).host;
+  } catch {
+    return registryUrl.trim().replace(/\/+$/, '');
+  }
+}
+
 export interface AppSummary {
   id: string;
   name: string;

@@ -105,6 +105,14 @@
   background: var(--gradient-surface), var(--surface-glass);
 }
 
+.app-detail-install-source {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
 .app-detail-version {
   display: flex;
   align-items: center;

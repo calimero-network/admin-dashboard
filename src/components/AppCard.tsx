@@ -7,11 +7,12 @@ import {
   formatRelativeDate,
   shortenKey,
 } from '../utils/appCards';
-import type { AppSummary } from '../utils/registry';
+import { registryHost, type AppSummary } from '../utils/registry';
 import './AppCard.css';
 
 export interface AppCardApp extends AppSummary {
   installed?: boolean;
+  registry?: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export default function AppCard({
   onOpen: (app: AppCardApp) => void;
 }) {
   const title = app.alias ?? app.name;
+  const source = app.registry ? registryHost(app.registry) : undefined;
   // ⚠️ `installSize ?? wasm.size`. The registry serves `installSize` as null on
   // all 21 published bundles and `wasm.size` on every one, so reading only the
   // first meant the size row never appeared on any card.
@@ -81,7 +83,9 @@ export default function AppCard({
               while `com.calimero.…` is the thing that actually gets installed. */}
           <p className="app-card-package">
             <span className="app-card-package-id">{app.id}</span>
-            {app.verified && <VerifiedMark label="Verified package" />}
+            {app.verified && (
+              <VerifiedMark label="Verified package" source={source} />
+            )}
           </p>
         </div>
       </div>
@@ -97,7 +101,9 @@ export default function AppCard({
             {/* ⚠️ The AUTHOR's badge reads the PUBLISHER's field. Both marks
                 reading `verified` would make one value assert two different
                 things — a package's approval next to a person's name. */}
-            {app.publisherVerified && <VerifiedMark label="Verified author" />}
+            {app.publisherVerified && (
+              <VerifiedMark label="Verified author" source={source} />
+            )}
           </span>
         )}
         {when && (
@@ -130,6 +136,18 @@ export default function AppCard({
               title={`Built against node ${runtime}; a node older than this refuses to install it`}
             >
               node {runtime}
+            </span>
+          </>
+        )}
+        {source && (
+          <>
+            <Dot />
+            <span
+              className="app-card-meta-item"
+              data-testid="app-card-source"
+              title={`Listing and badges from ${source}`}
+            >
+              via {source}
             </span>
           </>
         )}
@@ -167,14 +185,23 @@ export default function AppCard({
  * author" next to the publisher. Two identical unlabelled ticks on one card is
  * two unexplained icons to a screen reader.
  */
-export function VerifiedMark({ label }: { label: string }) {
+export function VerifiedMark({
+  label,
+  source,
+}: {
+  label: string;
+  source?: string | undefined;
+}) {
+  const text = source ? `${label} by ${source}` : label;
   return (
-    <BadgeCheck
-      className="app-verified-mark"
-      size={14}
-      aria-label={label}
-      role="img"
-    />
+    <span className="app-verified-mark-wrap" title={text}>
+      <BadgeCheck
+        className="app-verified-mark"
+        size={14}
+        aria-label={text}
+        role="img"
+      />
+    </span>
   );
 }
 

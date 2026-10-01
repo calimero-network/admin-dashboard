@@ -32,6 +32,7 @@ import {
   fetchAppVersions,
   fetchPackageAssets,
   fetchPackageOrg,
+  registryHost,
   type AppSummary,
   type PackageAsset,
   type RegistryOrg,
@@ -249,11 +250,24 @@ export default function AppDetail() {
         value: (
           <span className="app-detail-author">
             {author}
-            {app.publisherVerified && <VerifiedMark label="Verified author" />}
+            {app.publisherVerified && (
+              <VerifiedMark
+                label="Verified author"
+                source={registryHost(app.registry)}
+              />
+            )}
           </span>
         ),
       });
     }
+    rows.push({
+      label: 'Listed by',
+      value: (
+        <span className="app-detail-mono" data-testid="detail-registry">
+          {registryHost(app.registry)}
+        </span>
+      ),
+    });
     const category = formatCategory(app.category);
     if (category) rows.push({ label: 'Category', value: category });
     rows.push({
@@ -326,7 +340,12 @@ export default function AppDetail() {
           <h1 className="app-detail-title">{title}</h1>
           <p className="app-detail-package">
             <span className="app-detail-mono">{app.id}</span>
-            {app.verified && <VerifiedMark label="Verified package" />}
+            {app.verified && (
+              <VerifiedMark
+                label="Verified package"
+                source={registryHost(app.registry)}
+              />
+            )}
           </p>
           {app.description && (
             <p className="app-detail-description">{app.description}</p>
@@ -388,6 +407,19 @@ export default function AppDetail() {
         >
           <ExternalLink size={14} /> View on Registry
         </button>
+
+        <p
+          className="app-detail-install-source"
+          data-testid="detail-install-source"
+        >
+          Install asks your node for{' '}
+          <span className="app-detail-mono">
+            {app.id}@{selectedVersion || app.latest_version}
+          </span>
+          . The node downloads it from the registry it is configured with, which
+          may not be {registryHost(app.registry)}. The listing and badges on
+          this page come from {registryHost(app.registry)}.
+        </p>
       </section>
 
       {/* ⚠️ A STATED EMPTY CASE, NOT A HIDDEN SECTION. Every published package
