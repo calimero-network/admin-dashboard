@@ -15,8 +15,8 @@
  * The dev override exists because `pnpm dev` serves us from :5173 while the node
  * is on :2528. It is deliberately explicit (query param or build-time env) so it
  * cannot silently apply in a real deployment: the env fallback is dev-only, and
- * the query param is restricted to loopback targets once the bundle is
- * node-served — see `isAllowedOverride()`.
+ * a production build ignores the query param unless it was built for the e2e
+ * suites — see `isAllowedOverride()`.
  */
 
 const DEV_OVERRIDE_KEY = 'calimero-admin-dev-node-url';
@@ -36,7 +36,7 @@ function isNodeServed(): boolean {
   return !import.meta.env.DEV;
 }
 
-/** Loopback hosts — the only override targets a production build will accept. */
+/** Loopback hosts — the only override targets an e2e build will accept. */
 function isLoopback(url: string): boolean {
   try {
     const { hostname } = new URL(url);
@@ -44,34 +44,28 @@ function isLoopback(url: string): boolean {
       hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
       hostname === '::1' ||
-      hostname === '[::1]' ||
-      hostname.endsWith('.localhost')
+      hostname === '[::1]'
     );
   } catch {
     return false;
   }
 }
 
+function isE2eBuild(): boolean {
+  return import.meta.env['VITE_ALLOW_NODE_URL_OVERRIDE'] === 'true';
+}
+
 /**
  * May this override apply?
  *
- * In a dev build, always: you ran `pnpm dev` yourself, there is no attacker in
- * that loop. In a production build there is — a production bundle is only ever
- * served by a real node, so an override there can only have arrived in a link
- * someone clicked. Since `getNodeUrl()` decides where the admin API lives AND
- * what `node_url`/`access_token` go into the SSO hash handed to opened apps
- * (openApp.ts), an unrestricted override turns one crafted link into token
- * exfiltration: `https://real-node/admin-dashboard/?nodeUrl=https://evil.example`
- * would aim every authenticated call at evil.example for the rest of the session.
- *
- * Loopback is the line that keeps the escape hatch useful and the attack inert.
- * It still covers every legitimate use — `pnpm dev` on :5173 against merod on
- * :2528, and the live e2e suite, which serves a production build through `vite
- * preview` and points it at a merod on localhost (e2e-live/fixtures/live.ts) —
- * while an attacker gains nothing by pointing a victim at their own machine.
+ * In a dev build, always. A release build is only ever served by a real node,
+ * so it ignores the override entirely. A build made for the e2e suites (`vite
+ * preview` pointed at a local merod) sets `VITE_ALLOW_NODE_URL_OVERRIDE=true`
+ * and accepts loopback targets only.
  */
 function isAllowedOverride(url: string): boolean {
-  return !isNodeServed() || isLoopback(url);
+  if (!isNodeServed()) return true;
+  return isE2eBuild() && isLoopback(url);
 }
 
 /**
@@ -151,9 +145,9 @@ function readEnvFallback(): string | null {
  * The base URL of the node this dashboard administers, without a trailing
  * slash. Append `/admin-api/...` to reach the admin API.
  *
- * Precedence: explicit `?nodeUrl=` (any target in dev, loopback only once
- * node-served) > the serving origin (production) > `VITE_NODE_URL` (dev only) >
- * the origin as a last resort.
+ * Precedence: explicit `?nodeUrl=` (any target in dev, loopback only in an e2e
+ * build, never in a release build) > the serving origin (production) >
+ * `VITE_NODE_URL` (dev only) > the origin as a last resort.
  */
 export function getNodeUrl(): string {
   const explicit = readExplicitOverride();

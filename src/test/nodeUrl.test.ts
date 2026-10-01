@@ -87,11 +87,27 @@ describe('getNodeUrl (production build)', () => {
     expect(isDevOverrideActive()).toBe(false);
   });
 
-  it('still honours an explicit ?nodeUrl= pointing at loopback', () => {
+  it('ignores a ?nodeUrl= pointing at loopback', () => {
     setLocation(
       'http://localhost:2528/admin-dashboard/?nodeUrl=http://localhost:2529',
     );
-    expect(getNodeUrl()).toBe('http://localhost:2529');
+    expect(getNodeUrl()).toBe('http://localhost:2528');
+    expect(isDevOverrideActive()).toBe(false);
+  });
+
+  it('ignores a ?nodeUrl= pointing at a *.localhost name', () => {
+    setLocation(
+      'https://real-node.example/admin-dashboard/?nodeUrl=http://other.localhost:8080',
+    );
+    expect(getNodeUrl()).toBe('https://real-node.example');
+  });
+
+  it('does not persist an ignored override', () => {
+    setLocation(
+      'http://localhost:2528/admin-dashboard/?nodeUrl=http://localhost:2529',
+    );
+    getNodeUrl();
+    expect(sessionStorage.getItem('calimero-admin-dev-node-url')).toBeNull();
   });
 
   // A production bundle is only ever served by a real node, so a `?nodeUrl=`
@@ -116,9 +132,6 @@ describe('getNodeUrl (production build)', () => {
     expect(getNodeUrl()).toBe('https://real-node.example');
   });
 
-  // A loopback override captured while `pnpm dev` was running must not leak into
-  // a production bundle later loaded in the same tab, either — it only survives
-  // because loopback is allowed outright.
   it('re-checks the stored override on every read', () => {
     sessionStorage.setItem(
       'calimero-admin-dev-node-url',
@@ -126,6 +139,64 @@ describe('getNodeUrl (production build)', () => {
     );
     setLocation('https://real-node.example/admin-dashboard/');
     expect(getNodeUrl()).toBe('https://real-node.example');
+  });
+
+  it('ignores a stored loopback override from a dev session', () => {
+    sessionStorage.setItem(
+      'calimero-admin-dev-node-url',
+      'http://localhost:2529',
+    );
+    setLocation('http://localhost:2528/admin-dashboard/');
+    expect(getNodeUrl()).toBe('http://localhost:2528');
+  });
+});
+
+describe('getNodeUrl (e2e build)', () => {
+  beforeEach(() => {
+    vi.stubEnv('DEV', false);
+    vi.stubEnv('VITE_ALLOW_NODE_URL_OVERRIDE', 'true');
+  });
+
+  it('honours a ?nodeUrl= pointing at localhost', () => {
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=http://localhost:3628',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:3628');
+    expect(isDevOverrideActive()).toBe(true);
+  });
+
+  it('honours 127.0.0.1 and [::1]', () => {
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=http://127.0.0.1:3628',
+    );
+    expect(getNodeUrl()).toBe('http://127.0.0.1:3628');
+    sessionStorage.clear();
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=http://[::1]:3628',
+    );
+    expect(getNodeUrl()).toBe('http://[::1]:3628');
+  });
+
+  it('refuses a *.localhost name', () => {
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=http://other.localhost:8080',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:4273');
+  });
+
+  it('refuses an off-box target', () => {
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=https://elsewhere.example',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:4273');
+  });
+
+  it('requires the flag to be exactly "true"', () => {
+    vi.stubEnv('VITE_ALLOW_NODE_URL_OVERRIDE', '1');
+    setLocation(
+      'http://localhost:4273/admin-dashboard/?nodeUrl=http://localhost:3628',
+    );
+    expect(getNodeUrl()).toBe('http://localhost:4273');
   });
 });
 
@@ -202,6 +273,7 @@ describe('clearNodeUrlOverride', () => {
   // legitimate fallback and would muddy what is being tested.
   beforeEach(() => {
     vi.stubEnv('DEV', false);
+    vi.stubEnv('VITE_ALLOW_NODE_URL_OVERRIDE', 'true');
     stubHistory();
   });
 

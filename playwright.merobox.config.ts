@@ -54,7 +54,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
+    command: `VITE_ALLOW_NODE_URL_OVERRIDE=true pnpm build && pnpm preview --port ${PORT} --strictPort`,
     url: `${BASE_URL}${APP_PATH}`,
     reuseExistingServer: !process.env['CI'],
     timeout: 180_000,

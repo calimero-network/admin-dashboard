@@ -69,7 +69,7 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
+      command: `VITE_ALLOW_NODE_URL_OVERRIDE=true pnpm build && pnpm preview --port ${PORT} --strictPort`,
       url: `${BASE_URL}${APP_PATH}`,
       reuseExistingServer: !process.env['CI'],
       timeout: 180_000,
