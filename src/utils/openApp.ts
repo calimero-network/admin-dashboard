@@ -79,11 +79,53 @@ export const APP_TOKEN_PERMISSIONS: readonly string[] = [
   'application:list',
   'namespace',
   'group',
-  'blob',
+  'blob:add',
+  'blob:get',
+  'blob:remove',
   'context:alias',
 ];
 
 export const APP_TOKEN_TTL_SECS = 24 * 60 * 60;
+
+export const APPROVED_APP_ORIGINS_KEY = 'approved-app-origins';
+
+export function appFrontendOrigin(url: string): string | null {
+  try {
+    const { origin } = new URL(url);
+    return origin && origin !== 'null' ? origin : null;
+  } catch {
+    return null;
+  }
+}
+
+function readApprovedOrigins(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(APPROVED_APP_ORIGINS_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+export function isAppOriginApproved(
+  applicationId: string,
+  origin: string,
+): boolean {
+  return readApprovedOrigins()[applicationId] === origin;
+}
+
+export function approveAppOrigin(applicationId: string, origin: string): void {
+  try {
+    const all = readApprovedOrigins();
+    all[applicationId] = origin;
+    localStorage.setItem(APPROVED_APP_ORIGINS_KEY, JSON.stringify(all));
+  } catch {
+    return;
+  }
+}
 
 export interface AppTokens {
   access_token: string;

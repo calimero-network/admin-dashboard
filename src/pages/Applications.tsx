@@ -15,7 +15,7 @@ import InstalledAppCard, {
 import Skeleton from '../components/Skeleton';
 import ConfirmAction from './ConfirmAction';
 import { useToast } from '../contexts/ToastContext';
-import { getSettings } from '../utils/settings';
+import { useOpenApp } from '../hooks/useOpenApp';
 import {
   decodeMetadata,
   appDisplayName,
@@ -23,7 +23,6 @@ import {
   parseApiError,
   type AppMetadata,
 } from '../utils/appUtils';
-import { openAppInNewTab } from '../utils/openApp';
 import { compareSemverDesc } from '../utils/registry';
 import './InstalledApps.css';
 
@@ -50,6 +49,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 export default function ApplicationsPage() {
   const toast = useToast();
+  const { requestOpen: handleOpen, dialog: openAppDialog } = useOpenApp();
   const [apps, setApps] = useState<InstalledApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,25 +117,6 @@ export default function ApplicationsPage() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  /**
-   * Open an app's frontend in a new tab.
-   *
-   * Must stay synchronous: `openAppInNewTab` calls `window.open`, and any
-   * `await` before it spends the user-activation, after which the browser
-   * blocks the tab. (The desktop awaits a token warm-up here; it can, because a
-   * Tauri window is not subject to popup blocking.)
-   */
-  const handleOpen = (frontendUrl: string, app: InstalledApplication) => {
-    openAppInNewTab(frontendUrl, {
-      applicationId: app.id,
-      devMode: getSettings().developerMode,
-    }).catch((e: unknown) => {
-      toast.error(
-        e instanceof Error ? e.message : 'Failed to open application',
-      );
-    });
-  };
 
   const requestUninstall = (appId: string, appName: string) =>
     setConfirm({ appId, appName });
@@ -404,6 +385,7 @@ export default function ApplicationsPage() {
           />
         )}
       </main>
+      {openAppDialog}
     </div>
   );
 }

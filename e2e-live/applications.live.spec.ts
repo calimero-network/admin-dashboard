@@ -215,8 +215,12 @@ test.describe.serial('Live: install and uninstall from the registry', () => {
       .filter({ hasText: REAL_APP_NAME })
       .first();
 
-    const popupPromise = context.waitForEvent('page');
     await row.getByTestId('open-app').click();
+    await expect(page.getByTestId('open-app-confirm-host')).toHaveText(
+      new URL(frontendOrigin).hostname,
+    );
+    const popupPromise = context.waitForEvent('page');
+    await page.getByTestId('open-app-confirm-accept').click();
     const popup = await popupPromise;
 
     await expect

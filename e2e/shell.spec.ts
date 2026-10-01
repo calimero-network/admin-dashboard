@@ -178,8 +178,12 @@ test.describe('App shell', () => {
     await expect(headless.getByTestId('open-app')).toHaveCount(0);
     await expect(headless).toContainText('No web frontend');
 
-    const popupPromise = context.waitForEvent('page');
     await grid.getByTestId('open-app').click();
+    await expect(page.getByTestId('open-app-confirm-host')).toHaveText(
+      'app.invalid',
+    );
+    const popupPromise = context.waitForEvent('page');
+    await page.getByTestId('open-app-confirm-accept').click();
     const popup = await popupPromise;
     await popup.waitForURL(/app\.invalid/);
     const hash = new URLSearchParams(popup.url().split('#')[1] ?? '');
