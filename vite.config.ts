@@ -2,31 +2,24 @@ import { defineConfig } from 'vitest/config';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
 
 /**
- * The dashboard's version.
- *
- * `package.json`'s version is not usable: `.releaserc.json` has no
- * `@semantic-release/npm` plugin, so it stays `0.0.0-development`. CI passes
- * `DASHBOARD_VERSION` (the version semantic-release is about to publish);
- * otherwise we fall back to the latest tag.
- *
- * Deliberately `--abbrev=0`: just the tag, never `-<n>-g<sha>-dirty`. The UI
- * shows a version, not a build fingerprint.
+ * The dashboard's version: `DASHBOARD_VERSION` when set, else the
+ * `package.json` version, which is what a release is cut from.
  */
 function resolveVersion(): string {
   const fromEnv = process.env['DASHBOARD_VERSION'];
   if (fromEnv) return fromEnv.startsWith('v') ? fromEnv : `v${fromEnv}`;
   try {
-    return execSync('git describe --tags --abbrev=0', {
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .toString()
-      .trim();
+    const pkg = JSON.parse(
+      readFileSync(resolve(__dirname, 'package.json'), 'utf8'),
+    ) as { version?: string };
+    if (pkg.version) return `v${pkg.version}`;
   } catch {
     return 'dev';
   }
+  return 'dev';
 }
 
 // https://vitejs.dev/config/

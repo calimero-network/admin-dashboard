@@ -4,17 +4,89 @@ on:
   push:
     branches:
       - master
+    paths:
+      - package.json
+    tags:
+      - 'v*'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: release
+  cancel-in-progress: false
 
 jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Decide whether to release
+        id: plan
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::package.json version '$version' is not a release version"
+            exit 1
+          fi
+          tag="v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          git fetch --no-tags origin master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::$GITHUB_SHA is not on master; only master commits are released"
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            if [ "$GITHUB_REF_NAME" != "$tag" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
+              exit 1
+            fi
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          base="$BEFORE"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$GITHUB_SHA^"
+          fi
+          previous=$(git show "$base:package.json" | node -e \
+            "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+          if [ "$previous" = "$version" ]; then
+            echo "package.json version unchanged ($version); nothing to release"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::warning::$tag already exists; releases are never re-published. Bump the version to release."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Releasing $tag ($previous -> $version)"
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
   test:
     name: Test
+    needs: plan
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,17 +117,19 @@ jobs:
       - name: Check formatting
         run: pnpm prettier:check
 
+      - name: Unit tests
+        run: pnpm test
+
   release:
     name: Release
-    needs: test
+    needs: [plan, test]
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      new_release_published: ${{ steps.release.outputs.new_release_published }}
-      new_release_version: ${{ steps.release.outputs.new_release_version }}
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      TAG: ${{ needs.plan.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -77,21 +151,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      # Resolve the version semantic-release is about to publish, so the bundle
-      # is stamped with the version it actually ships as. Without this the build
-      # runs before the tag exists and would stamp the PREVIOUS release.
-      - name: Resolve next version
-        id: next
-        uses: cycjimmy/semantic-release-action@16ca923e6ccbb50770c415a0ccd43709a8c5f7a4 # v4.2.2
-        with:
-          dry_run: true
+      - name: Refuse to replace an existing release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::release $TAG already exists; releases and their assets are never replaced"
+            exit 1
+          fi
 
       - name: Build
         run: pnpm build
         env:
-          DASHBOARD_VERSION: ${{ steps.next.outputs.new_release_version }}
+          DASHBOARD_VERSION: ${{ needs.plan.outputs.version }}
+
+      - name: Verify release bundle shape
+        run: |
+          test -f build/index.html || { echo "::error::build/index.html missing"; exit 1; }
+          if grep -q '<script>\|<script type="text/javascript">' build/index.html; then
+            echo "::error::build/index.html has an inline script"; exit 1
+          fi
+          grep -q '/admin-dashboard/assets/' build/index.html \
+            || { echo "::error::index.html does not reference /admin-dashboard/assets/"; exit 1; }
 
       - name: Create release zip
         run: |
@@ -101,8 +182,35 @@ jobs:
           sha256sum admin-dashboard-build.zip > admin-dashboard-build.zip.sha256
           cat admin-dashboard-build.zip.sha256
 
-      - name: Release
-        id: release
-        uses: cycjimmy/semantic-release-action@16ca923e6ccbb50770c415a0ccd43709a8c5f7a4 # v4.2.2
+      - name: Write release notes
+        run: |
+          sha=$(cut -d' ' -f1 admin-dashboard-build.zip.sha256)
+          {
+            echo "## admin-dashboard-build.zip"
+            echo
+            echo "sha256: \`$sha\`"
+            echo
+            echo "Built from \`$GITHUB_SHA\` with \`DASHBOARD_VERSION=$VERSION pnpm build\`."
+            echo
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Publish release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          flags=()
+          if [[ "$VERSION" == *-* ]]; then flags+=(--prerelease); fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            flags+=(--verify-tag)
+          else
+            flags+=(--target "$GITHUB_SHA")
+          fi
+          gh release create "$TAG" \
+            admin-dashboard-build.zip \
+            admin-dashboard-build.zip.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes "$(cat release-notes.md)" \
+            --generate-notes \
+            "${flags[@]}"

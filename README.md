@@ -46,35 +46,18 @@ pnpm test:e2e:merobox  # TWO real merods, in Docker
 
 ## Release Process
 
-This project uses semantic releases. When you merge to `main`, it automatically:
+A release is cut only when the `version` in `package.json` changes on
+`master`, or when a `v<version>` tag matching `package.json` is pushed for a
+commit on `master`. Other merges do not release.
 
-1. Runs tests and linting
-2. Analyzes commit messages for version bumps
-3. Creates GitHub release with changelog
-4. Builds and zips the app
-5. Deploys to GitHub Pages
-
-### Commit Messages
-
-Use conventional commits to trigger releases:
-
-- `feat: new feature` → minor version bump
-- `fix: bug fix` → patch version bump
-- `BREAKING CHANGE: description` → major version bump
-
-### Release Workflow
-
-1. Create a feature branch:
-
-```bash
-git checkout -b feature/your-feature
-git add .
-git commit -m "feat: your feature description"
-git push origin feature/your-feature
-```
-
-2. Create a Pull Request to main
-
-3. Merge the PR - this triggers the release automatically
-
-The GitHub Action will handle versioning and deployment.
+1. Open a PR that bumps `version` in `package.json` (and `CHANGELOG.md`).
+2. Merge it. `.github/workflows/release.yml` runs the checks, builds with
+   `DASHBOARD_VERSION=<version>`, and creates release `v<version>` with
+   `admin-dashboard-build.zip` and `admin-dashboard-build.zip.sha256`. The
+   release notes carry the zip's sha256.
+3. An existing release is never replaced: if `v<version>` already exists, the
+   workflow publishes nothing. Bump the version instead.
+4. Bump core's pin (`crates/server/build.rs`: `CALIMERO_WEBUI_VERSION` and
+   `CALIMERO_WEBUI_SHA256`) to the new tag and the sha256 from the release
+   notes. To check the zip, rebuild the tag with
+   `DASHBOARD_VERSION=<version> pnpm build`.
