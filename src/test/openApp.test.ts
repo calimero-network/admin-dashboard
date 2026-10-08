@@ -197,6 +197,7 @@ describe('mintAppTokens', () => {
     expect(new Set(APP_TOKEN_PERMISSIONS)).toEqual(
       new Set([
         'context:create',
+        'context:delete',
         'context:list',
         'context:execute',
         'context:subscribe',
@@ -209,7 +210,24 @@ describe('mintAppTokens', () => {
         'context:alias',
       ]),
     );
-    expect(APP_TOKEN_PERMISSIONS).toHaveLength(11);
+    expect(APP_TOKEN_PERMISSIONS).toHaveLength(12);
+  });
+
+  // Every admin-api route an app reaches with this token, and the grant core's
+  // `PermissionValidator` (crates/auth/src/auth/permissions/validator.rs) asks
+  // for it. A grant missing here is a 403 in the app, not a failing test.
+  it.each([
+    ['GET /admin-api/contexts', 'context:list'],
+    ['POST /admin-api/contexts', 'context:create'],
+    ['DELETE /admin-api/contexts/:id', 'context:delete'],
+    ['POST /jsonrpc', 'context:execute'],
+    ['GET /sse, /ws', 'context:subscribe'],
+    ['GET /admin-api/applications', 'application:list'],
+    ['/admin-api/namespaces/*', 'namespace'],
+    ['/admin-api/groups/*', 'group'],
+    ['/admin-api/alias/*/context', 'context:alias'],
+  ])('lets an app call %s (%s)', (_route, grant) => {
+    expect(APP_TOKEN_PERMISSIONS).toContain(grant);
   });
 
   it('does not ask for the blob umbrella or node-wide blob listing', () => {
