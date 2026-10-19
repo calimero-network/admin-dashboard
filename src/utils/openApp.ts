@@ -73,6 +73,9 @@ export class MixedContentError extends Error {
 
 export const APP_TOKEN_PERMISSIONS: readonly string[] = [
   'context:create',
+  // `DELETE /admin-api/contexts/:id` requires it; without it an app can create
+  // a context but deleting it answers 403.
+  'context:delete',
   'context:list',
   'context:execute',
   'context:subscribe',

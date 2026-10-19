@@ -170,6 +170,7 @@ describe('opening an app asks first', () => {
     expect(new Set(body.permissions)).toEqual(
       new Set([
         'context:create',
+        'context:delete',
         'context:list',
         'context:execute',
         'context:subscribe',
@@ -182,7 +183,7 @@ describe('opening an app asks first', () => {
         'context:alias',
       ]),
     );
-    expect(body.permissions).toHaveLength(11);
+    expect(body.permissions).toHaveLength(12);
 
     const dest = new URL(tab.location.replace.mock.calls[0]?.[0] as string);
     expect(dest.origin).toBe('https://app.example');
