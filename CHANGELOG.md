@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/calimero-network/admin-dashboard/compare/v1.22.0...v1.22.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* app tokens may delete contexts ([#188](https://github.com/calimero-network/admin-dashboard/issues/188)) ([e0b7cc4](https://github.com/calimero-network/admin-dashboard/commit/e0b7cc44aa131276435d9a5c684a52b4832035e3))
+
 # [1.22.0](https://github.com/calimero-network/admin-dashboard/compare/v1.21.3...v1.22.0) (2026-10-01)
 
 
