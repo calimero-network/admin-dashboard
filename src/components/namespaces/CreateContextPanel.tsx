@@ -22,6 +22,13 @@ export interface InstalledApp {
   version?: string | null;
   /** `data:image/png;base64,…` from the signed bundle, as the launcher uses. */
   icon?: string | null;
+  /**
+   * The bundle's signer (`did:key:…`) — the publisher a namespace's outbound
+   * approval is keyed by. Absent for an unsigned install.
+   */
+  signerId?: string | null;
+  /** URL prefixes the signed manifest declares it sends requests to. */
+  outbound?: string[];
 }
 
 /**

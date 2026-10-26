@@ -35,6 +35,12 @@ export interface AppMetadata {
     github?: string;
     docs?: string;
   };
+  /**
+   * `https://` URL prefixes the app may send outbound requests under, present
+   * only when the manifest declares some. Read it through `declaredOutbound`
+   * (utils/outbound.ts), which drops anything that is not a string.
+   */
+  outbound?: unknown;
 }
 
 /**

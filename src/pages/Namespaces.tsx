@@ -32,6 +32,7 @@ import {
   listGroupContexts,
   listNamespaces,
   listSubgroups,
+  namespaceCreatedDespite,
   setContextMetadata,
   setGroupMetadata,
   setSubgroupVisibility,
@@ -52,6 +53,8 @@ import { MembersSection } from '../components/namespaces/MembersSection';
 import { useNodeIdentity } from '../components/namespaces/useNodeIdentity';
 import { useDiskUsage } from '../components/namespaces/useDiskUsage';
 import { StructureTree } from '../components/namespaces/StructureTree';
+import { OutboundChecklist } from '../components/namespaces/OutboundChecklist';
+import { OutboundSection } from '../components/namespaces/OutboundSection';
 import {
   ConfirmButton,
   CopyBtn,
@@ -67,6 +70,7 @@ import {
 } from '../components/namespaces/useNamespaceTree';
 import AppIcon from '../components/AppIcon';
 import { decodeMetadata, truncateId } from '../utils/appUtils';
+import { declaredOutbound, outboundSelection } from '../utils/outbound';
 import {
   describeBytes,
   formatBytes,
@@ -170,8 +174,15 @@ function useInstalledApps(): InstalledApp[] {
       .node()
       .getInstalledApplications()
       .then((res) => {
-        const list: Array<{ id: string; metadata?: number[] }> =
-          (res.data as any)?.data?.apps ?? (res.data as any)?.apps ?? [];
+        const list: Array<{
+          id: string;
+          metadata?: number[];
+          // `Application` has no `rename_all` in core, so the node sends
+          // `signer_id`; the camelCase spelling is read too in case the SDK
+          // ever normalizes it.
+          signer_id?: string;
+          signerId?: string;
+        }> = (res.data as any)?.data?.apps ?? (res.data as any)?.apps ?? [];
         setApps(
           list.map((app) => {
             // `decodeMetadata` handles every shape the node may send (byte
@@ -184,6 +195,10 @@ function useInstalledApps(): InstalledApp[] {
               package: meta?.package ?? null,
               version: meta?.version ?? null,
               icon: meta?.icon ?? null,
+              signerId: app.signer_id ?? app.signerId ?? null,
+              // The node reads the same key to decide what may be approved
+              // (`app_outbound` in core), so this is what an admin is shown.
+              outbound: declaredOutbound(meta),
             };
           }),
         );
@@ -598,8 +613,19 @@ function AppNamespaces({
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
+  // The outbound prefixes the admin approves in the create call. Reset to
+  // "all of them" every time the panel opens.
+  const [approved, setApproved] = useState<Set<string>>(new Set());
+  // A create that made the namespace but whose outbound approval the node
+  // refused. Kept on screen rather than toasted: the namespace exists, and its
+  // app's requests will be refused until someone approves them.
+  const [partial, setPartial] = useState<{
+    namespaceId: string;
+    message: string;
+  } | null>(null);
 
   const app = installedApps.find((a) => a.id === applicationId);
+  const declared = app?.outbound ?? [];
   const appNamespaces = namespaces.filter(
     (ns) => ns.targetApplicationId === applicationId,
   );
@@ -608,26 +634,51 @@ function AppNamespaces({
   const installed = !!app;
   const title = app?.name ?? 'Unknown application';
 
+  const openCreate = () => {
+    if (!showCreate) setApproved(new Set(declared));
+    setShowCreate((v) => !v);
+  };
+
   const create = async () => {
     setCreating(true);
+    setPartial(null);
+    const approveOutbound = outboundSelection(declared, approved);
     try {
       const result = await createNamespace({
         applicationId,
         ...(name.trim() ? { name: name.trim() } : {}),
+        ...(approveOutbound !== undefined ? { approveOutbound } : {}),
       });
+      const approvedCount = result?.outboundApproval?.prefixes.length;
       showToast(
-        `Namespace created: ${truncate(result.namespaceId)}`,
+        `Namespace created: ${truncate(result.namespaceId)}` +
+          (approvedCount !== undefined
+            ? ` · ${approvedCount} outbound prefix${approvedCount === 1 ? '' : 'es'} approved`
+            : ''),
         'success',
       );
       setShowCreate(false);
       setName('');
       await load();
     } catch (e: unknown) {
-      showToast(errorMessage(e, 'Failed to create namespace'), 'error');
+      const message = errorMessage(e, 'Failed to create namespace');
+      const createdId = namespaceCreatedDespite(message);
+      if (createdId) {
+        setPartial({ namespaceId: createdId, message });
+        setShowCreate(false);
+        setName('');
+        await load();
+      } else {
+        showToast(message, 'error');
+      }
     } finally {
       setCreating(false);
     }
   };
+
+  const partialNs = partial
+    ? namespaces.find((ns) => ns.namespaceId === partial.namespaceId)
+    : undefined;
 
   return (
     <>
@@ -672,7 +723,7 @@ function AppNamespaces({
           </button>
           <button
             className="btn btn-primary"
-            onClick={() => setShowCreate((v) => !v)}
+            onClick={openCreate}
             disabled={!installed}
             title={
               installed
@@ -703,6 +754,44 @@ function AppNamespaces({
             await load();
           }}
         />
+      )}
+
+      {partial && (
+        <div
+          className="alert alert-error ns-outbound-partial"
+          role="alert"
+          data-testid="ns-outbound-partial"
+        >
+          <strong>
+            Namespace created, but approving its outbound requests failed.
+          </strong>
+          <p>
+            Namespace{' '}
+            <span className="mono" title={partial.namespaceId}>
+              {truncate(partial.namespaceId, 32)}
+            </span>{' '}
+            exists. Its app&apos;s outbound requests are refused until an admin
+            approves them under <strong>Outbound access</strong> on the
+            namespace page.
+          </p>
+          <p className="mono ns-outbound-partial-detail">{partial.message}</p>
+          <div className="ns-outbound-partial-actions">
+            {partialNs && (
+              <button
+                className="btn btn-sm"
+                onClick={() => {
+                  setPartial(null);
+                  onOpen(partialNs);
+                }}
+              >
+                Open namespace
+              </button>
+            )}
+            <button className="btn btn-sm" onClick={() => setPartial(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
       )}
 
       {showCreate && installed && (
@@ -743,6 +832,12 @@ function AppNamespaces({
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
+            <OutboundChecklist
+              declared={declared}
+              checked={approved}
+              onChange={setApproved}
+              disabled={creating}
+            />
           </div>
           <div className="ns-panel-actions">
             <button
@@ -1188,6 +1283,13 @@ function NamespaceDetail({
           </div>
         )}
       </div>
+
+      <OutboundSection
+        namespaceId={ns.namespaceId}
+        targetApplicationId={ns.targetApplicationId}
+        installedApps={installedApps}
+        showToast={showToast}
+      />
 
       {/* Not "your namespace identity" — there is no such thing. Every
           namespace on this node resolves to the same account, which is why
