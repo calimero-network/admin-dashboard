@@ -938,3 +938,77 @@
   color: var(--text-tertiary);
   min-width: 0;
 }
+
+/* ── Outbound access (create checklist + namespace section) ───────────────── */
+
+.ns-outbound-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.ns-outbound-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-primary);
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.ns-outbound-item input {
+  flex: none;
+  margin: 0;
+}
+
+.ns-outbound-hint {
+  line-height: 1.5;
+}
+
+.ns-section > .ns-outbound-hint {
+  margin-bottom: 12px;
+}
+
+.ns-outbound-publisher + .ns-outbound-publisher {
+  margin-top: 16px;
+}
+
+.ns-outbound-prefix {
+  word-break: break-all;
+}
+
+.ns-outbound-status[data-status='approved'] {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 50%, transparent);
+}
+
+.ns-outbound-status[data-status='revoked'] {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 50%, transparent);
+}
+
+.ns-outbound-status[data-status='awaiting'] {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 50%, transparent);
+}
+
+.ns-outbound-partial p {
+  margin: 8px 0 0;
+}
+
+.ns-outbound-partial-detail {
+  font-size: 12px;
+  opacity: 0.85;
+  word-break: break-all;
+}
+
+.ns-outbound-partial-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}

@@ -42,6 +42,8 @@ export interface MockApp {
   id: string;
   size?: number;
   metadata: number[];
+  /** The bundle's signer. snake_case: core's `Application` has no `rename_all`. */
+  signer_id?: string;
 }
 
 export const APP_WITH_FRONTEND: MockApp = {

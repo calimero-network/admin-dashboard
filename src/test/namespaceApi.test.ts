@@ -14,6 +14,10 @@ import {
   listNamespaces,
   listSubgroups,
   setGroupMetadata,
+  createNamespace,
+  namespaceCreatedDespite,
+  listOutboundApprovals,
+  setOutboundApproval,
 } from '../api/namespaceApi';
 
 /**
@@ -326,5 +330,171 @@ describe('names', () => {
     expect(call[0]).toContain('/admin-api/groups/g-1/metadata');
     expect(call[1].method).toBe('PUT');
     expect(JSON.parse(call[1].body)).toEqual({ name: 'design', data: {} });
+  });
+});
+
+// ── Outbound approvals ────────────────────────────────────────────────────────
+
+const NS = 'c'.repeat(64);
+const APP_ID = 'd'.repeat(64);
+const SIGNER = 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK';
+const STRIPE = 'https://api.stripe.com/v1/';
+const TURNSTILE = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+function sentBody(): unknown {
+  const call = mockFetch.mock.calls[0];
+  if (!call) throw new Error('fetch was not called');
+  return JSON.parse(call[1].body);
+}
+
+describe('createNamespace', () => {
+  it('sends no approveOutbound when none is given — an older node would 400 on the key', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: { namespaceId: NS } }));
+    await createNamespace({ applicationId: APP_ID, name: 'Team' });
+    expect(sentBody()).toEqual({ applicationId: APP_ID, name: 'Team' });
+  });
+
+  it('sends approveOutbound: "manifest" as the bare string', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: { namespaceId: NS } }));
+    await createNamespace({
+      applicationId: APP_ID,
+      approveOutbound: 'manifest',
+    });
+    expect(sentBody()).toEqual({
+      applicationId: APP_ID,
+      approveOutbound: 'manifest',
+    });
+  });
+
+  it('sends a list as a plain array, including an empty one', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: { namespaceId: NS } }));
+    await createNamespace({ applicationId: APP_ID, approveOutbound: [] });
+    expect(sentBody()).toEqual({ applicationId: APP_ID, approveOutbound: [] });
+  });
+
+  it('returns outboundApproval from the response data', async () => {
+    const approval = { signer: SIGNER, prefixes: [STRIPE], reviewed: [STRIPE] };
+    mockFetch.mockReturnValueOnce(
+      okResponse({ data: { namespaceId: NS, outboundApproval: approval } }),
+    );
+    const result = await createNamespace({
+      applicationId: APP_ID,
+      approveOutbound: [STRIPE],
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:2428/admin-api/namespaces',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(result).toEqual({ namespaceId: NS, outboundApproval: approval });
+  });
+
+  it('a refused approval rejects with the message naming the created namespace', async () => {
+    mockFetch.mockReturnValueOnce(
+      errResponse(
+        403,
+        JSON.stringify({
+          error: `namespace ${NS} was created, but approving outbound requests failed: not an admin`,
+        }),
+      ),
+    );
+    const err = await createNamespace({
+      applicationId: APP_ID,
+      approveOutbound: 'manifest',
+    }).catch((e: Error) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(namespaceCreatedDespite((err as Error).message)).toBe(NS);
+  });
+});
+
+describe('namespaceCreatedDespite', () => {
+  it("extracts the namespace id from core's partial-success message", () => {
+    expect(
+      namespaceCreatedDespite(
+        `500: namespace ${NS} was created, but approving outbound requests failed: x`,
+      ),
+    ).toBe(NS);
+  });
+
+  it('is null for an ordinary failure, where nothing was created', () => {
+    expect(namespaceCreatedDespite('400: application is not installed')).toBe(
+      null,
+    );
+    expect(namespaceCreatedDespite(`namespace ${NS} not found`)).toBe(null);
+  });
+});
+
+describe('listOutboundApprovals', () => {
+  it('GETs the namespace path and unwraps { data: [...] }', async () => {
+    const rows = [{ signer: SIGNER, prefixes: [STRIPE], reviewed: [STRIPE] }];
+    mockFetch.mockReturnValueOnce(okResponse({ data: rows }));
+    const result = await listOutboundApprovals(NS);
+    expect(mockFetch).toHaveBeenCalledWith(
+      `http://localhost:2428/admin-api/namespaces/${NS}/outbound-approvals`,
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-token',
+        }),
+      }),
+    );
+    expect(result).toEqual(rows);
+  });
+
+  it('answers [] rather than a non-array', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: {} }));
+    expect(await listOutboundApprovals(NS)).toEqual([]);
+  });
+
+  it('throws on a non-OK response', async () => {
+    mockFetch.mockReturnValueOnce(errResponse(404, 'Not Found'));
+    await expect(listOutboundApprovals(NS)).rejects.toThrow('404');
+  });
+});
+
+describe('setOutboundApproval', () => {
+  it('PUTs exactly { applicationId, approve } — the body is deny_unknown_fields', async () => {
+    mockFetch.mockReturnValueOnce(
+      okResponse({
+        data: {
+          namespaceId: NS,
+          signer: SIGNER,
+          prefixes: [TURNSTILE],
+          reviewed: [STRIPE, TURNSTILE],
+          published: true,
+        },
+      }),
+    );
+    const result = await setOutboundApproval(NS, {
+      applicationId: APP_ID,
+      approve: [TURNSTILE],
+    });
+    const call = mockFetch.mock.calls[0];
+    expect(call?.[0]).toBe(
+      `http://localhost:2428/admin-api/namespaces/${NS}/outbound-approvals`,
+    );
+    expect(call?.[1].method).toBe('PUT');
+    expect(sentBody()).toEqual({ applicationId: APP_ID, approve: [TURNSTILE] });
+    // The approval is FLATTENED into the response data, not nested.
+    expect(result).toEqual({
+      namespaceId: NS,
+      signer: SIGNER,
+      prefixes: [TURNSTILE],
+      reviewed: [STRIPE, TURNSTILE],
+      published: true,
+    });
+  });
+
+  it('an empty list (revoke everything) is sent as []', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: {} }));
+    await setOutboundApproval(NS, { applicationId: APP_ID, approve: [] });
+    expect(sentBody()).toEqual({ applicationId: APP_ID, approve: [] });
+  });
+
+  it('"manifest" is sent as the bare string', async () => {
+    mockFetch.mockReturnValueOnce(okResponse({ data: {} }));
+    await setOutboundApproval(NS, {
+      applicationId: APP_ID,
+      approve: 'manifest',
+    });
+    expect(sentBody()).toEqual({ applicationId: APP_ID, approve: 'manifest' });
   });
 });

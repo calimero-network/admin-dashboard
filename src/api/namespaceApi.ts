@@ -146,6 +146,50 @@ export interface CreateNamespaceRequest {
   name?: string;
   /** Hex 32-byte blob id; pins the namespace to a specific installed version. */
   appKey?: string;
+  /**
+   * Approve the app's outbound URL prefixes in the same call. Left out when the
+   * app declares none — the node would publish nothing for it anyway.
+   */
+  approveOutbound?: OutboundSelection;
+}
+
+/**
+ * What an admin approves of an app's outbound URL prefixes: `"manifest"` (every
+ * prefix its signed manifest declares, read by the node) or exactly these
+ * prefixes. On the wire it is one or the other, never an object
+ * (core: `calimero_primitives::outbound::OutboundSelection`).
+ */
+export type OutboundSelection = 'manifest' | string[];
+
+/**
+ * What a namespace approves for ONE publisher (core: `OutboundApprovalApiData`).
+ *
+ * Keyed by the bundle's signer, not the app: a fork or a transferred app signed
+ * by someone else starts with nothing approved.
+ *
+ *  • `prefixes` — what the publisher's apps may send requests under now.
+ *  • `reviewed` — every prefix an approver was ever shown. A reviewed prefix
+ *    missing from `prefixes` was left out or revoked (`NotApproved:`); a prefix
+ *    the app declares that is in neither waits (`AwaitingApproval:`).
+ */
+export interface OutboundApproval {
+  /** The publisher's signer id (`did:key:…`). */
+  signer: string;
+  prefixes: string[];
+  reviewed: string[];
+}
+
+export interface CreateNamespaceResult {
+  namespaceId: string;
+  /** Present when the request carried `approveOutbound`. */
+  outboundApproval?: OutboundApproval;
+}
+
+/** `PUT /namespaces/:id/outbound-approvals` answers the approval flattened in. */
+export interface SetOutboundApprovalResult extends OutboundApproval {
+  namespaceId: string;
+  /** `false` when the list was already exactly this, so no op was published. */
+  published: boolean;
 }
 
 export interface CreateContextRequest {
@@ -331,10 +375,36 @@ export async function getNodeIdentity(): Promise<NodeIdentity> {
   return apiGet<NodeIdentity>('/admin-api/identity');
 }
 
+/**
+ * Create a namespace, optionally approving the app's outbound prefixes in the
+ * same call.
+ *
+ * The namespace exists before it can approve anything, so a refused approval
+ * does NOT undo the create: the node answers an error whose message names the
+ * namespace it did create (see {@link namespaceCreatedDespite}).
+ */
 export async function createNamespace(
   req: CreateNamespaceRequest,
-): Promise<{ namespaceId: string }> {
-  return apiPost<{ namespaceId: string }>('/admin-api/namespaces', req);
+): Promise<CreateNamespaceResult> {
+  return apiPost<CreateNamespaceResult>('/admin-api/namespaces', {
+    applicationId: req.applicationId,
+    ...(req.name ? { name: req.name } : {}),
+    ...(req.appKey ? { appKey: req.appKey } : {}),
+    ...(req.approveOutbound !== undefined
+      ? { approveOutbound: req.approveOutbound }
+      : {}),
+  });
+}
+
+/**
+ * The namespace id in a create error that means "created, but the outbound
+ * approval failed" — core's
+ * `namespace <hex> was created, but approving outbound requests failed: …` —
+ * or `null` for any other error, where nothing was created.
+ */
+export function namespaceCreatedDespite(message: string): string | null {
+  const match = /namespace ([0-9a-f]{64}) was created, but/i.exec(message);
+  return match?.[1] ?? null;
 }
 
 export async function deleteNamespace(
@@ -405,6 +475,40 @@ export async function createGroupInNamespace(
       ...(req?.groupName ? { groupName: req.groupName } : {}),
       ...(req?.visibility ? { visibility: req.visibility } : {}),
     },
+  );
+}
+
+// ---- Outbound approvals ----
+
+/**
+ * What the namespace approves, one entry per publisher. Readable by anyone who
+ * may read the namespace.
+ */
+export async function listOutboundApprovals(
+  namespaceId: string,
+): Promise<OutboundApproval[]> {
+  const result = await apiGet<OutboundApproval[]>(
+    `/admin-api/namespaces/${namespaceId}/outbound-approvals`,
+  );
+  return Array.isArray(result) ? result : [];
+}
+
+/**
+ * Set what the namespace approves for the publisher of `applicationId` to
+ * EXACTLY `approve` — this replaces, it does not add, which is how a prefix is
+ * revoked; `[]` revokes everything. The node resolves the publisher from the
+ * installed application, so `applicationId` must be installed on this node.
+ *
+ * The body is `deny_unknown_fields` on core's side, so it carries these two
+ * keys and nothing else.
+ */
+export async function setOutboundApproval(
+  namespaceId: string,
+  req: { applicationId: string; approve: OutboundSelection },
+): Promise<SetOutboundApprovalResult> {
+  return apiPut<SetOutboundApprovalResult>(
+    `/admin-api/namespaces/${namespaceId}/outbound-approvals`,
+    { applicationId: req.applicationId, approve: req.approve },
   );
 }
 
